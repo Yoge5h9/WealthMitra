@@ -98,7 +98,8 @@ def test_resident_salaried_is_eligible_for_aspire_and_royale() -> None:
 
 def test_nri_without_idbi_fd_is_ineligible_for_unsecured_cards_with_imperium_alternative() -> None:
     nri = profile().model_copy(update={"segment": "nri", "city": "Dubai", "age": 35})
-    # Shaped like data/synthetic/arjun.json: an external (non-IDBI) NRE FD only.
+    # A non-IDBI external NRE FD only — the pre-AA-connect shape before a
+    # customer's own IDBI deposit (see data/synthetic/arjun.json) is surfaced.
     metrics = {
         "external_holdings": [
             {"id": "hold-arjun-1", "type": "FD", "institution": "ICICI NRE", "amount": 700000, "rate": 7.0}
