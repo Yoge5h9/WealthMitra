@@ -1,0 +1,254 @@
+[
+  {
+    "id": "fd_ladder",
+    "name": "IDBI FD Ladder",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "6.8-7.4% p.a.",
+    "description": "Laddered fixed deposits across tenors for steady, guaranteed returns and liquidity."
+  },
+  {
+    "id": "recurring_deposit",
+    "name": "IDBI Recurring Deposit",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 500,
+    "expected_return": "6.5% p.a.",
+    "description": "Fixed monthly savings that build a corpus with assured interest."
+  },
+  {
+    "id": "index_fund_sip",
+    "name": "Nifty 50 Index Fund SIP",
+    "tag": "vanilla",
+    "category": "mutual_fund",
+    "min_amount": 500,
+    "expected_return": "~11% p.a. (market-linked, historical)",
+    "description": "Low-cost passive SIP tracking the Nifty 50 for disciplined long-term wealth building."
+  },
+  {
+    "id": "liquid_fund_sweep",
+    "name": "Liquid Fund Sweep",
+    "tag": "vanilla",
+    "category": "mutual_fund",
+    "min_amount": 1000,
+    "expected_return": "~6% p.a.",
+    "description": "Auto-sweep of idle balance into a liquid fund for better-than-savings returns with same-day access."
+  },
+  {
+    "id": "short_duration_debt",
+    "name": "Short Duration Debt Fund",
+    "tag": "vanilla",
+    "category": "mutual_fund",
+    "min_amount": 1000,
+    "expected_return": "~7% p.a.",
+    "description": "Debt fund holding short-maturity bonds; low volatility, suited to irregular cash flows."
+  },
+  {
+    "id": "corporate_fd",
+    "name": "AAA Corporate FD",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 25000,
+    "expected_return": "7.8% p.a.",
+    "description": "Highest-rated corporate fixed deposit offering a premium over bank FD rates."
+  },
+  {
+    "id": "rbi_floating_bonds",
+    "name": "RBI Floating Rate Savings Bonds",
+    "tag": "vanilla",
+    "category": "bond",
+    "min_amount": 1000,
+    "expected_return": "8.05% p.a.",
+    "description": "Sovereign-backed floating-rate bonds; capital-safe with periodic interest payout."
+  },
+  {
+    "id": "debt_index_core",
+    "name": "Debt + Index Core Portfolio",
+    "tag": "vanilla",
+    "category": "portfolio",
+    "min_amount": 50000,
+    "expected_return": "~8.5% p.a.",
+    "description": "A rule-based core allocation blending debt funds and an index fund for balanced growth."
+  },
+  {
+    "id": "gsec_ladder",
+    "name": "G-Sec Ladder",
+    "tag": "vanilla",
+    "category": "bond",
+    "min_amount": 100000,
+    "expected_return": "7.2% p.a.",
+    "description": "Ladder of government securities for sovereign safety and predictable long-tenor income."
+  },
+  {
+    "id": "nre_deposit",
+    "name": "NRE Fixed Deposit",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "7.0% p.a. (tax-free, repatriable)",
+    "description": "Rupee deposit for NRIs; interest tax-free in India and fully repatriable."
+  },
+  {
+    "id": "fcnr_deposit",
+    "name": "FCNR(B) Deposit",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 100000,
+    "expected_return": "5.5% p.a.",
+    "description": "Foreign-currency deposit for NRIs with no exchange-rate risk on principal."
+  },
+  {
+    "id": "scss",
+    "name": "Senior Citizens Savings Scheme",
+    "tag": "vanilla",
+    "category": "govt_scheme",
+    "min_amount": 1000,
+    "expected_return": "8.2% p.a.",
+    "description": "Government scheme for 60+ investors with quarterly payout and Section 80C benefit."
+  },
+  {
+    "id": "senior_citizen_fd",
+    "name": "IDBI Senior Citizen FD",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "7.75% p.a.",
+    "description": "Fixed deposit with an additional interest premium for senior citizens."
+  },
+  {
+    "id": "elss_fund",
+    "name": "ELSS Tax-Saver Fund",
+    "tag": "regulated",
+    "category": "mutual_fund",
+    "min_amount": 500,
+    "expected_return": "~12% p.a. (market-linked)",
+    "description": "Equity-linked savings scheme with a 3-year lock-in and Section 80C tax benefit."
+  },
+  {
+    "id": "flexicap_mf",
+    "name": "Flexi-Cap Equity Fund",
+    "tag": "regulated",
+    "category": "mutual_fund",
+    "min_amount": 500,
+    "expected_return": "~13% p.a. (market-linked)",
+    "description": "Actively managed equity fund investing across large, mid and small caps."
+  },
+  {
+    "id": "balanced_advantage",
+    "name": "Balanced Advantage Fund",
+    "tag": "regulated",
+    "category": "mutual_fund",
+    "min_amount": 1000,
+    "expected_return": "~10% p.a. (market-linked)",
+    "description": "Dynamic equity-debt fund that shifts allocation with market valuations."
+  },
+  {
+    "id": "equity_satellite",
+    "name": "Equity Satellite Fund",
+    "tag": "regulated",
+    "category": "mutual_fund",
+    "min_amount": 5000,
+    "expected_return": "~13% p.a. (market-linked)",
+    "description": "A satellite equity allocation layered on a debt-index core for extra growth."
+  },
+  {
+    "id": "pms_lite",
+    "name": "Managed Equity (PMS-lite)",
+    "tag": "regulated",
+    "category": "pms",
+    "min_amount": 500000,
+    "expected_return": "market-linked",
+    "description": "Professionally managed concentrated equity portfolio for affluent investors."
+  },
+  {
+    "id": "rm_allocation",
+    "name": "RM-led Asset Allocation",
+    "tag": "regulated",
+    "category": "advisory",
+    "min_amount": 1000000,
+    "expected_return": "portfolio-level, goal-based",
+    "description": "Bespoke multi-asset allocation designed and rebalanced by a relationship manager."
+  },
+  {
+    "id": "structured_note",
+    "name": "Structured Market-Linked Note",
+    "tag": "regulated",
+    "category": "structured",
+    "min_amount": 2500000,
+    "expected_return": "capital-protected + market upside",
+    "description": "Principal-protected note with returns linked to an equity index for HNI investors."
+  },
+  {
+    "id": "aif",
+    "name": "Alternative Investment Fund (Cat III)",
+    "tag": "regulated",
+    "category": "aif",
+    "min_amount": 10000000,
+    "expected_return": "market-linked",
+    "description": "SEBI-registered alternative fund pursuing long-short and derivative strategies."
+  },
+  {
+    "id": "repatriable_index",
+    "name": "Repatriable Index Fund",
+    "tag": "regulated",
+    "category": "mutual_fund",
+    "min_amount": 5000,
+    "expected_return": "~11% p.a. (market-linked)",
+    "description": "Index fund routed through NRE so gains stay repatriable for NRI investors."
+  },
+  {
+    "id": "nri_equity",
+    "name": "NRI Equity Portfolio (PIS)",
+    "tag": "regulated",
+    "category": "portfolio",
+    "min_amount": 500000,
+    "expected_return": "market-linked",
+    "description": "Direct Indian equity portfolio for NRIs under the Portfolio Investment Scheme."
+  },
+  {
+    "id": "monthly_income_plan",
+    "name": "Monthly Income Plan",
+    "tag": "regulated",
+    "category": "mutual_fund",
+    "min_amount": 25000,
+    "expected_return": "~9% p.a. (market-linked)",
+    "description": "Debt-oriented hybrid fund paying a monthly dividend for regular-income seekers."
+  },
+  {
+    "id": "treasury_bill_ladder",
+    "name": "Treasury Bill Ladder",
+    "tag": "vanilla",
+    "category": "bond",
+    "min_amount": 500000,
+    "expected_return": "6.9-7.3% p.a.",
+    "description": "Ladder of short-tenor sovereign Treasury Bills for HNI cash management with capital safety and staggered liquidity."
+  },
+  {
+    "id": "multi_asset_pms",
+    "name": "Multi-Asset PMS",
+    "tag": "regulated",
+    "category": "pms",
+    "min_amount": 750000,
+    "expected_return": "~13-15% p.a. (market-linked, historical)",
+    "description": "Discretionary multi-asset portfolio management blending equity, debt and gold for HNI diversification."
+  },
+  {
+    "id": "cat2_aif_credit",
+    "name": "Category II AIF - Structured Credit",
+    "tag": "regulated",
+    "category": "aif",
+    "min_amount": 5000000,
+    "expected_return": "~12-14% p.a. (market-linked)",
+    "description": "Category II alternative investment fund deploying into structured credit opportunities for sophisticated HNI investors."
+  },
+  {
+    "id": "flexi_micro_rd",
+    "name": "Flexi Micro Recurring Deposit",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 500,
+    "expected_return": "6.3% p.a.",
+    "description": "Flexible-installment recurring deposit built for irregular gig income; skip a month without penalty."
+  }
+]

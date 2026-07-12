@@ -1,0 +1,675 @@
+{
+  "profile": {
+    "id": "shanta",
+    "name": "Shanta Devi",
+    "age": 61,
+    "city": "Sitapur",
+    "city_tier": "rural",
+    "segment": "senior",
+    "language": "hi",
+    "risk_tolerance": "conservative",
+    "employment": "retired",
+    "occupation": "Retired School Teacher",
+    "dependents": 0,
+    "idle_balance": 150000,
+    "avatar": "senior_woman",
+    "fd_amount": 600000,
+    "fd_rate": 7.0,
+    "fd_maturity_date": "2026-07-25",
+    "story": "Shanta is a 61-year-old retired schoolteacher living in Sitapur on her pension and a fixed deposit. She wants safe, simple ways to make her savings last, explained to her in Hindi."
+  },
+  "transactions": [
+    {
+      "id": "txn-shanta-0001",
+      "date": "2026-01-01",
+      "amount": 18000.0,
+      "type": "credit",
+      "category": "pension",
+      "description": "Pension credit - EPFO",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0002",
+      "date": "2026-01-03",
+      "amount": 665.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0003",
+      "date": "2026-01-06",
+      "amount": 472.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0004",
+      "date": "2026-01-09",
+      "amount": 732.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0005",
+      "date": "2026-01-10",
+      "amount": 2352.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0006",
+      "date": "2026-01-11",
+      "amount": 199.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0007",
+      "date": "2026-01-13",
+      "amount": 659.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0008",
+      "date": "2026-01-15",
+      "amount": 627.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0009",
+      "date": "2026-01-15",
+      "amount": 623.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0010",
+      "date": "2026-01-16",
+      "amount": 2090.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0011",
+      "date": "2026-01-23",
+      "amount": 498.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0012",
+      "date": "2026-01-25",
+      "amount": 2008.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0013",
+      "date": "2026-02-01",
+      "amount": 18000.0,
+      "type": "credit",
+      "category": "pension",
+      "description": "Pension credit - EPFO",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0014",
+      "date": "2026-02-09",
+      "amount": 672.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0015",
+      "date": "2026-02-10",
+      "amount": 586.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Apollo pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0016",
+      "date": "2026-02-11",
+      "amount": 199.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0017",
+      "date": "2026-02-19",
+      "amount": 231.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0018",
+      "date": "2026-02-19",
+      "amount": 447.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0019",
+      "date": "2026-02-19",
+      "amount": 229.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0020",
+      "date": "2026-02-21",
+      "amount": 571.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0021",
+      "date": "2026-02-22",
+      "amount": 2926.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0022",
+      "date": "2026-02-23",
+      "amount": 465.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0023",
+      "date": "2026-02-23",
+      "amount": 2057.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0024",
+      "date": "2026-03-01",
+      "amount": 18000.0,
+      "type": "credit",
+      "category": "pension",
+      "description": "Pension credit - EPFO",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0025",
+      "date": "2026-03-02",
+      "amount": 10500.0,
+      "type": "credit",
+      "category": "other",
+      "description": "FD interest credit payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0026",
+      "date": "2026-03-08",
+      "amount": 554.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0027",
+      "date": "2026-03-09",
+      "amount": 989.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0028",
+      "date": "2026-03-11",
+      "amount": 199.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0029",
+      "date": "2026-03-12",
+      "amount": 3720.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0030",
+      "date": "2026-03-16",
+      "amount": 366.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0031",
+      "date": "2026-03-16",
+      "amount": 460.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0032",
+      "date": "2026-03-18",
+      "amount": 510.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0033",
+      "date": "2026-03-18",
+      "amount": 2428.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0034",
+      "date": "2026-03-23",
+      "amount": 3828.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0035",
+      "date": "2026-03-24",
+      "amount": 1571.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "MedPlus pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0036",
+      "date": "2026-04-01",
+      "amount": 18000.0,
+      "type": "credit",
+      "category": "pension",
+      "description": "Pension credit - EPFO",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0037",
+      "date": "2026-04-04",
+      "amount": 308.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0038",
+      "date": "2026-04-09",
+      "amount": 829.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0039",
+      "date": "2026-04-10",
+      "amount": 2518.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0040",
+      "date": "2026-04-10",
+      "amount": 3981.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0041",
+      "date": "2026-04-11",
+      "amount": 199.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0042",
+      "date": "2026-04-15",
+      "amount": 262.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0043",
+      "date": "2026-04-16",
+      "amount": 361.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0044",
+      "date": "2026-04-23",
+      "amount": 323.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0045",
+      "date": "2026-04-24",
+      "amount": 1817.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "MedPlus pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0046",
+      "date": "2026-04-27",
+      "amount": 750.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0047",
+      "date": "2026-05-01",
+      "amount": 18000.0,
+      "type": "credit",
+      "category": "pension",
+      "description": "Pension credit - EPFO",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0048",
+      "date": "2026-05-07",
+      "amount": 541.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0049",
+      "date": "2026-05-07",
+      "amount": 561.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0050",
+      "date": "2026-05-09",
+      "amount": 839.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0051",
+      "date": "2026-05-11",
+      "amount": 199.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0052",
+      "date": "2026-05-12",
+      "amount": 1362.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0053",
+      "date": "2026-05-13",
+      "amount": 1152.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Apollo pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0054",
+      "date": "2026-05-14",
+      "amount": 653.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0055",
+      "date": "2026-05-16",
+      "amount": 3134.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0056",
+      "date": "2026-05-17",
+      "amount": 2039.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0057",
+      "date": "2026-05-25",
+      "amount": 687.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0058",
+      "date": "2026-06-01",
+      "amount": 18000.0,
+      "type": "credit",
+      "category": "pension",
+      "description": "Pension credit - EPFO",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0059",
+      "date": "2026-06-02",
+      "amount": 10500.0,
+      "type": "credit",
+      "category": "other",
+      "description": "FD interest credit payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0060",
+      "date": "2026-06-03",
+      "amount": 2355.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0061",
+      "date": "2026-06-05",
+      "amount": 670.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0062",
+      "date": "2026-06-05",
+      "amount": 243.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0063",
+      "date": "2026-06-09",
+      "amount": 834.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0064",
+      "date": "2026-06-10",
+      "amount": 2047.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0065",
+      "date": "2026-06-11",
+      "amount": 199.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0066",
+      "date": "2026-06-11",
+      "amount": 462.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0067",
+      "date": "2026-06-12",
+      "amount": 464.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0068",
+      "date": "2026-06-14",
+      "amount": 2831.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0069",
+      "date": "2026-06-19",
+      "amount": 3739.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-shanta-0070",
+      "date": "2026-06-24",
+      "amount": 209.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    }
+  ],
+  "goals": [
+    {
+      "name": "Health & contingency reserve",
+      "horizon_years": 3,
+      "target": 500000,
+      "saved_so_far": 200000
+    }
+  ],
+  "external": {
+    "aa_available": true,
+    "connected": false,
+    "holdings": [
+      {
+        "id": "hold-shanta-1",
+        "type": "FD",
+        "institution": "SBI",
+        "amount": 200000,
+        "rate": 6.8
+      }
+    ],
+    "liabilities": []
+  }
+}

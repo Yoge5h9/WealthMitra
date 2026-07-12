@@ -1,0 +1,1283 @@
+{
+  "profile": {
+    "id": "devika",
+    "name": "Devika Malhotra",
+    "age": 52,
+    "city": "Delhi",
+    "city_tier": "urban_t1",
+    "segment": "hni",
+    "language": "en",
+    "risk_tolerance": "growth",
+    "employment": "business",
+    "occupation": "Import-Export Business Owner",
+    "dependents": 1,
+    "idle_balance": 2500000,
+    "avatar": "hni_business_woman",
+    "story": "Devika, 52, built a successful import-export business in Delhi and now sits on a diversified crore-plus portfolio across FDs, mutual funds, and equity. She's exploring structured products and PMS for her next allocation, which is exactly the territory that calls for a human relationship manager."
+  },
+  "transactions": [
+    {
+      "id": "txn-devika-0001",
+      "date": "2026-01-01",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Domestic staff wages payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0002",
+      "date": "2026-01-03",
+      "amount": 150000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment - showroom",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0003",
+      "date": "2026-01-03",
+      "amount": 5946.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0004",
+      "date": "2026-01-04",
+      "amount": 6193.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0005",
+      "date": "2026-01-05",
+      "amount": 100000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Equity Fund top-up",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0006",
+      "date": "2026-01-05",
+      "amount": 649.0,
+      "type": "debit",
+      "category": "entertainment",
+      "description": "Netflix subscription",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0007",
+      "date": "2026-01-06",
+      "amount": 65000.0,
+      "type": "debit",
+      "category": "emi",
+      "description": "Business loan EMI installment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0008",
+      "date": "2026-01-07",
+      "amount": 500000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "FD booking - fresh deposit",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0009",
+      "date": "2026-01-07",
+      "amount": 6837.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0010",
+      "date": "2026-01-08",
+      "amount": 11484.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0011",
+      "date": "2026-01-08",
+      "amount": 398.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0012",
+      "date": "2026-01-10",
+      "amount": 1499.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0013",
+      "date": "2026-01-10",
+      "amount": 939.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0014",
+      "date": "2026-01-12",
+      "amount": 45197.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0015",
+      "date": "2026-01-14",
+      "amount": 3310.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0016",
+      "date": "2026-01-15",
+      "amount": 2530.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0017",
+      "date": "2026-01-15",
+      "amount": 58791.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines business ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0018",
+      "date": "2026-01-17",
+      "amount": 1026.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0019",
+      "date": "2026-01-18",
+      "amount": 733651.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Business receipt - export consignment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0020",
+      "date": "2026-01-19",
+      "amount": 4668.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0021",
+      "date": "2026-01-20",
+      "amount": 35103.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0022",
+      "date": "2026-01-21",
+      "amount": 30475.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0023",
+      "date": "2026-02-01",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Domestic staff wages payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0024",
+      "date": "2026-02-03",
+      "amount": 150000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment - showroom",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0025",
+      "date": "2026-02-05",
+      "amount": 100000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Equity Fund top-up",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0026",
+      "date": "2026-02-05",
+      "amount": 304.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0027",
+      "date": "2026-02-05",
+      "amount": 649.0,
+      "type": "debit",
+      "category": "entertainment",
+      "description": "Netflix subscription",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0028",
+      "date": "2026-02-06",
+      "amount": 65000.0,
+      "type": "debit",
+      "category": "emi",
+      "description": "Business loan EMI installment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0029",
+      "date": "2026-02-08",
+      "amount": 11406.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0030",
+      "date": "2026-02-08",
+      "amount": 43796.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0031",
+      "date": "2026-02-09",
+      "amount": 3929.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0032",
+      "date": "2026-02-09",
+      "amount": 4953.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Apollo pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0033",
+      "date": "2026-02-10",
+      "amount": 1499.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0034",
+      "date": "2026-02-10",
+      "amount": 63369.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0035",
+      "date": "2026-02-10",
+      "amount": 77237.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines business ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0036",
+      "date": "2026-02-11",
+      "amount": 6737.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0037",
+      "date": "2026-02-12",
+      "amount": 2530.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0038",
+      "date": "2026-02-13",
+      "amount": 341.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0039",
+      "date": "2026-02-17",
+      "amount": 39676.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0040",
+      "date": "2026-02-18",
+      "amount": 536.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0041",
+      "date": "2026-02-20",
+      "amount": 604100.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - overseas buyer invoice",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0042",
+      "date": "2026-02-20",
+      "amount": 32541.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0043",
+      "date": "2026-02-22",
+      "amount": 775.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0044",
+      "date": "2026-02-28",
+      "amount": 536.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0045",
+      "date": "2026-03-01",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Domestic staff wages payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0046",
+      "date": "2026-03-03",
+      "amount": 150000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment - showroom",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0047",
+      "date": "2026-03-03",
+      "amount": 5020.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0048",
+      "date": "2026-03-04",
+      "amount": 6332.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Apollo pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0049",
+      "date": "2026-03-04",
+      "amount": 35843.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store - Holi shopping",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0050",
+      "date": "2026-03-05",
+      "amount": 1130637.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Professional fees - consulting retainer",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0051",
+      "date": "2026-03-05",
+      "amount": 100000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Equity Fund top-up",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0052",
+      "date": "2026-03-05",
+      "amount": 56776.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0053",
+      "date": "2026-03-05",
+      "amount": 649.0,
+      "type": "debit",
+      "category": "entertainment",
+      "description": "Netflix subscription",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0054",
+      "date": "2026-03-06",
+      "amount": 2361.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0055",
+      "date": "2026-03-06",
+      "amount": 65000.0,
+      "type": "debit",
+      "category": "emi",
+      "description": "Business loan EMI installment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0056",
+      "date": "2026-03-07",
+      "amount": 935.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0057",
+      "date": "2026-03-08",
+      "amount": 10456.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0058",
+      "date": "2026-03-10",
+      "amount": 1499.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0059",
+      "date": "2026-03-10",
+      "amount": 2313.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0060",
+      "date": "2026-03-15",
+      "amount": 994.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0061",
+      "date": "2026-03-21",
+      "amount": 32035.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0062",
+      "date": "2026-03-21",
+      "amount": 37958.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0063",
+      "date": "2026-03-24",
+      "amount": 55628.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0064",
+      "date": "2026-03-25",
+      "amount": 130412.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines business ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0065",
+      "date": "2026-03-28",
+      "amount": 311.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0066",
+      "date": "2026-03-31",
+      "amount": 16036.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase - Eid gifts",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0067",
+      "date": "2026-04-01",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Domestic staff wages payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0068",
+      "date": "2026-04-02",
+      "amount": 744.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0069",
+      "date": "2026-04-03",
+      "amount": 150000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment - showroom",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0070",
+      "date": "2026-04-03",
+      "amount": 4558.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0071",
+      "date": "2026-04-05",
+      "amount": 100000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Equity Fund top-up",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0072",
+      "date": "2026-04-05",
+      "amount": 649.0,
+      "type": "debit",
+      "category": "entertainment",
+      "description": "Netflix subscription",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0073",
+      "date": "2026-04-06",
+      "amount": 1178997.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Professional fees - consulting retainer",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0074",
+      "date": "2026-04-06",
+      "amount": 65000.0,
+      "type": "debit",
+      "category": "emi",
+      "description": "Business loan EMI installment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0075",
+      "date": "2026-04-07",
+      "amount": 500000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "FD booking - fresh deposit",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0076",
+      "date": "2026-04-08",
+      "amount": 13374.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0077",
+      "date": "2026-04-10",
+      "amount": 1499.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0078",
+      "date": "2026-04-14",
+      "amount": 891.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0079",
+      "date": "2026-04-14",
+      "amount": 21693.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0080",
+      "date": "2026-04-15",
+      "amount": 2149.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0081",
+      "date": "2026-04-15",
+      "amount": 416.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0082",
+      "date": "2026-04-16",
+      "amount": 5663.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Medical checkup",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0083",
+      "date": "2026-04-20",
+      "amount": 674119.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Professional fees - consulting retainer",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0084",
+      "date": "2026-04-20",
+      "amount": 4926.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0085",
+      "date": "2026-04-22",
+      "amount": 25727.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0086",
+      "date": "2026-04-22",
+      "amount": 70847.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines business ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0087",
+      "date": "2026-04-23",
+      "amount": 4519.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0088",
+      "date": "2026-04-24",
+      "amount": 32771.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0089",
+      "date": "2026-04-25",
+      "amount": 714.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0090",
+      "date": "2026-05-01",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Domestic staff wages payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0091",
+      "date": "2026-05-03",
+      "amount": 150000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment - showroom",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0092",
+      "date": "2026-05-05",
+      "amount": 100000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Equity Fund top-up",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0093",
+      "date": "2026-05-05",
+      "amount": 5143.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0094",
+      "date": "2026-05-05",
+      "amount": 649.0,
+      "type": "debit",
+      "category": "entertainment",
+      "description": "Netflix subscription",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0095",
+      "date": "2026-05-06",
+      "amount": 37802.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0096",
+      "date": "2026-05-06",
+      "amount": 2356.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0097",
+      "date": "2026-05-06",
+      "amount": 65000.0,
+      "type": "debit",
+      "category": "emi",
+      "description": "Business loan EMI installment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0098",
+      "date": "2026-05-07",
+      "amount": 49154.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0099",
+      "date": "2026-05-08",
+      "amount": 13692.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0100",
+      "date": "2026-05-10",
+      "amount": 1499.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0101",
+      "date": "2026-05-12",
+      "amount": 51995.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines business ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0102",
+      "date": "2026-05-20",
+      "amount": 6573.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Apollo pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0103",
+      "date": "2026-05-20",
+      "amount": 36970.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0104",
+      "date": "2026-05-21",
+      "amount": 714.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0105",
+      "date": "2026-05-22",
+      "amount": 697.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0106",
+      "date": "2026-05-22",
+      "amount": 1104.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0107",
+      "date": "2026-05-23",
+      "amount": 1181980.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Business receipt - export consignment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0108",
+      "date": "2026-05-24",
+      "amount": 935.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0109",
+      "date": "2026-05-25",
+      "amount": 48060.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0110",
+      "date": "2026-05-26",
+      "amount": 3616.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0111",
+      "date": "2026-05-28",
+      "amount": 784.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0112",
+      "date": "2026-06-01",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Domestic staff wages payout",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0113",
+      "date": "2026-06-02",
+      "amount": 303.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0114",
+      "date": "2026-06-03",
+      "amount": 150000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment - showroom",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0115",
+      "date": "2026-06-03",
+      "amount": 72924.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0116",
+      "date": "2026-06-03",
+      "amount": 7471.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0117",
+      "date": "2026-06-05",
+      "amount": 100000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Equity Fund top-up",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0118",
+      "date": "2026-06-05",
+      "amount": 5193.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0119",
+      "date": "2026-06-05",
+      "amount": 649.0,
+      "type": "debit",
+      "category": "entertainment",
+      "description": "Netflix subscription",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0120",
+      "date": "2026-06-06",
+      "amount": 65000.0,
+      "type": "debit",
+      "category": "emi",
+      "description": "Business loan EMI installment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0121",
+      "date": "2026-06-08",
+      "amount": 10224.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0122",
+      "date": "2026-06-09",
+      "amount": 100802.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines business ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0123",
+      "date": "2026-06-10",
+      "amount": 1499.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0124",
+      "date": "2026-06-15",
+      "amount": 1103313.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Business receipt - export consignment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-devika-0125",
+      "date": "2026-06-15",
+      "amount": 4524.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0126",
+      "date": "2026-06-16",
+      "amount": 6506.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0127",
+      "date": "2026-06-16",
+      "amount": 540.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0128",
+      "date": "2026-06-16",
+      "amount": 46559.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-devika-0129",
+      "date": "2026-06-18",
+      "amount": 748.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Uber ride",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0130",
+      "date": "2026-06-23",
+      "amount": 676.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0131",
+      "date": "2026-06-25",
+      "amount": 68454.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0132",
+      "date": "2026-06-26",
+      "amount": 4508.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-devika-0133",
+      "date": "2026-06-26",
+      "amount": 13134.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Diagnostic lab test",
+      "account": "sa"
+    }
+  ],
+  "goals": [
+    {
+      "name": "Family legacy & philanthropy corpus",
+      "horizon_years": 8,
+      "target": 50000000,
+      "saved_so_far": 26000000
+    }
+  ],
+  "external": {
+    "aa_available": true,
+    "connected": false,
+    "holdings": [
+      {
+        "id": "hold-devika-1",
+        "type": "FD",
+        "institution": "HDFC Bank",
+        "amount": 6000000,
+        "rate": 7.1
+      },
+      {
+        "id": "hold-devika-2",
+        "type": "FD",
+        "institution": "Axis Bank",
+        "amount": 4000000,
+        "rate": 7.0
+      },
+      {
+        "id": "hold-devika-3",
+        "type": "MF",
+        "institution": "ICICI Prudential MF",
+        "amount": 9000000,
+        "rate": null
+      },
+      {
+        "id": "hold-devika-4",
+        "type": "equity",
+        "institution": "Zerodha Demat",
+        "amount": 5000000,
+        "rate": null
+      },
+      {
+        "id": "hold-devika-5",
+        "type": "NPS",
+        "institution": "NSDL",
+        "amount": 800000,
+        "rate": null
+      },
+      {
+        "id": "hold-devika-6",
+        "type": "insurance",
+        "institution": "LIC Endowment",
+        "amount": 1200000,
+        "rate": null
+      }
+    ],
+    "liabilities": [
+      {
+        "id": "liab-devika-1",
+        "type": "business_loan",
+        "lender": "IDBI Bank Working Capital",
+        "principal": 3000000,
+        "rate": 9.5,
+        "emi": 65000
+      }
+    ]
+  }
+}

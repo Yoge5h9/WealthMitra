@@ -1,0 +1,614 @@
+{
+  "profile": {
+    "id": "arjun",
+    "name": "Arjun Nair",
+    "age": 35,
+    "city": "Dubai",
+    "city_tier": "nri",
+    "segment": "nri",
+    "language": "en",
+    "risk_tolerance": "moderate",
+    "employment": "salaried",
+    "occupation": "Senior Software Engineer (Dubai)",
+    "dependents": 2,
+    "idle_balance": 500000,
+    "avatar": "nri_professional_male",
+    "story": "Arjun is a 35-year-old NRI software professional based in Dubai who sends money home every month for family expenses while building an India-based investment corpus for his eventual return."
+  },
+  "transactions": [
+    {
+      "id": "txn-arjun-0001",
+      "date": "2026-01-02",
+      "amount": 200000.0,
+      "type": "credit",
+      "category": "transfer_in",
+      "description": "NRE inward remittance",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0002",
+      "date": "2026-01-04",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Family maintenance transfer",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0003",
+      "date": "2026-01-06",
+      "amount": 20000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Index Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0004",
+      "date": "2026-01-08",
+      "amount": 1869.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0005",
+      "date": "2026-01-09",
+      "amount": 944.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0006",
+      "date": "2026-01-10",
+      "amount": 916.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0007",
+      "date": "2026-01-18",
+      "amount": 1046.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0008",
+      "date": "2026-01-26",
+      "amount": 1627.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0009",
+      "date": "2026-01-28",
+      "amount": 3211.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0010",
+      "date": "2026-02-02",
+      "amount": 200000.0,
+      "type": "credit",
+      "category": "transfer_in",
+      "description": "NRE inward remittance",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0011",
+      "date": "2026-02-02",
+      "amount": 3825.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0012",
+      "date": "2026-02-03",
+      "amount": 1526.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0013",
+      "date": "2026-02-04",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Family maintenance transfer",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0014",
+      "date": "2026-02-06",
+      "amount": 20000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Index Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0015",
+      "date": "2026-02-08",
+      "amount": 2303.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0016",
+      "date": "2026-02-15",
+      "amount": 19261.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0017",
+      "date": "2026-02-16",
+      "amount": 1659.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0018",
+      "date": "2026-02-19",
+      "amount": 2749.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0019",
+      "date": "2026-02-22",
+      "amount": 986.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0020",
+      "date": "2026-02-25",
+      "amount": 830.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0021",
+      "date": "2026-03-02",
+      "amount": 200000.0,
+      "type": "credit",
+      "category": "transfer_in",
+      "description": "NRE inward remittance",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0022",
+      "date": "2026-03-04",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Family maintenance transfer",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0023",
+      "date": "2026-03-05",
+      "amount": 742.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0024",
+      "date": "2026-03-06",
+      "amount": 20000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Index Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0025",
+      "date": "2026-03-07",
+      "amount": 553.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0026",
+      "date": "2026-03-08",
+      "amount": 1788.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0027",
+      "date": "2026-03-10",
+      "amount": 3527.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0028",
+      "date": "2026-03-11",
+      "amount": 2479.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0029",
+      "date": "2026-03-12",
+      "amount": 32879.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0030",
+      "date": "2026-03-14",
+      "amount": 3186.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0031",
+      "date": "2026-03-18",
+      "amount": 1418.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0032",
+      "date": "2026-03-31",
+      "amount": 4843.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase - Eid gifts for family",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0033",
+      "date": "2026-04-02",
+      "amount": 200000.0,
+      "type": "credit",
+      "category": "transfer_in",
+      "description": "NRE inward remittance",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0034",
+      "date": "2026-04-04",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Family maintenance transfer",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0035",
+      "date": "2026-04-04",
+      "amount": 1215.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0036",
+      "date": "2026-04-06",
+      "amount": 20000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Index Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0037",
+      "date": "2026-04-08",
+      "amount": 1937.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0038",
+      "date": "2026-04-10",
+      "amount": 1566.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0039",
+      "date": "2026-04-12",
+      "amount": 889.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0040",
+      "date": "2026-04-19",
+      "amount": 1288.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0041",
+      "date": "2026-05-02",
+      "amount": 200000.0,
+      "type": "credit",
+      "category": "transfer_in",
+      "description": "NRE inward remittance",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0042",
+      "date": "2026-05-04",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Family maintenance transfer",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0043",
+      "date": "2026-05-06",
+      "amount": 20000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Index Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0044",
+      "date": "2026-05-06",
+      "amount": 1430.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0045",
+      "date": "2026-05-08",
+      "amount": 2267.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0046",
+      "date": "2026-05-08",
+      "amount": 2043.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0047",
+      "date": "2026-05-09",
+      "amount": 20601.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0048",
+      "date": "2026-05-10",
+      "amount": 1576.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0049",
+      "date": "2026-05-12",
+      "amount": 3580.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0050",
+      "date": "2026-05-14",
+      "amount": 2195.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0051",
+      "date": "2026-05-22",
+      "amount": 842.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0052",
+      "date": "2026-06-02",
+      "amount": 200000.0,
+      "type": "credit",
+      "category": "transfer_in",
+      "description": "NRE inward remittance",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0053",
+      "date": "2026-06-03",
+      "amount": 2241.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0054",
+      "date": "2026-06-04",
+      "amount": 60000.0,
+      "type": "debit",
+      "category": "other",
+      "description": "Family maintenance transfer",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0055",
+      "date": "2026-06-06",
+      "amount": 20000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Index Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0056",
+      "date": "2026-06-06",
+      "amount": 25116.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0057",
+      "date": "2026-06-08",
+      "amount": 1909.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-arjun-0058",
+      "date": "2026-06-14",
+      "amount": 1481.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0059",
+      "date": "2026-06-16",
+      "amount": 2268.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0060",
+      "date": "2026-06-16",
+      "amount": 908.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0061",
+      "date": "2026-06-20",
+      "amount": 2506.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-arjun-0062",
+      "date": "2026-06-28",
+      "amount": 589.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    }
+  ],
+  "goals": [
+    {
+      "name": "Return-to-India retirement home",
+      "horizon_years": 10,
+      "target": 15000000,
+      "saved_so_far": 1250000
+    }
+  ],
+  "external": {
+    "aa_available": true,
+    "connected": false,
+    "holdings": [
+      {
+        "id": "hold-arjun-1",
+        "type": "FD",
+        "institution": "ICICI NRE",
+        "amount": 700000,
+        "rate": 7.0
+      },
+      {
+        "id": "hold-arjun-2",
+        "type": "NPS",
+        "institution": "NSDL",
+        "amount": 150000,
+        "rate": null
+      },
+      {
+        "id": "hold-arjun-3",
+        "type": "MF",
+        "institution": "SBI MF",
+        "amount": 400000,
+        "rate": null
+      }
+    ],
+    "liabilities": []
+  }
+}

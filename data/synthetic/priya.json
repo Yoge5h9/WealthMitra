@@ -1,0 +1,1276 @@
+{
+  "profile": {
+    "id": "priya",
+    "name": "Priya Meena",
+    "age": 26,
+    "city": "Jaipur",
+    "city_tier": "urban_t2",
+    "segment": "mass_retail_gig",
+    "language": "hi",
+    "risk_tolerance": "conservative",
+    "employment": "gig_worker",
+    "occupation": "Gig Worker - Delivery & Freelance Design",
+    "dependents": 0,
+    "idle_balance": 3200,
+    "avatar": "gig_worker_young_woman",
+    "story": "Priya is a 26-year-old gig worker in Jaipur who earns through food-delivery shifts and freelance design projects, so her income arrives in irregular weekly bursts rather than a fixed salary. She's never linked any investment accounts and just wants a simple way to build a small emergency cushion."
+  },
+  "transactions": [
+    {
+      "id": "txn-priya-0001",
+      "date": "2026-01-01",
+      "amount": 4041.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "House rent payment - shared room",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0002",
+      "date": "2026-01-01",
+      "amount": 279.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0003",
+      "date": "2026-01-02",
+      "amount": 252.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0004",
+      "date": "2026-01-03",
+      "amount": 2026.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0005",
+      "date": "2026-01-03",
+      "amount": 313.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0006",
+      "date": "2026-01-05",
+      "amount": 165.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0007",
+      "date": "2026-01-06",
+      "amount": 182.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0008",
+      "date": "2026-01-07",
+      "amount": 93.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0009",
+      "date": "2026-01-09",
+      "amount": 170.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge prepaid",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0010",
+      "date": "2026-01-10",
+      "amount": 267.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0011",
+      "date": "2026-01-12",
+      "amount": 3263.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0012",
+      "date": "2026-01-12",
+      "amount": 1875.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0013",
+      "date": "2026-01-12",
+      "amount": 256.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0014",
+      "date": "2026-01-13",
+      "amount": 1938.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0015",
+      "date": "2026-01-17",
+      "amount": 11358.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Freelance design professional fees",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0016",
+      "date": "2026-01-17",
+      "amount": 713.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0017",
+      "date": "2026-01-20",
+      "amount": 247.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0018",
+      "date": "2026-01-20",
+      "amount": 170.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0019",
+      "date": "2026-01-21",
+      "amount": 260.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0020",
+      "date": "2026-01-25",
+      "amount": 244.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0021",
+      "date": "2026-01-25",
+      "amount": 164.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0022",
+      "date": "2026-01-27",
+      "amount": 216.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0023",
+      "date": "2026-02-02",
+      "amount": 2314.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0024",
+      "date": "2026-02-02",
+      "amount": 175.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0025",
+      "date": "2026-02-03",
+      "amount": 4695.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "House rent payment - shared room",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0026",
+      "date": "2026-02-04",
+      "amount": 256.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0027",
+      "date": "2026-02-06",
+      "amount": 3152.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0028",
+      "date": "2026-02-06",
+      "amount": 257.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0029",
+      "date": "2026-02-09",
+      "amount": 4022.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0030",
+      "date": "2026-02-09",
+      "amount": 197.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0031",
+      "date": "2026-02-10",
+      "amount": 245.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge prepaid",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0032",
+      "date": "2026-02-11",
+      "amount": 3024.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0033",
+      "date": "2026-02-12",
+      "amount": 184.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0034",
+      "date": "2026-02-13",
+      "amount": 194.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0035",
+      "date": "2026-02-14",
+      "amount": 817.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0036",
+      "date": "2026-02-15",
+      "amount": 158.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0037",
+      "date": "2026-02-17",
+      "amount": 2472.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0038",
+      "date": "2026-02-19",
+      "amount": 137.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0039",
+      "date": "2026-02-21",
+      "amount": 279.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0040",
+      "date": "2026-02-24",
+      "amount": 264.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0041",
+      "date": "2026-02-24",
+      "amount": 345.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0042",
+      "date": "2026-02-25",
+      "amount": 120.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0043",
+      "date": "2026-02-26",
+      "amount": 260.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0044",
+      "date": "2026-02-28",
+      "amount": 175.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0045",
+      "date": "2026-03-01",
+      "amount": 73.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0046",
+      "date": "2026-03-01",
+      "amount": 339.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0047",
+      "date": "2026-03-04",
+      "amount": 4524.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "House rent payment - shared room",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0048",
+      "date": "2026-03-04",
+      "amount": 193.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0049",
+      "date": "2026-03-04",
+      "amount": 438.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill - Holi treat",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0050",
+      "date": "2026-03-05",
+      "amount": 546.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "MedPlus pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0051",
+      "date": "2026-03-06",
+      "amount": 134.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0052",
+      "date": "2026-03-08",
+      "amount": 2111.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0053",
+      "date": "2026-03-10",
+      "amount": 161.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge prepaid",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0054",
+      "date": "2026-03-12",
+      "amount": 259.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0055",
+      "date": "2026-03-15",
+      "amount": 124.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0056",
+      "date": "2026-03-16",
+      "amount": 118.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0057",
+      "date": "2026-03-18",
+      "amount": 117.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0058",
+      "date": "2026-03-19",
+      "amount": 150.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0059",
+      "date": "2026-03-19",
+      "amount": 137.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0060",
+      "date": "2026-03-20",
+      "amount": 10081.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Freelance design professional fees",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0061",
+      "date": "2026-03-20",
+      "amount": 1300.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0062",
+      "date": "2026-03-22",
+      "amount": 2780.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0063",
+      "date": "2026-03-23",
+      "amount": 138.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0064",
+      "date": "2026-03-24",
+      "amount": 1507.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0065",
+      "date": "2026-03-24",
+      "amount": 1638.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0066",
+      "date": "2026-03-26",
+      "amount": 162.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0067",
+      "date": "2026-03-27",
+      "amount": 221.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0068",
+      "date": "2026-03-28",
+      "amount": 3899.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0069",
+      "date": "2026-04-01",
+      "amount": 1729.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0070",
+      "date": "2026-04-01",
+      "amount": 216.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0071",
+      "date": "2026-04-02",
+      "amount": 196.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0072",
+      "date": "2026-04-02",
+      "amount": 327.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0073",
+      "date": "2026-04-04",
+      "amount": 4254.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "House rent payment - shared room",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0074",
+      "date": "2026-04-05",
+      "amount": 165.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0075",
+      "date": "2026-04-06",
+      "amount": 74.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0076",
+      "date": "2026-04-06",
+      "amount": 230.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0077",
+      "date": "2026-04-09",
+      "amount": 149.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge prepaid",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0078",
+      "date": "2026-04-10",
+      "amount": 116.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0079",
+      "date": "2026-04-10",
+      "amount": 260.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0080",
+      "date": "2026-04-12",
+      "amount": 3935.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0081",
+      "date": "2026-04-13",
+      "amount": 107.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0082",
+      "date": "2026-04-13",
+      "amount": 316.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0083",
+      "date": "2026-04-16",
+      "amount": 283.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0084",
+      "date": "2026-04-17",
+      "amount": 582.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0085",
+      "date": "2026-04-18",
+      "amount": 101.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0086",
+      "date": "2026-04-19",
+      "amount": 10270.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Freelance design professional fees",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0087",
+      "date": "2026-04-20",
+      "amount": 11480.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Freelance design professional fees",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0088",
+      "date": "2026-04-21",
+      "amount": 3803.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0089",
+      "date": "2026-04-24",
+      "amount": 300.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0090",
+      "date": "2026-04-26",
+      "amount": 2582.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0091",
+      "date": "2026-04-27",
+      "amount": 256.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0092",
+      "date": "2026-05-01",
+      "amount": 4272.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "House rent payment - shared room",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0093",
+      "date": "2026-05-01",
+      "amount": 319.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0094",
+      "date": "2026-05-01",
+      "amount": 211.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0095",
+      "date": "2026-05-02",
+      "amount": 2004.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0096",
+      "date": "2026-05-03",
+      "amount": 285.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0097",
+      "date": "2026-05-04",
+      "amount": 2570.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0098",
+      "date": "2026-05-06",
+      "amount": 2425.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0099",
+      "date": "2026-05-06",
+      "amount": 126.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0100",
+      "date": "2026-05-06",
+      "amount": 251.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0101",
+      "date": "2026-05-07",
+      "amount": 285.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0102",
+      "date": "2026-05-08",
+      "amount": 4137.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0103",
+      "date": "2026-05-10",
+      "amount": 224.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0104",
+      "date": "2026-05-11",
+      "amount": 213.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0105",
+      "date": "2026-05-12",
+      "amount": 260.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge prepaid",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0106",
+      "date": "2026-05-14",
+      "amount": 1308.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0107",
+      "date": "2026-05-16",
+      "amount": 314.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0108",
+      "date": "2026-05-17",
+      "amount": 278.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0109",
+      "date": "2026-05-18",
+      "amount": 220.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0110",
+      "date": "2026-05-21",
+      "amount": 3353.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0111",
+      "date": "2026-05-23",
+      "amount": 270.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0112",
+      "date": "2026-05-24",
+      "amount": 7313.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Freelance design professional fees",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0113",
+      "date": "2026-05-24",
+      "amount": 159.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0114",
+      "date": "2026-05-27",
+      "amount": 250.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0115",
+      "date": "2026-05-27",
+      "amount": 350.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0116",
+      "date": "2026-05-28",
+      "amount": 261.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0117",
+      "date": "2026-06-01",
+      "amount": 4027.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "House rent payment - shared room",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0118",
+      "date": "2026-06-01",
+      "amount": 70.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0119",
+      "date": "2026-06-02",
+      "amount": 343.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0120",
+      "date": "2026-06-03",
+      "amount": 279.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0121",
+      "date": "2026-06-04",
+      "amount": 163.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0122",
+      "date": "2026-06-04",
+      "amount": 108.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0123",
+      "date": "2026-06-04",
+      "amount": 167.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "MedPlus pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0124",
+      "date": "2026-06-07",
+      "amount": 269.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0125",
+      "date": "2026-06-07",
+      "amount": 152.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0126",
+      "date": "2026-06-08",
+      "amount": 176.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Mobile recharge prepaid",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0127",
+      "date": "2026-06-11",
+      "amount": 1310.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0128",
+      "date": "2026-06-12",
+      "amount": 96.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0129",
+      "date": "2026-06-13",
+      "amount": 4050.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0130",
+      "date": "2026-06-19",
+      "amount": 1818.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0131",
+      "date": "2026-06-19",
+      "amount": 2202.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Delivery gig earnings - invoice settlement",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0132",
+      "date": "2026-06-21",
+      "amount": 122.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0133",
+      "date": "2026-06-21",
+      "amount": 261.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0134",
+      "date": "2026-06-23",
+      "amount": 224.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0135",
+      "date": "2026-06-23",
+      "amount": 77.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0136",
+      "date": "2026-06-26",
+      "amount": 292.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0137",
+      "date": "2026-06-27",
+      "amount": 292.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    },
+    {
+      "id": "txn-priya-0138",
+      "date": "2026-06-28",
+      "amount": 333.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "sa"
+    }
+  ],
+  "goals": [
+    {
+      "name": "Emergency fund",
+      "horizon_years": 1,
+      "target": 20000,
+      "saved_so_far": 3200
+    }
+  ],
+  "external": {
+    "aa_available": false,
+    "connected": false,
+    "holdings": [],
+    "liabilities": []
+  }
+}

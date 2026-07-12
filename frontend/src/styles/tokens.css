@@ -1,0 +1,212 @@
+/*
+ * WealthMitra design tokens — Tailwind CSS v4 @theme source of truth.
+ *
+ * Import once at the app entry (`frontend/src/index.css`):
+ *   @import "tailwindcss";
+ *   @import "./styles/tokens.css";
+ *
+ * Do not hardcode a hex/px/ms value in a component that already has a
+ * token here. Do not add indigo/violet/purple. Do not add Inter/Roboto/
+ * system as --font-display.
+ */
+
+@theme {
+  /* ---------------------------------------------------------------------
+   * BRAND — IDBI orange. Accent only (~10% of any screen). Ramp 50->900,
+   * 500 is the canonical brand color (#F58220).
+   * ------------------------------------------------------------------- */
+  --color-brand-50: #fff4e9;
+  --color-brand-100: #ffe4c7;
+  --color-brand-200: #ffc98d;
+  --color-brand-300: #ffa855;
+  --color-brand-400: #fa9b3d;
+  --color-brand-500: #f58220; /* IDBI orange — primary action color */
+  --color-brand-600: #db6a0f;
+  --color-brand-700: #b8560d;
+  --color-brand-800: #92440c;
+  --color-brand-900: #6b330a;
+  --color-brand: var(--color-brand-500);
+
+  /* ---------------------------------------------------------------------
+   * STRUCTURAL — teal/green. Headers, nav, section chrome (~30%).
+   * Deliberately a different hue family from semantic success green
+   * (this is "cool teal", success is "true green") so a teal header bar
+   * never reads as a gain/loss signal.
+   * ------------------------------------------------------------------- */
+  --color-structural-50: #edfaf7;
+  --color-structural-100: #d2f3ec;
+  --color-structural-200: #a6e6da;
+  --color-structural-300: #71d3c2;
+  --color-structural-400: #3fb9a8;
+  --color-structural-500: #16948a;
+  --color-structural-600: #0f786f;
+  --color-structural-700: #0c5f59;
+  --color-structural-800: #0a4a46;
+  --color-structural-900: #073331;
+  --color-structural: var(--color-structural-500);
+
+  /* ---------------------------------------------------------------------
+   * SEMANTIC — success (gains), danger (losses), warning (caution).
+   * Distinct hues from brand orange AND from structural teal, so no
+   * color ever carries two meanings. Always pair with a sign (+/-) and
+   * an arrow icon — never color alone.
+   * ------------------------------------------------------------------- */
+  --color-success-50: #eafbef;
+  --color-success-100: #cff5da;
+  --color-success-200: #9fe8b6;
+  --color-success-300: #67d48d;
+  --color-success-400: #3cba6c;
+  --color-success-500: #1fa153;
+  --color-success-600: #158245;
+  --color-success-700: #0f6636;
+  --color-success-800: #0b4f2a;
+  --color-success-900: #073a1f;
+  --color-success: var(--color-success-500);
+
+  --color-danger-50: #fdecec;
+  --color-danger-100: #fbd2d2;
+  --color-danger-200: #f5a3a3;
+  --color-danger-300: #ec7272;
+  --color-danger-400: #e14747;
+  --color-danger-500: #d62828;
+  --color-danger-600: #b01e1e;
+  --color-danger-700: #8a1717;
+  --color-danger-800: #6b1212;
+  --color-danger-900: #4d0d0d;
+  --color-danger: var(--color-danger-500);
+
+  --color-warning-50: #fff9e6;
+  --color-warning-100: #ffeeb8;
+  --color-warning-200: #ffde7a;
+  --color-warning-300: #ffcb3d;
+  --color-warning-400: #f5b914;
+  --color-warning-500: #e0a106;
+  --color-warning-600: #b87f05;
+  --color-warning-700: #8f6104;
+  --color-warning-800: #6b4903;
+  --color-warning-900: #4a3302;
+  --color-warning: var(--color-warning-500);
+
+  /* ---------------------------------------------------------------------
+   * NEUTRALS — cool-tinted (faint blue-teal cast), never pure #000/#fff.
+   * This is ~60% of every screen. 0 = page canvas, 950 = darkest ink.
+   * ------------------------------------------------------------------- */
+  --color-neutral-0: #fbfcfd;
+  --color-neutral-50: #f5f7f9;
+  --color-neutral-100: #ebeef2;
+  --color-neutral-200: #dce1e7;
+  --color-neutral-300: #c3cbd4;
+  --color-neutral-400: #9aa5b1;
+  --color-neutral-500: #717c8c;
+  --color-neutral-600: #545f70;
+  --color-neutral-700: #3d4657;
+  --color-neutral-800: #2a3140;
+  --color-neutral-900: #1a2029;
+  --color-neutral-950: #10141b;
+
+  /* Focus ring — always visible, never suppressed */
+  --color-focus-ring: color-mix(in oklab, var(--color-brand-500) 55%, transparent);
+
+  /* ---------------------------------------------------------------------
+   * TYPE — display face for hero numbers/headlines, UI face for
+   * everything else including money (tabular figures).
+   * ------------------------------------------------------------------- */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-ui: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --text-caption: 0.75rem; /* 12px */
+  --text-caption--line-height: 1rem;
+  --text-body-sm: 0.875rem; /* 14px */
+  --text-body-sm--line-height: 1.25rem;
+  --text-body: 1rem; /* 16px */
+  --text-body--line-height: 1.5rem;
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.75rem;
+  --text-h4: 1.25rem; /* 20px */
+  --text-h4--line-height: 1.75rem;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 600;
+  --text-h3: 1.5rem; /* 24px */
+  --text-h3--line-height: 2rem;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+  --text-h2: 2rem; /* 32px */
+  --text-h2--line-height: 2.5rem;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 700;
+  --text-h1: 2.5rem; /* 40px */
+  --text-h1--line-height: 3rem;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 700;
+  --text-display: 3.5rem; /* 56px */
+  --text-display--line-height: 3.75rem;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 700;
+
+  /* ---------------------------------------------------------------------
+   * SPACING — the app's 8pt grid rides on Tailwind v4's default spacing
+   * scale (base unit --spacing: 0.25rem = 4px), so p-1/p-2/p-3/p-4/p-6/
+   * p-8/p-12/p-16/p-24 already yield exactly 4/8/12/16/24/32/48/64/96px.
+   * No overrides needed here — Tailwind's default class map covers it.
+   * Never use an arbitrary value (p-[13px]) or an off-scale step (p-5,
+   * p-7, p-10) for layout spacing.
+   * ------------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------------
+   * RADIUS — tiered by element size. Nested element radius = outer
+   * radius minus its inset padding, never a flat reused value.
+   * ------------------------------------------------------------------- */
+  --radius-xs: 6px; /* small chip/tag */
+  --radius-sm: 8px; /* input, standard chip */
+  --radius-md: 10px; /* button */
+  --radius-lg: 14px; /* card */
+  --radius-xl: 20px; /* large panel / bottom sheet */
+  --radius-2xl: 24px; /* modal */
+  --radius-full: 9999px; /* pill, avatar */
+
+  /* ---------------------------------------------------------------------
+   * ELEVATION — flat + 1px border is the default surface treatment.
+   * These "float" shadows are named to make misuse obvious: only use
+   * them on layers that actually float above content (dropdown, popover,
+   * modal, toast, dragged card). Never on a static dashboard card.
+   * ------------------------------------------------------------------- */
+  --shadow-float-sm: 0 1px 2px rgba(16, 20, 27, 0.06), 0 1px 1px rgba(16, 20, 27, 0.04);
+  --shadow-float-md: 0 4px 12px rgba(23, 42, 58, 0.1), 0 2px 4px rgba(23, 42, 58, 0.06);
+  --shadow-float-lg: 0 12px 32px rgba(23, 42, 58, 0.16), 0 4px 8px rgba(23, 42, 58, 0.08);
+  --shadow-float-xl: 0 24px 64px rgba(23, 42, 58, 0.22), 0 8px 16px rgba(23, 42, 58, 0.1);
+
+  /* ---------------------------------------------------------------------
+   * MOTION — timing scale + easing curves. Durations are plain vars
+   * (Tailwind v4 accepts any literal in duration-[value], so pair these
+   * with duration-[150ms]/[220ms]/[350ms] or read them in Framer Motion
+   * transition configs). Easings use Tailwind's --ease-* namespace so
+   * `ease-out` in this app IS this curve everywhere.
+   * ------------------------------------------------------------------- */
+  --motion-micro: 150ms; /* icon/toggle/hover state flips */
+  --motion-state: 220ms; /* component state changes (open/close, tab switch) */
+  --motion-screen: 350ms; /* screen/route transitions, sheet/modal enter */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/*
+ * Tabular numerals for money and any counted figure. Apply this class
+ * (or the raw declaration) to every amount, balance, percentage, and
+ * table-of-numbers cell so digits don't jiggle in width as they update.
+ */
+.tabular-nums,
+[data-numeric="true"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

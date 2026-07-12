@@ -1,0 +1,50 @@
+# Model Gateway routing + pricing.
+#
+# active_provider is the default; Settings.llm_provider overrides it when set
+# (it defaults to "claude_cli", so in practice Settings decides).
+#
+# Per-provider task_class -> model maps drive routing. Pricing is USD per
+# million tokens, used for the cost_estimate_usd on every response and audit
+# entry. claude_cli runs under a Claude Code subscription, so its cost is 0.
+#
+# Model ids / pricing verified 2026-07-11:
+#   Anthropic (docs.claude.com, cached 2026-06-24): claude-haiku-4-5 $1.00/$5.00;
+#     claude-sonnet-5 $3.00/$15.00 ($2.00/$10.00 intro through 2026-08-31).
+#   Gemini (ai.google.dev/gemini-api/docs/pricing): gemini-2.5-flash $0.30/$2.50;
+#     gemini-2.5-pro $1.25/$10.00 (standard <=200k-token prompts).
+
+active_provider: claude_cli
+
+providers:
+  claude_cli:
+    routing:
+      intent_assist: haiku
+      nudge_copy: haiku
+      conversational: haiku
+      lead_narrative: haiku
+      literacy: haiku
+    pricing:
+      haiku: {input_per_mtok: 0.0, output_per_mtok: 0.0}
+      sonnet: {input_per_mtok: 0.0, output_per_mtok: 0.0}
+
+  gemini:
+    routing:
+      intent_assist: gemini-2.5-flash
+      nudge_copy: gemini-2.5-flash
+      conversational: gemini-2.5-pro
+      lead_narrative: gemini-2.5-pro
+      literacy: gemini-2.5-pro
+    pricing:
+      gemini-2.5-flash: {input_per_mtok: 0.30, output_per_mtok: 2.50}
+      gemini-2.5-pro: {input_per_mtok: 1.25, output_per_mtok: 10.00}
+
+  anthropic:
+    routing:
+      intent_assist: claude-haiku-4-5
+      nudge_copy: claude-haiku-4-5
+      conversational: claude-sonnet-5
+      lead_narrative: claude-sonnet-5
+      literacy: claude-sonnet-5
+    pricing:
+      claude-haiku-4-5: {input_per_mtok: 1.00, output_per_mtok: 5.00}
+      claude-sonnet-5: {input_per_mtok: 3.00, output_per_mtok: 15.00}

@@ -1,0 +1,32 @@
+{
+  "mass_retail_salaried": {
+    "conservative": ["fd_ladder", "recurring_deposit"],
+    "moderate": ["index_fund_sip", "elss_fund"],
+    "growth": ["flexicap_mf"]
+  },
+  "mass_retail_gig": {
+    "conservative": ["liquid_fund_sweep", "recurring_deposit", "flexi_micro_rd"],
+    "moderate": ["short_duration_debt", "index_fund_sip"],
+    "growth": ["balanced_advantage"]
+  },
+  "affluent": {
+    "conservative": ["corporate_fd", "rbi_floating_bonds"],
+    "moderate": ["debt_index_core", "equity_satellite"],
+    "growth": ["pms_lite"]
+  },
+  "hni": {
+    "conservative": ["gsec_ladder", "treasury_bill_ladder"],
+    "moderate": ["rm_allocation", "multi_asset_pms"],
+    "growth": ["structured_note", "aif", "cat2_aif_credit"]
+  },
+  "nri": {
+    "conservative": ["nre_deposit", "fcnr_deposit"],
+    "moderate": ["repatriable_index"],
+    "growth": ["nri_equity"]
+  },
+  "senior": {
+    "conservative": ["scss", "senior_citizen_fd"],
+    "moderate": ["monthly_income_plan"],
+    "growth": []
+  }
+}

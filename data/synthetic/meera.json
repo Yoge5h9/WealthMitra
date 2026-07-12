@@ -1,0 +1,1165 @@
+{
+  "profile": {
+    "id": "meera",
+    "name": "Meera Patel",
+    "age": 45,
+    "city": "Ahmedabad",
+    "city_tier": "urban_t1",
+    "segment": "affluent",
+    "language": "gu",
+    "risk_tolerance": "growth",
+    "employment": "business",
+    "occupation": "Textile Trading Business Owner",
+    "dependents": 2,
+    "idle_balance": 800000,
+    "avatar": "business_woman_midage",
+    "story": "Meera runs a growing textile trading business out of Ahmedabad, so her income arrives in large, irregular client payments rather than a monthly salary. She's sitting on a healthy cash surplus and wants to put it to work in equity, but the products are complex enough that she'd rather talk to a person about the details."
+  },
+  "transactions": [
+    {
+      "id": "txn-meera-0001",
+      "date": "2026-01-02",
+      "amount": 12394.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0002",
+      "date": "2026-01-02",
+      "amount": 994.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0003",
+      "date": "2026-01-03",
+      "amount": 45000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0004",
+      "date": "2026-01-04",
+      "amount": 755.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0005",
+      "date": "2026-01-06",
+      "amount": 25000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Balanced Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0006",
+      "date": "2026-01-06",
+      "amount": 388.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0007",
+      "date": "2026-01-07",
+      "amount": 836.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0008",
+      "date": "2026-01-08",
+      "amount": 4339.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0009",
+      "date": "2026-01-08",
+      "amount": 12223.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IRCTC train ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0010",
+      "date": "2026-01-10",
+      "amount": 599.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0011",
+      "date": "2026-01-10",
+      "amount": 2942.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0012",
+      "date": "2026-01-10",
+      "amount": 549.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0013",
+      "date": "2026-01-15",
+      "amount": 3186.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0014",
+      "date": "2026-01-15",
+      "amount": 848.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0015",
+      "date": "2026-01-15",
+      "amount": 14750.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0016",
+      "date": "2026-01-19",
+      "amount": 309894.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #010",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0017",
+      "date": "2026-01-20",
+      "amount": 299319.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #011",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0018",
+      "date": "2026-01-24",
+      "amount": 788.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0019",
+      "date": "2026-02-02",
+      "amount": 171307.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #022",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0020",
+      "date": "2026-02-02",
+      "amount": 444.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0021",
+      "date": "2026-02-03",
+      "amount": 48045.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #023",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0022",
+      "date": "2026-02-03",
+      "amount": 45000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0023",
+      "date": "2026-02-06",
+      "amount": 25000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Balanced Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0024",
+      "date": "2026-02-07",
+      "amount": 413.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0025",
+      "date": "2026-02-07",
+      "amount": 2290.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "MedPlus pharmacy",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0026",
+      "date": "2026-02-08",
+      "amount": 3075.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0027",
+      "date": "2026-02-09",
+      "amount": 24697.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IRCTC train ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0028",
+      "date": "2026-02-10",
+      "amount": 221928.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #021",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0029",
+      "date": "2026-02-10",
+      "amount": 599.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0030",
+      "date": "2026-02-12",
+      "amount": 706.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0031",
+      "date": "2026-02-13",
+      "amount": 411.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0032",
+      "date": "2026-02-16",
+      "amount": 3741.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0033",
+      "date": "2026-02-18",
+      "amount": 133270.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #020",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0034",
+      "date": "2026-02-18",
+      "amount": 11028.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0035",
+      "date": "2026-02-18",
+      "amount": 9778.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0036",
+      "date": "2026-02-19",
+      "amount": 10059.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0037",
+      "date": "2026-02-23",
+      "amount": 10110.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0038",
+      "date": "2026-02-23",
+      "amount": 11238.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0039",
+      "date": "2026-02-24",
+      "amount": 740.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Zomato dinner",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0040",
+      "date": "2026-02-25",
+      "amount": 586.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0041",
+      "date": "2026-02-25",
+      "amount": 823.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0042",
+      "date": "2026-02-28",
+      "amount": 8440.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0043",
+      "date": "2026-02-28",
+      "amount": 14480.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0044",
+      "date": "2026-03-03",
+      "amount": 45000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0045",
+      "date": "2026-03-03",
+      "amount": 1106.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0046",
+      "date": "2026-03-04",
+      "amount": 841.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0047",
+      "date": "2026-03-06",
+      "amount": 25000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Balanced Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0048",
+      "date": "2026-03-06",
+      "amount": 1118.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0049",
+      "date": "2026-03-06",
+      "amount": 11311.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0050",
+      "date": "2026-03-08",
+      "amount": 4267.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0051",
+      "date": "2026-03-09",
+      "amount": 58060.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #032",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0052",
+      "date": "2026-03-09",
+      "amount": 1333.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0053",
+      "date": "2026-03-09",
+      "amount": 473.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0054",
+      "date": "2026-03-10",
+      "amount": 599.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0055",
+      "date": "2026-03-11",
+      "amount": 923.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0056",
+      "date": "2026-03-12",
+      "amount": 8252.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0057",
+      "date": "2026-03-13",
+      "amount": 212452.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #030",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0058",
+      "date": "2026-03-13",
+      "amount": 4997.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0059",
+      "date": "2026-03-14",
+      "amount": 12686.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0060",
+      "date": "2026-03-17",
+      "amount": 6569.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0061",
+      "date": "2026-03-19",
+      "amount": 209624.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #031",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0062",
+      "date": "2026-03-23",
+      "amount": 18404.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0063",
+      "date": "2026-03-26",
+      "amount": 7087.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IndiGo airlines",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0064",
+      "date": "2026-03-31",
+      "amount": 8717.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store - Eid shopping",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0065",
+      "date": "2026-04-03",
+      "amount": 45000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0066",
+      "date": "2026-04-04",
+      "amount": 2510.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0067",
+      "date": "2026-04-05",
+      "amount": 8170.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0068",
+      "date": "2026-04-06",
+      "amount": 314599.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #041",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0069",
+      "date": "2026-04-06",
+      "amount": 25000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Balanced Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0070",
+      "date": "2026-04-06",
+      "amount": 12438.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0071",
+      "date": "2026-04-08",
+      "amount": 5392.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0072",
+      "date": "2026-04-10",
+      "amount": 599.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0073",
+      "date": "2026-04-16",
+      "amount": 443.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Cafe eatery",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0074",
+      "date": "2026-04-17",
+      "amount": 840.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0075",
+      "date": "2026-04-18",
+      "amount": 1396.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0076",
+      "date": "2026-04-19",
+      "amount": 2831.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0077",
+      "date": "2026-04-19",
+      "amount": 18092.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0078",
+      "date": "2026-04-20",
+      "amount": 48430.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #043",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0079",
+      "date": "2026-04-23",
+      "amount": 13359.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0080",
+      "date": "2026-04-23",
+      "amount": 1377.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0081",
+      "date": "2026-04-25",
+      "amount": 305049.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #040",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0082",
+      "date": "2026-04-25",
+      "amount": 1270.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0083",
+      "date": "2026-04-25",
+      "amount": 8724.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0084",
+      "date": "2026-04-26",
+      "amount": 304435.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #042",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0085",
+      "date": "2026-04-27",
+      "amount": 452.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0086",
+      "date": "2026-05-02",
+      "amount": 9903.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0087",
+      "date": "2026-05-03",
+      "amount": 45000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0088",
+      "date": "2026-05-04",
+      "amount": 291139.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #050",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0089",
+      "date": "2026-05-04",
+      "amount": 18600.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Petrol fuel",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0090",
+      "date": "2026-05-06",
+      "amount": 25000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Balanced Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0091",
+      "date": "2026-05-06",
+      "amount": 7435.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0092",
+      "date": "2026-05-08",
+      "amount": 3317.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0093",
+      "date": "2026-05-08",
+      "amount": 938.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0094",
+      "date": "2026-05-10",
+      "amount": 599.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0095",
+      "date": "2026-05-10",
+      "amount": 14676.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "Ola cab",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0096",
+      "date": "2026-05-15",
+      "amount": 11222.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0097",
+      "date": "2026-05-16",
+      "amount": 1254.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0098",
+      "date": "2026-05-17",
+      "amount": 6403.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Amazon purchase",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0099",
+      "date": "2026-05-17",
+      "amount": 335.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0100",
+      "date": "2026-05-21",
+      "amount": 143961.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #053",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0101",
+      "date": "2026-05-21",
+      "amount": 11302.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0102",
+      "date": "2026-05-22",
+      "amount": 14176.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0103",
+      "date": "2026-05-23",
+      "amount": 190637.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #051",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0104",
+      "date": "2026-05-23",
+      "amount": 1302.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0105",
+      "date": "2026-05-24",
+      "amount": 1357.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0106",
+      "date": "2026-05-26",
+      "amount": 64509.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #052",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0107",
+      "date": "2026-05-26",
+      "amount": 542.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Grocery store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0108",
+      "date": "2026-06-03",
+      "amount": 45000.0,
+      "type": "debit",
+      "category": "rent",
+      "description": "Office rent payment",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0109",
+      "date": "2026-06-04",
+      "amount": 4218.0,
+      "type": "debit",
+      "category": "healthcare",
+      "description": "Diagnostic lab test",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0110",
+      "date": "2026-06-05",
+      "amount": 978.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Swiggy order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0111",
+      "date": "2026-06-06",
+      "amount": 314761.0,
+      "type": "credit",
+      "category": "business_income",
+      "description": "Client payment - invoice #060",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0112",
+      "date": "2026-06-06",
+      "amount": 25000.0,
+      "type": "debit",
+      "category": "investment",
+      "description": "SIP - Balanced Fund",
+      "account": "sa"
+    },
+    {
+      "id": "txn-meera-0113",
+      "date": "2026-06-06",
+      "amount": 11885.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Lifestyle store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0114",
+      "date": "2026-06-08",
+      "amount": 4072.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Electricity bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0115",
+      "date": "2026-06-08",
+      "amount": 2384.0,
+      "type": "debit",
+      "category": "travel",
+      "description": "IRCTC train ticket",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0116",
+      "date": "2026-06-09",
+      "amount": 10157.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Reliance Retail store",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0117",
+      "date": "2026-06-10",
+      "amount": 599.0,
+      "type": "debit",
+      "category": "utilities",
+      "description": "Broadband bill",
+      "account": "ca"
+    },
+    {
+      "id": "txn-meera-0118",
+      "date": "2026-06-10",
+      "amount": 3846.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Myntra fashion",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0119",
+      "date": "2026-06-11",
+      "amount": 588.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0120",
+      "date": "2026-06-12",
+      "amount": 992.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0121",
+      "date": "2026-06-13",
+      "amount": 1070.0,
+      "type": "debit",
+      "category": "food",
+      "description": "BigBasket groceries",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0122",
+      "date": "2026-06-14",
+      "amount": 2406.0,
+      "type": "debit",
+      "category": "shopping",
+      "description": "Flipkart order",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0123",
+      "date": "2026-06-17",
+      "amount": 1223.0,
+      "type": "debit",
+      "category": "food",
+      "description": "Local restaurant bill",
+      "account": "cc"
+    },
+    {
+      "id": "txn-meera-0124",
+      "date": "2026-06-21",
+      "amount": 11251.0,
+      "type": "debit",
+      "category": "cash_withdrawal",
+      "description": "ATM cash withdrawal",
+      "account": "ca"
+    }
+  ],
+  "goals": [
+    {
+      "name": "Children's higher education",
+      "horizon_years": 8,
+      "target": 6000000,
+      "saved_so_far": 1700000
+    }
+  ],
+  "external": {
+    "aa_available": true,
+    "connected": false,
+    "holdings": [
+      {
+        "id": "hold-meera-1",
+        "type": "MF",
+        "institution": "Axis MF",
+        "amount": 1200000,
+        "rate": null
+      },
+      {
+        "id": "hold-meera-2",
+        "type": "FD",
+        "institution": "Kotak Bank",
+        "amount": 500000,
+        "rate": 6.9
+      }
+    ],
+    "liabilities": []
+  }
+}
