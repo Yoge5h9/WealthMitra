@@ -16,6 +16,8 @@ export interface MessageListProps {
   onSendMessage: (text: string) => void;
   onOpenAudit: () => void;
   language?: LanguageCode;
+  companionBubbleClass?: string;
+  userBubbleClass?: string;
 }
 
 function dayLabel(iso: string, t: ReturnType<typeof makeT>): string {
@@ -42,6 +44,8 @@ export function MessageList({
   onSendMessage,
   onOpenAudit,
   language = "en",
+  companionBubbleClass,
+  userBubbleClass,
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
   const t = makeT(language);
@@ -85,6 +89,8 @@ export function MessageList({
               onOpenAudit={onOpenAudit}
               sending={sending}
               language={language}
+              companionBubbleClass={companionBubbleClass}
+              userBubbleClass={userBubbleClass}
             />
           </div>
         );

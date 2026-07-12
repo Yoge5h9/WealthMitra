@@ -33,6 +33,7 @@ const AVATAR_DOT_CLASS: Record<AvatarState, string> = {
 
 export interface ChatHeaderProps {
   personaName: string;
+  communicationStyle?: string;
   avatarState: AvatarState;
   language: LanguageCode;
   onLanguageChange: (lang: LanguageCode) => void;
@@ -88,6 +89,7 @@ interface TourStep {
  */
 export function ChatHeader({
   personaName,
+  communicationStyle,
   avatarState,
   language,
   onLanguageChange,
@@ -195,7 +197,9 @@ export function ChatHeader({
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-body-sm font-semibold leading-tight text-neutral-900">{personaName}</p>
-            <p className="truncate text-caption leading-tight text-neutral-500">{t(language, AVATAR_STATUS_KEY[avatarState])}</p>
+            <p className="truncate text-caption leading-tight text-neutral-500">
+              {communicationStyle ?? t(language, AVATAR_STATUS_KEY[avatarState])}
+            </p>
           </div>
 
           <div ref={languageWrapRef} className={cn(activeStepId === "language" && ringClass)}>

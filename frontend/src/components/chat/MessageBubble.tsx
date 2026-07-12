@@ -20,6 +20,8 @@ export interface MessageBubbleProps {
   onOpenAudit?: () => void;
   sending?: boolean;
   language?: LanguageCode;
+  companionBubbleClass?: string;
+  userBubbleClass?: string;
 }
 
 export function MessageBubble({
@@ -30,6 +32,8 @@ export function MessageBubble({
   onOpenAudit,
   sending,
   language = "en",
+  companionBubbleClass,
+  userBubbleClass,
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
@@ -79,8 +83,8 @@ export function MessageBubble({
         className={cn(
           "max-w-[85%] px-4 py-3 text-body",
           isUser
-            ? "rounded-lg rounded-tr-sm bg-structural-600 text-neutral-0"
-            : "rounded-lg rounded-tl-sm border border-neutral-200 bg-neutral-0 text-neutral-800"
+            ? cn("rounded-lg rounded-tr-sm", userBubbleClass ?? "bg-structural-600 text-neutral-0")
+            : cn("rounded-lg rounded-tl-sm border text-neutral-800", companionBubbleClass ?? "border-neutral-200 bg-neutral-0")
         )}
       >
         <p className="whitespace-pre-wrap">

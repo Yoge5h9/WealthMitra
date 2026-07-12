@@ -7,7 +7,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { Button } from "@/components/ui/button";
 import { ChatHeader, type AppTab } from "@/components/chat/ChatHeader";
@@ -24,6 +24,7 @@ import { chipsFor } from "./chips";
 import { useChatSession } from "./useChatSession";
 import { useSpaceLeads } from "./useSpaceLeads";
 import { CustomerDashboard } from "./dashboard";
+import { personaExperienceFor } from "@/lib/personaExperience";
 
 export type { AppTab };
 
@@ -75,6 +76,7 @@ export default function CustomerChat() {
   }, [session.messages, session.language, speech]);
 
   const chips = session.persona ? chipsFor(session.persona.id, session.language) : [];
+  const experience = personaExperienceFor(session.persona?.id);
   const showChat = session.status === "ready";
   const isBlockingPicker =
     session.status === "picking" || session.status === "loading_roster" || session.status === "roster_error";
@@ -107,6 +109,7 @@ export default function CustomerChat() {
             <>
               <ChatHeader
                 personaName={session.persona.name}
+                communicationStyle={experience.chat.label}
                 avatarState={session.avatarState}
                 language={session.language}
                 onLanguageChange={session.setLanguage}
@@ -121,6 +124,10 @@ export default function CustomerChat() {
 
               {tab === "chat" ? (
                 <>
+                  <div className={`mx-4 mt-3 flex items-start gap-2 rounded-lg border px-3 py-2 ${experience.dashboard.accentClass}`}>
+                    <Sparkles className="mt-0.5 shrink-0" size={15} strokeWidth={1.75} aria-hidden="true" />
+                    <p className="text-caption"><span className="font-semibold">Personalised for you:</span> {experience.chat.description}</p>
+                  </div>
                   <div className="min-h-0 flex-1 overflow-y-auto">
                     <MessageList
                       messages={session.messages}
@@ -131,6 +138,8 @@ export default function CustomerChat() {
                       onSendMessage={session.sendMessage}
                       onOpenAudit={() => setAuditOpen(true)}
                       language={session.language}
+                      companionBubbleClass={experience.chat.companionBubbleClass}
+                      userBubbleClass={experience.chat.userBubbleClass}
                     />
                   </div>
 
@@ -147,6 +156,7 @@ export default function CustomerChat() {
                       spaceId={session.spaceId}
                       personaId={session.persona.id}
                       language={session.language}
+                      experience={experience}
                     />
                   )}
                 </div>

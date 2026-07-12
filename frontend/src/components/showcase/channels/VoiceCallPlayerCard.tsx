@@ -5,6 +5,7 @@ import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { Avatar } from "@/components/shared/Avatar";
 import { Button } from "@/components/ui/button";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
+import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
 import { pickNaturalVoice } from "@/components/chat/useVoice";
 import type { LanguageCode } from "@/components/shared/LangToggle";
@@ -120,6 +121,9 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
             <Phone size={13} strokeWidth={1.75} aria-hidden="true" />
             Simulated call · real AI-generated copy, read aloud
           </p>
+        </div>
+        <div className="-mx-6 -mb-8 mt-4 w-[calc(100%+3rem)]">
+          <ChannelFitNote delivery={delivery} channel="voice" />
         </div>
       </div>
     </PhoneFrame>

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
+import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -41,9 +42,8 @@ export function SmsThreadCard({ delivery }: { delivery: ChannelDelivery }) {
           <p className="pl-1 text-caption text-neutral-400">Delivered · now</p>
         </div>
 
-        <p className="border-t border-neutral-200 bg-neutral-0 px-3 py-2 text-caption text-neutral-500">
-          Simulated delivery · real AI-generated copy
-        </p>
+        <ChannelFitNote delivery={delivery} channel="sms" />
+        <p className="bg-neutral-0 px-3 pb-2 text-caption text-neutral-500">Simulated delivery · real AI-generated copy</p>
       </div>
     </PhoneFrame>
   );

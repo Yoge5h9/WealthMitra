@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
+import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -36,7 +37,10 @@ export function PushNotificationCard({ delivery }: { delivery: ChannelDelivery }
           <p className="mt-0.5 line-clamp-3 text-body-sm text-neutral-300">{delivery.body}</p>
         </motion.div>
 
-        <p className="mt-auto text-caption text-neutral-500">Simulated delivery · real AI-generated copy</p>
+        <div className="mt-auto -mx-4 -mb-6 w-[calc(100%+2rem)]">
+          <ChannelFitNote delivery={delivery} channel="push" />
+          <p className="bg-neutral-900 px-4 py-2 text-caption text-neutral-500">Simulated delivery · real AI-generated copy</p>
+        </div>
       </div>
     </PhoneFrame>
   );
