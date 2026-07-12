@@ -34,6 +34,84 @@ function newId(prefix: string): string {
 
 const IDLE_AFTER_TURN_MS = 4000;
 
+/**
+ * Per-tab chat persistence (requirement: revisiting `/app` — or switching
+ * back to a persona — must not wipe the conversation). Keyed by
+ * `(spaceId, personaId)` so every demo customer keeps their own thread;
+ * `sessionStorage` is the right lifetime here — per-tab, cleared when the
+ * judge closes it, never a cross-session leak between demo runs.
+ */
+interface PersistedChat {
+  messages: ChatMessage[];
+  language: LanguageCode;
+}
+
+function persistKey(spaceId: string, personaId: string): string {
+  return `wm_chat_${spaceId}_${personaId}`;
+}
+
+function loadPersistedChat(spaceId: string, personaId: string): PersistedChat | null {
+  try {
+    const raw = window.sessionStorage.getItem(persistKey(spaceId, personaId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedChat>;
+    if (!Array.isArray(parsed.messages)) return null;
+    return { messages: parsed.messages, language: asLanguage(parsed.language) ?? "en" };
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedChat(spaceId: string, personaId: string, data: PersistedChat): void {
+  try {
+    window.sessionStorage.setItem(persistKey(spaceId, personaId), JSON.stringify(data));
+  } catch {
+    // sessionStorage unavailable/full — persistence is best-effort for a demo, never fatal.
+  }
+}
+
+/**
+ * Which persona/language was last active, independent of any particular
+ * (space, persona) thread — this is what lets a plain reload of `/app` (no
+ * URL params at all) come back to the same customer instead of re-showing
+ * the first-run picker every time.
+ */
+const ACTIVE_PERSONA_KEY = "wm_active_persona";
+
+interface ActivePersona {
+  personaId: string;
+  language: LanguageCode;
+}
+
+function loadActivePersona(): ActivePersona | null {
+  try {
+    const raw = window.sessionStorage.getItem(ACTIVE_PERSONA_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ActivePersona>;
+    if (!parsed.personaId) return null;
+    return { personaId: parsed.personaId, language: asLanguage(parsed.language) ?? "en" };
+  } catch {
+    return null;
+  }
+}
+
+function saveActivePersona(data: ActivePersona): void {
+  try {
+    window.sessionStorage.setItem(ACTIVE_PERSONA_KEY, JSON.stringify(data));
+  } catch {
+    // best-effort, same rationale as savePersistedChat above.
+  }
+}
+
+/** Well-known shared space every plain `/app` and `/rm` visit lands in when
+ * no `?space=` is given — so a lead created in chat reaches the RM desk in
+ * another tab without either side minting its own private space. `/present`
+ * always passes an explicit `?space=`, which still wins below. */
+const DEFAULT_SPACE_ID = "default";
+const NEW_TO_IDBI_PERSONA: PersonaRosterItem = {
+  id: "new_to_idbi", name: "New to IDBI", age: 0, city: "", segment: "starting profile", language: "en", avatar: "", story: "No banking history yet",
+};
+
 export interface UseChatSessionResult {
   status: ChatSessionStatus;
   roster: PersonaRosterItem[] | undefined;
@@ -51,6 +129,7 @@ export interface UseChatSessionResult {
   sendMessage: (text: string) => void;
   provisionError: string | null;
   retryProvision: () => void;
+  resetDemoChat: () => void;
   lastAuditRef: string | null;
 }
 
@@ -65,21 +144,19 @@ export function useChatSession(): UseChatSessionResult {
     queryFn: () => apiGet<PersonaRosterItem[]>("/personas"),
   });
 
-  const [spaceId, setSpaceId] = useState<string | null>(urlSpace);
-  const spaceCreateAttempted = useRef(false);
+  // `?space=` (used by /present to isolate each judge's iframe pair) wins;
+  // otherwise every plain `/app` and `/rm` visit shares the well-known
+  // "default" space so a lead created in chat reaches the RM desk.
+  const [spaceId] = useState<string | null>(urlSpace ?? DEFAULT_SPACE_ID);
 
-  useEffect(() => {
-    if (spaceId || spaceCreateAttempted.current) return;
-    spaceCreateAttempted.current = true;
-    apiPost<{ space_id: string }>("/spaces")
-      .then((res) => setSpaceId(res.space_id))
-      .catch(() => {
-        spaceCreateAttempted.current = false;
-      });
-  }, [spaceId]);
-
-  const [personaId, setPersonaId] = useState<string | null>(urlPersona);
-  const [language, setLanguage] = useState<LanguageCode>(urlLanguage ?? "en");
+  // Resolve the active persona once at mount: `?persona=` (highest — /present
+  // pins one persona per iframe) → last-persisted persona for this tab →
+  // null (genuine first visit, the blocking picker takes over).
+  const [persistedActive] = useState<ActivePersona | null>(() => loadActivePersona());
+  const [personaId, setPersonaId] = useState<string | null>(urlPersona ?? persistedActive?.personaId ?? null);
+  const [language, setLanguage] = useState<LanguageCode>(
+    urlLanguage ?? persistedActive?.language ?? "en"
+  );
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [avatarState, setAvatarState] = useState<AvatarState>("idle");
@@ -99,7 +176,9 @@ export function useChatSession(): UseChatSessionResult {
     []
   );
 
-  const persona = rosterQuery.data?.find((p) => p.id === personaId) ?? null;
+  const persona = personaId === NEW_TO_IDBI_PERSONA.id
+    ? NEW_TO_IDBI_PERSONA
+    : rosterQuery.data?.find((p) => p.id === personaId) ?? null;
 
   /** Applies one SSE frame to the live message list + avatar state. Shared
    * between the greeting (a plain array) and a live chat turn (a stream) so
@@ -185,8 +264,18 @@ export function useChatSession(): UseChatSessionResult {
       .then((res) => {
         if (cancelled) return;
         setSessionId(res.session_id);
-        setLanguage(lang);
-        for (const frame of res.greeting) ingestFrame(frame);
+        // Rehydrate this persona's persisted thread instead of re-greeting —
+        // switching back to a customer (or reopening the tab) should resume
+        // the conversation, not restart it.
+        const persisted = loadPersistedChat(spaceId, personaId);
+        if (persisted && persisted.messages.length > 0) {
+          setMessages(persisted.messages);
+          setLanguage(persisted.language);
+        } else {
+          setMessages([]);
+          setLanguage(lang);
+          for (const frame of res.greeting) ingestFrame(frame);
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -196,6 +285,11 @@ export function useChatSession(): UseChatSessionResult {
 
     return () => {
       cancelled = true;
+      // React StrictMode (dev) tears this effect down and immediately re-runs
+      // it. Release the provision guard so the re-run actually re-provisions —
+      // otherwise it no-ops on the matching key while this run's result is
+      // discarded by `cancelled`, and the greeting never lands (empty chat).
+      if (provisionKeyRef.current === key) provisionKeyRef.current = null;
     };
     // persona/language intentionally excluded — captured once at provision time via urlLanguage/persona.language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -222,14 +316,66 @@ export function useChatSession(): UseChatSessionResult {
     });
   }, [subscribe, sessionId, personaId]);
 
-  const pickPersona = useCallback((id: string, lang: LanguageCode) => {
-    setLanguage(lang);
-    setPersonaId(id);
-  }, []);
+  // Persist the active persona's thread on every change — a continuous,
+  // cheap best-effort save rather than a single point the switch could miss.
+  useEffect(() => {
+    if (!spaceId || !personaId || messages.length === 0) return;
+    savePersistedChat(spaceId, personaId, { messages, language });
+  }, [spaceId, personaId, messages, language]);
+
+  // Remember which persona/language is active independent of any one
+  // thread — this is what a plain reload of `/app` (no URL params at all)
+  // reads back so it resumes the same customer instead of re-blocking on
+  // the first-run picker.
+  useEffect(() => {
+    if (!personaId) return;
+    saveActivePersona({ personaId, language });
+  }, [personaId, language]);
+
+  const pickPersona = useCallback(
+    (id: string, lang: LanguageCode) => {
+      // Re-picking the already-active persona (e.g. reopening the switcher
+      // and tapping the same customer) is a no-op — don't reset a live thread.
+      if (id === personaId) return;
+      // A previously-visited persona resumes in whatever language their
+      // thread was last left in, not whatever language happens to be active
+      // right now — switching customers shouldn't also silently retranslate them.
+      const persisted = spaceId ? loadPersistedChat(spaceId, id) : null;
+      setSessionId(null); // forces the provisioning skeleton while the new session resolves
+      setMessages([]);
+      setLanguage(persisted?.language ?? lang);
+      setPersonaId(id);
+    },
+    [spaceId, personaId]
+  );
 
   const retryProvision = useCallback(() => {
     setProvisionAttempt((n) => n + 1);
   }, []);
+
+  const resetDemoChat = useCallback(() => {
+    if (spaceId) {
+      try {
+        // A server reset invalidates every session. Remove all persona threads
+        // for this demo space, not only the currently visible phone.
+        const prefix = `wm_chat_${spaceId}_`;
+        for (let index = window.sessionStorage.length - 1; index >= 0; index -= 1) {
+          const key = window.sessionStorage.key(index);
+          if (key?.startsWith(prefix)) window.sessionStorage.removeItem(key);
+        }
+      } catch {
+        // Session storage is a convenience cache; the server reset remains authoritative.
+      }
+    }
+    pendingUserTextRef.current = null;
+    setSessionId(null);
+    setMessages([]);
+    setLastAuditRef(null);
+    setAvatarState("idle");
+    setSending(false);
+    provisionKeyRef.current = null;
+    setProvisionAttempt((attempt) => attempt + 1);
+  }, [spaceId]);
 
   const retryRoster = useCallback(() => {
     void rosterQuery.refetch();
@@ -296,6 +442,7 @@ export function useChatSession(): UseChatSessionResult {
     sendMessage,
     provisionError,
     retryProvision,
+    resetDemoChat,
     lastAuditRef,
   };
 }

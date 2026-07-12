@@ -124,6 +124,35 @@ def test_regulated_intent_and_regulated_product_routes_to_rm_lead():
     assert route.path == "rm_lead"
 
 
+# --- decide: rm_handoff branch (explicit RM-connect request) -----------------
+
+def test_rm_handoff_wants_to_buy():
+    assert wants_to_buy("rm_handoff") is True
+
+
+def test_rm_handoff_defaults_to_investment_insurance_family():
+    route = decide("rm_handoff", [], None)
+    assert route.path == "rm_lead"
+    assert route.lead_family == "investment_insurance"
+    assert "explicit_rm_handoff_request" in route.reasons
+
+
+def test_rm_handoff_uses_loans_cards_family_when_card_conversation_open():
+    route = decide("rm_handoff", [], None, card_conversation_open=True)
+    assert route.path == "rm_lead"
+    assert route.lead_family == "loans_cards"
+
+
+def test_distress_flag_suppresses_rm_handoff():
+    route = decide("rm_handoff", ["emi_stressed"], None)
+    assert route.path == "distress_suppress"
+
+
+def test_distress_signal_beats_rm_handoff_even_with_card_conversation_open():
+    route = decide("distress_signal", [], None, card_conversation_open=True)
+    assert route.path == "distress_suppress"
+
+
 # --- decide: auto_execute branch --------------------------------------------
 
 def test_vanilla_product_with_vanilla_intent_auto_executes():

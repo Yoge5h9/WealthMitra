@@ -78,15 +78,18 @@ export function LeadDetail({ lead, spaceId, pending, onStatusChange, className }
 
   if (!lead) {
     return (
-      <div className={cn("flex h-full flex-col items-center justify-center gap-3 px-6 text-center", className)}>
-        <span className="flex size-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-500">
-          <LayoutGrid size={20} strokeWidth={1.75} />
-        </span>
-        <div className="space-y-1">
-          <p className="text-body-sm font-medium text-neutral-700">Select a lead</p>
-          <p className="max-w-xs text-caption text-neutral-600">
-            Choose a lead from the queue on the left to see its full Lead Packet.
-          </p>
+      <div className={cn("flex h-full items-center justify-center bg-neutral-50 p-8", className)}>
+        <div className="flex max-w-sm flex-col items-center gap-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-0 px-8 py-10 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-structural-100 text-structural-600">
+            <LayoutGrid size={22} strokeWidth={1.75} aria-hidden="true" />
+          </span>
+          <div className="space-y-1">
+            <p className="text-body-sm font-semibold text-neutral-800">Select a lead</p>
+            <p className="max-w-xs text-caption text-neutral-600">
+              Choose a lead from the queue on the left to see its full Lead Packet — trigger, risk, suitability, and
+              the exact reason it routed here.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -294,6 +297,25 @@ export function LeadDetail({ lead, spaceId, pending, onStatusChange, className }
                 </div>
               )}
             </div>
+            {lead.suitability.offer_recommendations && lead.suitability.offer_recommendations.length > 0 && (
+              <div>
+                <p className="mb-2 text-caption font-medium text-neutral-600">RM review brief</p>
+                <ul className="space-y-2">
+                  {lead.suitability.offer_recommendations.map((offer) => (
+                    <li key={offer.id} className="rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-body-sm font-medium text-neutral-900">{offer.name}</p>
+                        <span className="rounded-full bg-neutral-100 px-2 py-1 text-caption font-medium text-neutral-600">
+                          {offer.source === "idbi" ? "IDBI" : "Partner"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-caption text-neutral-600">{offer.reasons[0]}</p>
+                      <p className="mt-1 text-caption text-neutral-500">{offer.display_disclaimer}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {lead.suitability.excluded.length > 0 && (
               <div>
                 <p className="mb-2 text-caption font-medium text-neutral-600">Excluded</p>

@@ -18,7 +18,7 @@ C7_NAMES = [
     "get_profile", "get_spend_summary", "get_cash_flow", "get_net_worth",
     "get_holdings", "get_risk_profile", "get_goals", "get_eligible_products",
     "compare_products", "get_literacy", "create_rm_lead", "request_execution",
-    "get_nudges", "get_aa_status",
+    "get_nudges", "get_aa_status", "evaluate_card_eligibility",
 ]
 
 _NOW = datetime(2026, 7, 12, 10, 0, tzinfo=timezone.utc)
@@ -43,16 +43,22 @@ def test_registry_matches_c7_exactly():
 
 @pytest.mark.parametrize("name", C7_NAMES)
 def test_every_tool_returns_json_safe_dict_and_audits(space, name):
-    mode = {"create_rm_lead": "rm_lead", "request_execution": "auto_execute"}.get(name, "info_only")
+    mode = {
+        "create_rm_lead": "rm_lead",
+        "request_execution": "auto_execute",
+        "evaluate_card_eligibility": "rm_lead",
+    }.get(name, "info_only")
     ctx = ctx_for(space, mode=mode)
     args: dict = {}
+    if name == "evaluate_card_eligibility":
+        ctx.lead_family = "loans_cards"
     if name == "create_rm_lead":
         ctx.built_lead = _fake_lead()
         args = {"trigger_utterance": "I want equity"}
     elif name == "request_execution":
-        args = {"product_id": "index_fund_sip", "amount": 5000}
+        args = {"product_id": "mf_index_sip", "amount": 5000}
     elif name == "compare_products":
-        args = {"product_ids": ["fd_ladder", "index_fund_sip"]}
+        args = {"product_ids": ["fd_regular", "mf_index_sip"]}
     elif name == "get_literacy":
         args = {"term": "sip", "language": "en"}
 
@@ -139,7 +145,7 @@ def test_create_rm_lead_requires_orchestrator_built_lead(space):
         tools.create_rm_lead(ctx, trigger_utterance="x")
 
 
-@pytest.mark.parametrize("regulated_id", ["flexicap_mf", "pms_lite", "aif", "structured_note"])
+@pytest.mark.parametrize("regulated_id", ["mf_active_equity", "insurance_ulip", "pms", "aif"])
 def test_request_execution_refuses_regulated_products(space, regulated_id):
     ctx = ctx_for(space, mode="auto_execute")
     with pytest.raises(ComplianceError, match="not vanilla|tagged"):
@@ -150,12 +156,12 @@ def test_request_execution_refuses_regulated_products(space, regulated_id):
 def test_request_execution_raises_outside_auto_execute(space, mode):
     ctx = ctx_for(space, mode=mode)
     with pytest.raises(ComplianceError):
-        tools.request_execution(ctx, product_id="index_fund_sip", amount=5000)
+        tools.request_execution(ctx, product_id="mf_index_sip", amount=5000)
 
 
 def test_request_execution_never_executes(space):
     ctx = ctx_for(space, mode="auto_execute")
-    result = tools.dispatch(ctx, "request_execution", {"product_id": "fd_ladder", "amount": 25000})
+    result = tools.dispatch(ctx, "request_execution", {"product_id": "fd_regular", "amount": 25000})
     assert result["prepared"] is True
     assert result["confirm_token"].startswith("cfm_")
     assert ctx.confirm is not None
@@ -186,6 +192,121 @@ def test_tools_for_mode_gating_table():
     assert "create_rm_lead" in by_mode["rm_lead"]
     assert "create_rm_lead" not in by_mode["auto_execute"]
     assert "create_rm_lead" not in by_mode["info_only"]
+
+
+# --- credit-card eligibility tool + consent-gated lead creation -------------
+
+
+def test_evaluate_card_eligibility_returns_full_verdict_list(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    result = tools.dispatch(ctx, "evaluate_card_eligibility", {})
+    assert "cards" in result
+    assert result["cards"], "must return a verdict for every credit card"
+    for card in result["cards"]:
+        assert {"card_id", "name", "status", "reason"} <= card.keys()
+
+
+@pytest.mark.parametrize("mode,lead_family", [("info_only", None), ("auto_execute", None), ("rm_lead", None), ("rm_lead", "investment_insurance")])
+def test_evaluate_card_eligibility_refused_outside_loans_cards_family(space, mode, lead_family):
+    ctx = ctx_for(space, "ravi", mode=mode)
+    ctx.lead_family = lead_family
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "evaluate_card_eligibility", {})
+
+
+def test_card_mode_toolset_excludes_investment_shelf_includes_card_tools():
+    names = {t.name for t in tools.tools_for_mode("rm_lead", family="loans_cards")}
+    assert "evaluate_card_eligibility" in names
+    assert "create_rm_lead" in names
+    assert "get_eligible_products" not in names
+    assert "compare_products" not in names
+    assert "request_execution" not in names
+
+
+def test_investment_family_toolset_unchanged_and_excludes_card_tool():
+    names = {t.name for t in tools.tools_for_mode("rm_lead", family="investment_insurance")}
+    assert "get_eligible_products" in names
+    assert "compare_products" in names
+    assert "create_rm_lead" in names
+    assert "evaluate_card_eligibility" not in names
+    # No family passed at all (existing callers) must behave identically.
+    assert names == {t.name for t in tools.tools_for_mode("rm_lead")}
+
+
+def test_distress_mode_excludes_card_eligibility_tool():
+    names = {t.name for t in tools.tools_for_mode("distress_suppress")}
+    assert "evaluate_card_eligibility" not in names
+
+
+def test_create_rm_lead_for_card_requires_card_id(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    ctx.card_lead_builder = lambda card_id, trigger, verdict: _fake_lead()
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "yes please"})
+
+
+def test_create_rm_lead_for_card_requires_a_configured_builder(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "yes", "card_id": "idbi_aspire_platinum"})
+
+
+def test_create_rm_lead_for_card_rejects_unknown_card_id(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    ctx.card_lead_builder = lambda card_id, trigger, verdict: _fake_lead()
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "yes", "card_id": "not_a_real_card"})
+
+
+def test_create_rm_lead_for_card_delegates_to_the_orchestrator_builder_with_the_right_verdict(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    captured: dict = {}
+
+    def builder(card_id, trigger, verdict):
+        captured["card_id"] = card_id
+        captured["trigger"] = trigger
+        captured["verdict"] = verdict
+        return _fake_lead()
+
+    ctx.card_lead_builder = builder
+    result = tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "apply for Aspire", "card_id": "idbi_aspire_platinum"})
+    assert captured["card_id"] == "idbi_aspire_platinum"
+    assert captured["trigger"] == "apply for Aspire"
+    assert captured["verdict"]["card_id"] == "idbi_aspire_platinum"
+    assert result["lead_id"] == "LP-2026-000042"
+    entry = audit.for_session(space, "sess_test")[-1]
+    assert entry.name == "create_rm_lead"
+
+
+def test_create_rm_lead_blocked_for_card_when_declined_this_turn(space):
+    # BUG4: a decline must deterministically prevent a lead in code, never
+    # relying on the model choosing not to call the tool.
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    ctx.lead_blocked = True
+    ctx.card_lead_builder = lambda card_id, trigger, verdict: _fake_lead()
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "no thanks", "card_id": "idbi_aspire_platinum"})
+
+
+def test_create_rm_lead_blocked_for_investment_family_when_declined_this_turn(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.built_lead = _fake_lead()
+    ctx.lead_blocked = True
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "no thanks"})
+
+
+def test_create_rm_lead_not_blocked_by_default(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.built_lead = _fake_lead()
+    result = tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "go ahead"})
+    assert result["lead_id"] == _fake_lead().lead_id
 
 
 def test_unknown_tool_raises(space):

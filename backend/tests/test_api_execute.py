@@ -126,7 +126,7 @@ def test_execute_regulated_product_403_even_with_fabricated_token(client, space_
     install_fake([resp(text="Hello!")])
     sid = create_session(client, space_id)
     response = client.post("/api/execute", json={
-        "session_id": sid, "product_id": "flexicap_mf", "amount": 5000, "confirm_token": "cfm_fabricated",
+        "session_id": sid, "product_id": "aif", "amount": 5000, "confirm_token": "cfm_fabricated",
     })
     assert response.status_code == 403
     assert response.json() == {"detail": "regulated_product_requires_rm"}
@@ -155,6 +155,6 @@ def test_execute_unknown_product_404(client, space_id):
 
 def test_execute_unknown_session_404(client):
     response = client.post("/api/execute", json={
-        "session_id": "sess_ghost", "product_id": "fd_ladder", "amount": 5000, "confirm_token": "cfm_x",
+        "session_id": "sess_ghost", "product_id": "fd_regular", "amount": 5000, "confirm_token": "cfm_x",
     })
     assert response.status_code == 404

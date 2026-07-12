@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, MessageCircleHeart, Presentation, Radio, UserRoundCog, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, MessageCircleHeart, Radio, UserRoundCog, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SurfaceLink {
@@ -41,12 +41,6 @@ export function SurfaceLinksGrid({ spaceId, defaultPersonaId, className }: Surfa
       label: "Omni-channel",
       description: "Push, SMS, WhatsApp-style, and AI voice-call playback of real AI-generated nudge copy.",
       icon: Radio,
-    },
-    {
-      to: `/present?${spaceQuery}`,
-      label: "Presenter",
-      description: "Customer phone and RM desk side-by-side — the live sync money-shot in one screen.",
-      icon: Presentation,
     },
   ];
 

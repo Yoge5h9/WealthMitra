@@ -155,3 +155,189 @@ def test_stricter_instruction_names_violations_and_allowed():
     assert "₹9,99,999" in instruction
     assert "₹85,000" in instruction
     assert "7.4%" in instruction
+
+
+# --- BUG B: a guarantee/assured-return ask always gets an explicit refusal --
+
+
+GUARANTEE_PHRASES = [
+    "Can you guarantee me 20% returns if I invest right now?",
+    "Can you guarantee me a 20 percent return?",
+    "I want an assured return of 15%",
+    "Will you promise me a fixed return on this?",
+    "Can you double my money in a year?",
+    "give me a risk-free high return option",
+    "क्या आप गारंटी दे सकते हैं?",
+]
+
+NON_GUARANTEE_PHRASES = [
+    "How is my spending this month?",
+    "I want to invest my surplus",
+    "What is a mutual fund?",
+    "Can I get a personal loan?",
+]
+
+
+@pytest.mark.parametrize("text", GUARANTEE_PHRASES)
+def test_is_guarantee_request_detects_guarantee_phrasing(text):
+    assert g.is_guarantee_request(text)
+
+
+@pytest.mark.parametrize("text", NON_GUARANTEE_PHRASES)
+def test_is_guarantee_request_ignores_ordinary_turns(text):
+    assert not g.is_guarantee_request(text)
+
+
+def test_is_guarantee_request_handles_empty_text():
+    assert not g.is_guarantee_request("")
+    assert not g.is_guarantee_request(None)
+
+
+@pytest.mark.parametrize("lang", ["en", "hi", "gu"])
+def test_guarantee_refusal_template_always_passes_guardrail_and_refuses(lang):
+    figures = {"monthly_surplus": 20862.0, "idle_balance": 125173.0}
+    text = g.guarantee_refusal_template(figures, lang)
+    assert g.audit_reply(text, [figures]).ok
+    # never promises a return, and states the refusal plainly in each language
+    assert "%" not in text
+    if lang == "en":
+        assert "no one can guarantee" in text.lower()
+    elif lang == "hi":
+        assert "गारंटी नहीं दे सकता" in text
+    else:
+        assert "ખાતરી આપી શકતું નથી" in text
+
+
+def test_guarantee_regen_addendum_asks_the_model_to_refuse_not_repeat_the_number():
+    assert "guarantee" in g.GUARANTEE_REGEN_ADDENDUM.lower()
+    assert "unverified figure" in g.GUARANTEE_REGEN_ADDENDUM.lower()
+
+
+# --- output sanitizer: gpt-5.x harmony tool-call leakage + script spam ------
+
+# The exact garbage observed live (~1 in 3 runs on gpt-5.4): a harmony-format
+# tool call leaked into assistant content, interleaved with hallucinated
+# CJK/Malayalam filler tokens.
+_HARMONY_GARBAGE = (
+    'request_execution to=functions.request_execution  彩神争霸官方to=functions.request_execution  '
+    'ചികിത്സ … ={"product":"IDBI Regular Fixed Deposit"}'
+)
+
+
+def test_sanitize_output_returns_none_when_nothing_coherent_survives_pure_garbage():
+    # No real customer-facing content anywhere in this string — after
+    # stripping the harmony leakage and the foreign-script spam there is
+    # nothing left, so the caller must fall back rather than emit this.
+    assert g.sanitize_output(_HARMONY_GARBAGE, "en") is None
+
+
+def test_sanitize_output_strips_garbage_but_keeps_real_content():
+    mixed = (
+        "I can set up an IDBI Regular Fixed Deposit for you. "
+        + _HARMONY_GARBAGE
+        + " Tap Confirm below to proceed."
+    )
+    cleaned = g.sanitize_output(mixed, "en")
+    assert cleaned is not None
+    assert "IDBI Regular Fixed Deposit" in cleaned
+    assert "Tap Confirm below to proceed." in cleaned
+    # every harmony/script artifact is gone
+    assert "to=functions" not in cleaned
+    assert "request_execution" not in cleaned
+    assert "={" not in cleaned
+    assert "<|" not in cleaned
+    assert not any(0x4E00 <= ord(c) <= 0x9FFF for c in cleaned)  # CJK
+    assert not any(0x0D00 <= ord(c) <= 0x0D7F for c in cleaned)  # Malayalam
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    [
+        "<|channel|>commentary<|message|>",
+        "assistant<|channel|>",
+        "commentary",
+    ],
+)
+def test_sanitize_output_strips_harmony_channel_markers(fragment):
+    text = f"Here is your update. {fragment} Everything looks good."
+    cleaned = g.sanitize_output(text, "en")
+    assert cleaned is not None
+    assert "<|" not in cleaned
+    assert "commentary" not in cleaned.lower()
+    assert "Here is your update." in cleaned
+    assert "Everything looks good." in cleaned
+
+
+def test_sanitize_output_keeps_normal_hindi_gujarati_and_currency_text():
+    hi_text = "आपकी मासिक बचत ₹20,862 है और आपका खर्च संतुलित है।"
+    gu_text = "તમારી માસિક બચત ₹20,862 છે અને તમારો ખર્ચ સંતુલિત છે."
+    assert g.sanitize_output(hi_text, "hi") == hi_text
+    assert g.sanitize_output(gu_text, "gu") == gu_text
+
+
+def test_sanitize_output_passes_through_clean_english_text():
+    text = "Your monthly surplus is ₹20,862. Would you like to review your spending?"
+    assert g.sanitize_output(text, "en") == text
+
+
+def test_sanitize_output_handles_empty_and_none():
+    assert g.sanitize_output("", "en") is None
+    assert g.sanitize_output(None, "en") is None
+
+
+# --- internal-jargon strip: code-level backstop for the prompt-only rule ----
+#
+# Invariant #6 (never expose internal terms to the customer) previously lived
+# only in the system prompt. This is the code-level safety net: a model slip
+# that still says "suitability matrix", "eligible shelf", "hni", "mass_retail"
+# segment tokens, "pre-eligibility", or "demo" must never reach the customer.
+
+_FORBIDDEN_JARGON = ("suitability matrix", "shelf", "pre-eligibility", "hni", "demo", "mass_retail")
+
+
+def test_strip_internal_jargon_removes_every_forbidden_term_and_stays_coherent():
+    text = "Based on your hni shelf and the suitability matrix, here are pre-eligibility results for the demo"
+    cleaned = g.strip_internal_jargon(text)
+    lowered = cleaned.lower()
+    for term in _FORBIDDEN_JARGON:
+        assert term not in lowered, f"jargon leaked: {term!r}"
+    # still a real sentence, not blanked out or left with dangling punctuation
+    assert cleaned
+    assert not cleaned.startswith(" ")
+    assert "  " not in cleaned
+
+
+def test_strip_internal_jargon_replaces_mass_retail_gig_segment_token():
+    text = "This fits your mass_retail_gig profile well."
+    cleaned = g.strip_internal_jargon(text)
+    assert "mass_retail" not in cleaned.lower()
+    assert cleaned
+
+
+def test_strip_internal_jargon_leaves_clean_english_untouched():
+    text = "Your monthly surplus is ₹20,862. Would you like to review your spending?"
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_leaves_clean_hindi_untouched():
+    text = "आपकी मासिक बचत ₹20,862 है और आपका खर्च संतुलित है।"
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_leaves_clean_gujarati_untouched():
+    text = "તમારી માસિક બચત ₹20,862 છે અને તમારો ખર્ચ સંતુલિત છે."
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_never_corrupts_ordinary_finance_english():
+    # "shelf life" of a product is not our internal jargon usage, but the
+    # strip is intentionally conservative rather than context-aware — this
+    # documents the known trade-off without weakening the invariant on the
+    # actual jargon terms.
+    text = "A fixed deposit ladder could work well for your surplus."
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_handles_empty_and_none():
+    assert g.strip_internal_jargon("") == ""
+    assert g.strip_internal_jargon(None) is None

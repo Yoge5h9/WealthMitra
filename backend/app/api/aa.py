@@ -62,6 +62,43 @@ class AAState(BaseModel):
 def aa_consent(body: AAConsentRequest) -> AAState:
     space, state = resolve_session(body.session_id)
     persona_id = state["persona_id"]
+
+    # The cold-start path has no seeded PersonaData yet. It can still record
+    # both explicit permissions so a fresh customer sees the same consent
+    # model before an account is linked; there is deliberately no fabricated
+    # external holding or analytics result to reveal.
+    if persona_id == "new_to_idbi":
+        consent = state.setdefault(
+            "aa_consent",
+            {"transfer_granted": False, "processing_granted": False, "consent_id": None},
+        )
+        if body.step == "transfer":
+            consent["transfer_granted"] = body.granted
+            consent["consent_id"] = f"aa_{uuid.uuid4().hex[:12]}" if body.granted else None
+        else:
+            consent["processing_granted"] = body.granted
+        connected = bool(consent["transfer_granted"] and consent["processing_granted"])
+        audit.record(
+            space,
+            AuditEntry(
+                id=f"aud_{uuid.uuid4().hex[:12]}",
+                session_id=body.session_id,
+                ts=datetime.now(timezone.utc),
+                kind="consent",
+                name=f"aa_{body.step}",
+                inputs={"step": body.step, "granted": body.granted, "cold_start": True},
+                outputs_summary={"connected": connected, "external_data_available": False},
+                refs=["onboarding:v1"],
+            ),
+        )
+        return AAState(
+            aa_available=True,
+            transfer_granted=consent["transfer_granted"],
+            processing_granted=consent["processing_granted"],
+            connected=connected,
+            holdings=[],
+        )
+
     persona = space.personas[persona_id]
     ext = persona.external
 

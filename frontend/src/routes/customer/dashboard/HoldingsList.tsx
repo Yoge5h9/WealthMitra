@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, PiggyBank } from "lucide-react";
 import { MoneyText } from "@/components/shared/MoneyText";
+import { t, type LanguageCode } from "@/lib/i18n";
 import { humanize } from "./format";
 import type { DashboardHolding, DashboardLiability } from "./types";
 
@@ -9,6 +10,7 @@ export interface HoldingsListProps {
   liabilities: DashboardLiability[];
   /** Staggers each row in on first reveal (the AA "discovery" moment). Off for a plain re-render. */
   animateIn?: boolean;
+  language: LanguageCode;
 }
 
 /**
@@ -20,11 +22,11 @@ export interface HoldingsListProps {
  * allocation bar: this holding's share of the total connected external
  * value. That's the honest substitute for a sparkline here.
  */
-export function HoldingsList({ holdings, liabilities, animateIn = false }: HoldingsListProps) {
+export function HoldingsList({ holdings, liabilities, animateIn = false, language }: HoldingsListProps) {
   const totalHoldings = holdings.reduce((sum, h) => sum + h.amount, 0);
 
   if (holdings.length === 0 && liabilities.length === 0) {
-    return <p className="text-body-sm text-neutral-600">No external holdings or liabilities on record.</p>;
+    return <p className="text-body-sm text-neutral-600">{t(language, "dashboard.holdings.noneOnRecord")}</p>;
   }
 
   return (
@@ -53,7 +55,7 @@ export function HoldingsList({ holdings, liabilities, animateIn = false }: Holdi
                 <MoneyText
                   value={holding.amount}
                   size="sm"
-                  whyThisNumber={`From ${holding.institution} via Account Aggregator, only visible while linked`}
+                  whyThisNumber={t(language, "header.tooltip.audit")}
                 />
                 {holding.rate !== null && (
                   <p className="mt-0.5 text-caption tabular-nums text-neutral-500">{holding.rate}% p.a.</p>
@@ -66,7 +68,9 @@ export function HoldingsList({ holdings, liabilities, animateIn = false }: Holdi
                 style={{ width: `${Math.round(share * 100)}%` }}
               />
             </div>
-            <p className="mt-1 text-caption tabular-nums text-neutral-500">{Math.round(share * 100)}% of connected holdings</p>
+            <p className="mt-1 text-caption tabular-nums text-neutral-500">
+              {t(language, "dashboard.holdings.shareOfConnected", { percent: Math.round(share * 100) })}
+            </p>
           </motion.li>
         );
       })}
@@ -97,7 +101,7 @@ export function HoldingsList({ holdings, liabilities, animateIn = false }: Holdi
               <MoneyText
                 value={liability.principal}
                 size="sm"
-                whyThisNumber={`From ${liability.lender} via Account Aggregator, only visible while linked`}
+                whyThisNumber={t(language, "header.tooltip.audit")}
               />
               <p className="mt-0.5 text-caption tabular-nums text-danger-600">{liability.rate}% p.a.</p>
             </div>

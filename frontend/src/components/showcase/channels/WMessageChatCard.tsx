@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { CheckCheck, MessageCircle } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
+import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -12,9 +13,11 @@ const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
  * shade, per the brand-imitation guardrail (CLAUDE.md §7 IP).
  */
 export function WMessageChatCard({ delivery }: { delivery: ChannelDelivery }) {
+  const message = delivery.messages.message;
   return (
-    <PhoneFrame headerTitle="WMessage">
-      <div className="flex h-full flex-col">
+    <div className="w-[390px] max-w-full space-y-2">
+      <PhoneFrame headerTitle="WMessage">
+        <div className="flex h-full flex-col">
         <div className="flex items-center gap-2 bg-success-600 px-3 py-2.5 text-neutral-0">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success-700">
             <MessageCircle size={16} strokeWidth={1.75} aria-hidden="true" />
@@ -36,8 +39,8 @@ export function WMessageChatCard({ delivery }: { delivery: ChannelDelivery }) {
             transition={{ duration: 0.35, ease: EASE_OUT }}
             className="max-w-[85%] rounded-lg rounded-tl-xs bg-neutral-0 px-3 py-2 shadow-float-sm"
           >
-            <p className="text-body-sm font-semibold text-neutral-900">{delivery.title}</p>
-            <p className="mt-0.5 text-body-sm text-neutral-700">{delivery.body}</p>
+            <p className="text-body-sm font-semibold text-neutral-900">{message.title}</p>
+            <p className="mt-0.5 text-body-sm text-neutral-700">{message.body}</p>
             <p className="mt-1 flex items-center justify-end gap-1 text-caption text-neutral-400">
               now
               <CheckCheck size={13} strokeWidth={2} aria-hidden="true" />
@@ -45,10 +48,10 @@ export function WMessageChatCard({ delivery }: { delivery: ChannelDelivery }) {
           </motion.div>
         </div>
 
-        <p className="border-t border-neutral-200 bg-neutral-0 px-3 py-2 text-caption text-neutral-500">
-          Simulated delivery · real AI-generated copy
-        </p>
-      </div>
-    </PhoneFrame>
+          <p className="border-t border-neutral-200 bg-neutral-0 px-3 py-2 text-caption text-neutral-500">Simulated delivery · grounded customer nudge</p>
+        </div>
+      </PhoneFrame>
+      <ChannelFitNote delivery={delivery} channel="message" />
+    </div>
   );
 }

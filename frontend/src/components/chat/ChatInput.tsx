@@ -3,6 +3,7 @@ import { Mic, MicOff, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useVoiceInput } from "@/components/chat/useVoice";
+import { t } from "@/lib/i18n";
 import type { LanguageCode } from "@/components/shared/LangToggle";
 
 export interface ChatInputProps {
@@ -30,7 +31,7 @@ export function ChatInput({ language, disabled, onSend, placeholder }: ChatInput
       {voice.supported && (
         <button
           type="button"
-          aria-label={voice.listening ? "Stop voice input" : "Start voice input"}
+          aria-label={t(language, voice.listening ? "input.micStop" : "input.micStart")}
           aria-pressed={voice.listening}
           onClick={voice.toggle}
           className={cn(
@@ -54,7 +55,7 @@ export function ChatInput({ language, disabled, onSend, placeholder }: ChatInput
           }
         }}
         rows={1}
-        placeholder={placeholder ?? "Ask about your money…"}
+        placeholder={placeholder ?? t(language, "input.placeholder")}
         disabled={disabled}
         className="min-h-11 flex-1 resize-none rounded-sm border border-neutral-200 bg-neutral-0 px-3 py-2 text-body text-neutral-900 placeholder:text-neutral-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)] disabled:bg-neutral-50 disabled:text-neutral-400"
       />
@@ -64,7 +65,7 @@ export function ChatInput({ language, disabled, onSend, placeholder }: ChatInput
         size="icon-touch"
         onClick={submit}
         disabled={disabled || !value.trim()}
-        aria-label="Send message"
+        aria-label={t(language, "input.send")}
       >
         <Send size={18} strokeWidth={1.75} />
       </Button>

@@ -21,7 +21,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 from app.analytics import AnalyticsEngine
-from app.catalogue import CATALOGUE, compare, eligible_shelf, reasons
+from app.catalogue import CATALOGUE, card_metrics_from_external, compare, eligible_shelf, reasons
+from app.catalogue import evaluate_card_eligibility as _evaluate_card_eligibility
 from app.core import audit
 from app.core.spaces import Space
 from app.domain.models import AuditEntry, LeadPacket, Metric, Product
@@ -48,6 +49,26 @@ class ToolContext:
     tool_results: list[dict] = field(default_factory=list)
     called: list[str] = field(default_factory=list)
     confirm: dict | None = None
+    # Set by the orchestrator only when routing put the turn in the
+    # loans_cards conversation; gates evaluate_card_eligibility/create_rm_lead's
+    # card branch. None everywhere else (including investment_insurance leads).
+    lead_family: str | None = None
+    # A callback the orchestrator binds for a loans_cards turn:
+    # (card_id, trigger_utterance, verdict) -> LeadPacket. create_rm_lead's card
+    # branch delegates the actual packet construction here so lead-building
+    # (metrics, consent snapshot, audit, event publish) stays in one place.
+    card_lead_builder: Callable[[str, str, dict], LeadPacket] | None = field(default=None, repr=False)
+    # Set by the orchestrator when this turn is a bare decline of an open card
+    # conversation ("no thanks"). A compliance invariant, not a prompt request:
+    # create_rm_lead must refuse deterministically no matter what the model
+    # attempts on a decline turn.
+    lead_blocked: bool = False
+    # Set by the orchestrator when this turn's rm_lead (investment_insurance)
+    # request reused an already-open lead for this session/family instead of
+    # creating a duplicate — see Orchestrator._existing_open_lead. Purely
+    # informational for the prompt; create_rm_lead still just surfaces
+    # `built_lead` either way.
+    lead_already_shared: bool = False
     _metrics: dict[str, Metric] | None = field(default=None, repr=False)
 
     def metrics(self) -> dict[str, Metric]:
@@ -243,11 +264,66 @@ def get_literacy(ctx: ToolContext, term: str, language: str = "en") -> dict:
     return out
 
 
-def create_rm_lead(ctx: ToolContext, trigger_utterance: str) -> dict:
-    """Orchestrator-gated. Surfaces the lead the orchestrator already built in
-    rm_lead mode; refuses outright in any other mode.
+def _card_eligibility_results(ctx: ToolContext) -> list[dict]:
+    return _evaluate_card_eligibility(ctx.profile, card_metrics_from_external(ctx.external))
+
+
+def evaluate_card_eligibility(ctx: ToolContext) -> dict:
+    """Deterministic per-card pre-eligibility verdict — the LLM's only path to
+    card facts in the loans_cards conversation. Never available outside it:
+    a customer's general question must not leak a card-shelf-shaped answer.
     """
-    if ctx.mode != "rm_lead" or ctx.built_lead is None:
+    if ctx.mode != "rm_lead" or ctx.lead_family != "loans_cards":
+        raise ComplianceError("evaluate_card_eligibility is only available for a credit-card request")
+    results = _card_eligibility_results(ctx)
+    _record(
+        ctx,
+        "evaluate_card_eligibility",
+        {},
+        {"count": len(results), "eligible": [r["card_id"] for r in results if r["status"] == "eligible"]},
+        [f"credit_card_master:{r['card_id']}" for r in results],
+    )
+    return {"cards": results}
+
+
+def _create_card_lead(ctx: ToolContext, trigger_utterance: str, card_id: str | None) -> dict:
+    if not card_id:
+        raise ComplianceError("create_rm_lead requires 'card_id' for a credit-card request")
+    if ctx.card_lead_builder is None:
+        raise ComplianceError("no card-lead builder is configured for this turn")
+    verdicts = {r["card_id"]: r for r in _card_eligibility_results(ctx)}
+    verdict = verdicts.get(card_id)
+    if verdict is None:
+        raise ComplianceError(f"unknown card_id '{card_id}'")
+    lead = ctx.card_lead_builder(card_id, trigger_utterance, verdict)
+    ctx.built_lead = lead
+    out = {
+        "lead_id": lead.lead_id,
+        "family": lead.family,
+        "priority_score": lead.priority_score,
+        "status": lead.status,
+        "tag": lead.tag,
+        "next_best_action": lead.next_best_action,
+    }
+    _record(ctx, "create_rm_lead", {"trigger_utterance": trigger_utterance, "card_id": card_id},
+            {"lead_id": lead.lead_id, "tag": lead.tag}, [lead.lead_id])
+    return out
+
+
+def create_rm_lead(ctx: ToolContext, trigger_utterance: str, card_id: str | None = None) -> dict:
+    """Orchestrator-gated. Outside the loans_cards family, surfaces the lead
+    the orchestrator already built deterministically in rm_lead mode. In the
+    loans_cards family, this call itself is the consent-gated moment a lead
+    comes into existence: it never fires without the LLM naming a `card_id`,
+    which only happens when the customer has explicitly agreed to a hand-off.
+    """
+    if ctx.mode != "rm_lead":
+        raise ComplianceError("create_rm_lead is only reachable when routing put the turn in rm_lead mode")
+    if ctx.lead_blocked:
+        raise ComplianceError("create_rm_lead is blocked this turn — the customer just declined")
+    if ctx.lead_family == "loans_cards":
+        return _create_card_lead(ctx, trigger_utterance, card_id)
+    if ctx.built_lead is None:
         raise ComplianceError("create_rm_lead is only reachable when routing put the turn in rm_lead mode")
     lead = ctx.built_lead
     out = {
@@ -380,8 +456,17 @@ _TOOLSPECS: dict[str, ToolSpec] = {
     "get_literacy": ToolSpec(name="get_literacy", description="Get a plain-language definition of a financial term.",
                              input_schema={"type": "object", "properties": {"term": {"type": "string"}, "language": {"type": "string"}}, "required": ["term"]}),
     "create_rm_lead": ToolSpec(name="create_rm_lead",
-                               description="Confirm the Relationship-Manager handoff already prepared for this regulated request; returns the lead id.",
-                               input_schema={"type": "object", "properties": {"trigger_utterance": {"type": "string"}}, "required": ["trigger_utterance"]}),
+                               description="Confirm the Relationship-Manager handoff. For a regulated investment/insurance request this surfaces the "
+                                           "lead already prepared for you. For a credit-card request, this IS the moment the lead is created — call it "
+                                           "only after the customer has explicitly agreed, naming the card_id they agreed to.",
+                               input_schema={"type": "object", "properties": {
+                                   "trigger_utterance": {"type": "string"},
+                                   "card_id": {"type": "string"},
+                               }, "required": ["trigger_utterance"]}),
+    "evaluate_card_eligibility": ToolSpec(name="evaluate_card_eligibility",
+                                         description="Deterministic pre-eligibility verdict (eligible/ineligible/needs_more_data + reason, and an "
+                                                     "alternative card where one exists) for every IDBI credit card. The only source of card facts.",
+                                         input_schema={"type": "object", "properties": {}}),
     "request_execution": ToolSpec(name="request_execution",
                                   description="Prepare a confirmation for a VANILLA product purchase. Does NOT execute — the customer must confirm.",
                                   input_schema={"type": "object", "properties": {"product_id": {"type": "string"}, "amount": {"type": "integer"}}, "required": ["product_id", "amount"]}),
@@ -406,10 +491,14 @@ _DISPATCH: dict[str, Callable[..., dict]] = {
     "request_execution": request_execution,
     "get_nudges": get_nudges,
     "get_aa_status": get_aa_status,
+    "evaluate_card_eligibility": evaluate_card_eligibility,
 }
 
 # Product-touching tools are removed when the turn is in distress mode.
-_PRODUCT_TOOLS = frozenset({"get_eligible_products", "compare_products", "request_execution", "create_rm_lead"})
+_PRODUCT_TOOLS = frozenset({
+    "get_eligible_products", "compare_products", "request_execution", "create_rm_lead",
+    "evaluate_card_eligibility",
+})
 
 _READ_ONLY = (
     "get_profile", "get_spend_summary", "get_cash_flow", "get_net_worth",
@@ -431,15 +520,20 @@ def literacy_toolspecs() -> list[ToolSpec]:
     return [_TOOLSPECS[n] for n in LITERACY_TOOL_NAMES]
 
 
-def tools_for_mode(mode: str) -> list[ToolSpec]:
+def tools_for_mode(mode: str, family: str | None = None) -> list[ToolSpec]:
     """The tool list the LLM is offered for a given routing mode.
 
     distress_suppress → no product tools at all. rm_lead → read-only + eligible
-    shelf + create_rm_lead (no execution). auto_execute → read-only + shelf +
-    compare + request_execution. info_only → read-only + shelf + compare.
+    shelf + create_rm_lead (no execution) — EXCEPT the loans_cards family, which
+    gets the card-eligibility tool instead of the investment shelf (a card
+    conversation must never be handed the investment catalogue). auto_execute →
+    read-only + shelf + compare + request_execution. info_only → read-only +
+    shelf + compare.
     """
     if mode == "distress_suppress":
         names = list(_READ_ONLY)
+    elif mode == "rm_lead" and family == "loans_cards":
+        names = [*_READ_ONLY, "evaluate_card_eligibility", "create_rm_lead"]
     elif mode == "rm_lead":
         names = [*_READ_ONLY, "get_eligible_products", "compare_products", "create_rm_lead"]
     elif mode == "auto_execute":

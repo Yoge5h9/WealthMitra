@@ -36,6 +36,14 @@ export interface RoutedToRmCard extends ChatCard {
   priority_score: number;
   next_best_action: string;
   what_happens_next: string;
+  recommendations?: Array<{
+    id: string;
+    name: string;
+    provider_name: string;
+    source: "idbi" | "partner";
+    reasons: string[];
+    display_disclaimer: string;
+  }>;
 }
 
 export interface ExecutionConfirmCard extends ChatCard {
@@ -93,4 +101,42 @@ export interface AaConnectCard extends ChatCard {
   card_type: "aa_connect";
   headline: string;
   body: string;
+}
+
+export interface ProfileQuestionCard extends ChatCard {
+  card_type: "profile_question";
+  step: number;
+  total_steps: number;
+  key: string;
+  question: string;
+  options: string[];
+}
+
+export interface ProfileSummaryCard extends ChatCard {
+  card_type: "profile_summary";
+  answers: Record<string, string>;
+  missing_data: string[];
+  next_step: string;
+}
+
+export interface CreditProductDetailCard extends ChatCard {
+  card_type: "credit_product_detail";
+  product: {
+    id: string;
+    name: string;
+    provider_name: string;
+    source: "idbi" | "partner";
+    features: string[];
+    fees: string[];
+    eligibility: { status: "eligible" | "ineligible" | "needs_more_data"; reasons: string[]; checked_criteria: string[] };
+    display_disclaimer: string;
+    source_url: string;
+    source_checked_at: string;
+  };
+}
+
+export interface CreditEligibilityResultCard extends ChatCard {
+  card_type: "credit_eligibility_result";
+  status: "ineligible" | "needs_more_data";
+  message: string;
 }

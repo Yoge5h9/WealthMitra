@@ -81,9 +81,16 @@ def is_suppressed(segment: str, band: str) -> bool:
 
 
 def reasons(segment: str, band: str, product: Product) -> list[str]:
-    """Human-readable, audit-friendly explanation for why `product` is on this shelf."""
+    """Human-readable, audit-friendly explanation for why `product` is on this shelf.
+
+    Deliberately customer-safe wording: internal segment/band ids and the
+    "suitability matrix" mechanism stay out of it — see the routing audit
+    trail (kind="routing") for the internal rationale.
+    """
+    del segment, band  # internal routing keys — kept out of customer-facing wording
     return [
-        f"'{segment}' investors in the '{band}' risk band are matched to this shelf by the suitability matrix.",
-        "Risk band is derived conservatively as min(capacity, tolerance).",
-        f"'{product.name}' requires a minimum of ₹{product.min_amount:,} and is tagged '{product.tag}'.",
+        "Matched to your profile and risk comfort.",
+        "Your risk level is worked out conservatively, using the lower of what you can afford to lose and what "
+        "you're comfortable with.",
+        f"'{product.name}' requires a minimum of ₹{product.min_amount:,}.",
     ]

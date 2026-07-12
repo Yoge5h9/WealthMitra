@@ -8,7 +8,10 @@ def test_eligible_shelf_matches_matrix_cell() -> None:
     shelf = eligible_shelf("mass_retail_salaried", "conservative")
     shelf_ids = {product.id for product in shelf}
 
-    assert shelf_ids == {"fd_ladder", "recurring_deposit"}
+    assert shelf_ids == {
+        "fd_regular", "fd_suvidha_tax_saver", "recurring_deposit", "ppf", "ssy",
+        "rbi_floating_bond", "insurance_term",
+    }
 
 
 def test_eligible_shelf_filters_by_category() -> None:
@@ -16,7 +19,7 @@ def test_eligible_shelf_filters_by_category() -> None:
 
     assert shelf
     assert all(product.category == "deposit" for product in shelf)
-    assert {p.id for p in shelf} == {"recurring_deposit", "flexi_micro_rd"}
+    assert {p.id for p in shelf} == {"fd_regular", "recurring_deposit"}
 
 
 def test_eligible_shelf_unknown_segment_raises() -> None:
@@ -34,7 +37,8 @@ def test_eligible_shelf_suppressed_cell_returns_empty() -> None:
 
 
 def test_affordability_rule_excludes_high_minimum_for_non_affluent() -> None:
-    # cat2_aif_credit has min_amount == 5,000,000 (₹50L); ₹20k/month * 12 == ₹2.4L, far below it.
+    # pms/aif carry SEBI-mandated Rs 50L/Rs 1cr minimums; Rs 20k/month * 12 == Rs 2.4L,
+    # far below either.
     shelf = eligible_shelf(
         "hni",
         "growth",
@@ -42,7 +46,9 @@ def test_affordability_rule_excludes_high_minimum_for_non_affluent() -> None:
         is_affluent_or_hni=False,
     )
 
-    assert "cat2_aif_credit" not in {p.id for p in shelf}
+    shelf_ids = {p.id for p in shelf}
+    assert "pms" not in shelf_ids
+    assert "aif" not in shelf_ids
 
 
 def test_affordability_rule_skipped_for_affluent_or_hni() -> None:
@@ -53,13 +59,13 @@ def test_affordability_rule_skipped_for_affluent_or_hni() -> None:
         is_affluent_or_hni=True,
     )
 
-    assert "cat2_aif_credit" in {p.id for p in shelf}
+    assert "aif" in {p.id for p in shelf}
 
 
 def test_affordability_rule_skipped_when_surplus_not_given() -> None:
     shelf = eligible_shelf("hni", "growth")
 
-    assert "cat2_aif_credit" in {p.id for p in shelf}
+    assert "aif" in {p.id for p in shelf}
 
 
 def test_narrow_is_deterministic_across_repeated_calls() -> None:
@@ -72,11 +78,11 @@ def test_narrow_is_deterministic_across_repeated_calls() -> None:
 
 
 def test_narrow_surfaces_relevant_product_by_keyword() -> None:
-    shelf = eligible_shelf("mass_retail_salaried", "moderate")  # [index_fund_sip, elss_fund]
+    shelf = eligible_shelf("mass_retail_salaried", "moderate")  # [mf_index_sip, mf_elss_direct, nps]
 
     ranked = narrow("tax", shelf)
 
-    assert ranked[0].id == "elss_fund"
+    assert ranked[0].id == "mf_elss_direct"
 
 
 def test_narrow_never_adds_products_outside_the_shelf() -> None:
@@ -88,18 +94,18 @@ def test_narrow_never_adds_products_outside_the_shelf() -> None:
 
 
 def test_compare_returns_only_looked_up_values() -> None:
-    products = [CATALOGUE.products["fd_ladder"], CATALOGUE.products["elss_fund"]]
+    products = [CATALOGUE.products["fd_regular"], CATALOGUE.products["mf_elss_direct"]]
 
     matrix = compare(products)
 
-    assert matrix.product_ids == ["fd_ladder", "elss_fund"]
+    assert matrix.product_ids == ["fd_regular", "mf_elss_direct"]
     rows_by_feature = {row["feature"]: row["values"] for row in matrix.rows}
 
-    assert rows_by_feature["min_amount"]["fd_ladder"] == f"₹{products[0].min_amount:,}"
-    assert rows_by_feature["expected_return"]["elss_fund"] == products[1].expected_return
-    assert rows_by_feature["category"]["fd_ladder"] == products[0].category
-    assert rows_by_feature["tag"]["fd_ladder"] == "Auto-executable"
-    assert rows_by_feature["tag"]["elss_fund"] == "Via your Relationship Manager"
+    assert rows_by_feature["min_amount"]["fd_regular"] == f"₹{products[0].min_amount:,}"
+    assert rows_by_feature["expected_return"]["mf_elss_direct"] == products[1].expected_return
+    assert rows_by_feature["category"]["fd_regular"] == products[0].category
+    assert rows_by_feature["tag"]["fd_regular"] == "Auto-executable"
+    assert rows_by_feature["tag"]["mf_elss_direct"] == "Auto-executable"
 
 
 def test_compare_empty_product_list_returns_empty_matrix() -> None:
@@ -111,36 +117,35 @@ def test_compare_empty_product_list_returns_empty_matrix() -> None:
 
 def test_vanilla_regulated_tags_match_compliance_list() -> None:
     vanilla_ids = {
-        "fd_ladder",
+        "fd_regular",
+        "fd_senior_citizen",
+        "fd_chiranjeevi",
+        "fd_suvidha_tax_saver",
+        "fd_utsav",
         "recurring_deposit",
-        "index_fund_sip",
-        "liquid_fund_sweep",
-        "short_duration_debt",
-        "corporate_fd",
-        "rbi_floating_bonds",
-        "debt_index_core",
-        "gsec_ladder",
-        "nre_deposit",
-        "fcnr_deposit",
+        "ppf",
+        "ssy",
         "scss",
-        "senior_citizen_fd",
-        "treasury_bill_ladder",
-        "flexi_micro_rd",
+        "nps",
+        "rbi_floating_bond",
+        "rbi_retail_direct_gsec",
+        "mf_index_sip",
+        "mf_elss_direct",
+        "mf_liquid",
+        "demat_trading",
+        "nre_deposit",
+        "nro_deposit",
+        "fcnr_deposit",
     }
     regulated_ids = {
-        "elss_fund",
-        "flexicap_mf",
-        "balanced_advantage",
-        "equity_satellite",
-        "pms_lite",
-        "rm_allocation",
-        "structured_note",
+        "mf_active_equity",
+        "insurance_term",
+        "insurance_ulip",
+        "insurance_health",
+        "insurance_general",
+        "pms",
         "aif",
-        "repatriable_index",
-        "nri_equity",
-        "monthly_income_plan",
-        "multi_asset_pms",
-        "cat2_aif_credit",
+        "wealth_advisory",
     }
 
     assert vanilla_ids | regulated_ids == set(CATALOGUE.products)
@@ -152,4 +157,18 @@ def test_vanilla_regulated_tags_match_compliance_list() -> None:
 
 
 def test_product_count() -> None:
-    assert len(CATALOGUE.products) == 28
+    assert len(CATALOGUE.products) == 27
+
+
+def test_no_fabricated_mutual_fund_scheme_or_amc_names() -> None:
+    """The MF shelf is presented as a category (index/ELSS/liquid/active), never
+    a specific fund-house or scheme name we don't have verified real-world backing
+    for — see the sourced research this catalogue was built from.
+    """
+    banned_fragments = ("hdfc", "icici prudential", "sbi mutual", "axis mutual", "kotak mutual", "nippon", "franklin")
+    for product in CATALOGUE.products.values():
+        if product.category != "mutual_fund":
+            continue
+        blob = f"{product.name} {product.description}".lower()
+        for fragment in banned_fragments:
+            assert fragment not in blob, f"{product.id} appears to fabricate an AMC name: {fragment!r}"

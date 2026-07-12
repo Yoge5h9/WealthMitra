@@ -81,6 +81,39 @@ def test_session_default_space_works(client):
     assert data["session_id"].startswith("sess_")
 
 
+def test_new_to_idbi_profile_flow_is_deterministic_and_never_calls_the_llm(client, space_id):
+    install_boom()
+    data = create_session(client, space_id, persona_id="new_to_idbi")
+    first_card = next(frame["card"] for frame in data["greeting"] if frame["type"] == "card")
+    assert first_card["card_type"] == "profile_question"
+    assert first_card["step"] == 1
+
+    answers = ["Save safely", "Salaried", "₹5,000–₹25,000", "Safety first"]
+    frames: list[dict] = []
+    for answer in answers:
+        response = client.post("/api/chat", json={"session_id": data["session_id"], "message": answer})
+        assert response.status_code == 200
+        frames = sse_frames(response.text)
+        assert frames[-1]["type"] == "done"
+        assert "error" not in frames[-1]
+
+    summary = next(frame["card"] for frame in frames if frame["type"] == "card")
+    assert summary["card_type"] == "profile_summary"
+    assert summary["answers"]["income"] == "Salaried"
+    assert any(frame.get("card", {}).get("card_type") == "aa_connect" for frame in frames)
+
+    consent = client.post("/api/aa/consent", json={"session_id": data["session_id"], "step": "transfer", "granted": True})
+    assert consent.status_code == 200 and consent.json()["connected"] is False
+    consent = client.post("/api/aa/consent", json={"session_id": data["session_id"], "step": "processing", "granted": True})
+    assert consent.status_code == 200 and consent.json()["connected"] is True
+    assert consent.json()["holdings"] == []
+
+    resumed = create_session(client, space_id, persona_id="new_to_idbi")
+    resumed_card = next(frame["card"] for frame in resumed["greeting"] if frame["type"] == "card")
+    assert resumed_card["card_type"] == "profile_summary"
+    assert resumed_card["answers"]["priority"] == "Save safely"
+
+
 def test_unknown_space_404(client):
     install_fake([])
     assert client.post("/api/spaces/nope/sessions", json={"persona_id": "ravi"}).status_code == 404

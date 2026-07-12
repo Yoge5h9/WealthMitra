@@ -3,12 +3,14 @@ import { X } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { DataState } from "@/components/shared/DataState";
 import { useAudit } from "@/lib/queries";
+import { t, type LanguageCode } from "@/lib/i18n";
 import type { AuditEntry, AuditEntryKind } from "@/lib/types";
 
 export interface AuditDrawerProps {
   sessionId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  language?: LanguageCode;
 }
 
 const KIND_LABEL: Record<AuditEntryKind, string> = {
@@ -54,7 +56,7 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
 
 /** "Why this number" drawer — every tool call, LLM call, routing decision
  * and guardrail verdict for this session, in append order. */
-export function AuditDrawer({ sessionId, open, onOpenChange }: AuditDrawerProps) {
+export function AuditDrawer({ sessionId, open, onOpenChange, language = "en" }: AuditDrawerProps) {
   const audit = useAudit(open ? sessionId : null);
 
   return (
@@ -68,14 +70,14 @@ export function AuditDrawer({ sessionId, open, onOpenChange }: AuditDrawerProps)
           <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-0 px-4 py-3">
             <div>
               <Dialog.Title className="font-display text-h4 font-semibold text-neutral-900">
-                Why this number
+                {t(language, "audit.title")}
               </Dialog.Title>
-              <p className="text-caption text-neutral-500">Every tool call, reply, and check for this conversation</p>
+              <p className="text-caption text-neutral-500">{t(language, "audit.subtitle")}</p>
             </div>
             <Dialog.Close asChild>
               <button
                 type="button"
-                aria-label="Close audit trail"
+                aria-label={t(language, "audit.close")}
                 className="flex size-11 shrink-0 items-center justify-center rounded-full text-neutral-500 hover:text-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
               >
                 <X size={20} strokeWidth={1.75} />
@@ -86,9 +88,9 @@ export function AuditDrawer({ sessionId, open, onOpenChange }: AuditDrawerProps)
           <div className="flex-1 overflow-y-auto p-4">
             <DataState
               status={audit.isLoading ? "loading" : audit.isError ? "error" : (audit.data?.length ?? 0) === 0 ? "empty" : "success"}
-              emptyTitle="No audit entries yet"
-              emptyDescription="Ask WealthMitra something — every data lookup and decision will show up here."
-              errorDescription="Couldn't load the audit trail. Your data is unaffected — try again."
+              emptyTitle={t(language, "audit.empty")}
+              emptyDescription={t(language, "audit.emptyDesc")}
+              errorDescription={t(language, "audit.errorDesc")}
               onRetry={() => void audit.refetch()}
             >
               <ul className="space-y-2">{audit.data?.map((entry) => <EntryRow key={entry.id} entry={entry} />)}</ul>

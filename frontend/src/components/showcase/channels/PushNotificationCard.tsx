@@ -2,15 +2,18 @@ import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
+import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 /** Lockscreen-style push notification banner, staged inside the shared IDBI phone shell. */
 export function PushNotificationCard({ delivery }: { delivery: ChannelDelivery }) {
+  const message = delivery.messages.push;
   return (
-    <PhoneFrame headerTitle="Lock screen">
-      <div className="flex h-full flex-col items-center bg-gradient-to-b from-neutral-900 to-neutral-950 px-4 pt-12 pb-6 text-neutral-0">
+    <div className="w-[390px] max-w-full space-y-2">
+      <PhoneFrame headerTitle="Lock screen">
+        <div className="flex h-full flex-col items-center bg-gradient-to-b from-neutral-900 to-neutral-950 px-4 pt-12 pb-6 text-neutral-0">
         <p className="font-display text-h1 font-bold tabular-nums">9:41</p>
         <p className="mt-1 text-body-sm text-neutral-300">Saturday, 12 July</p>
 
@@ -32,12 +35,14 @@ export function PushNotificationCard({ delivery }: { delivery: ChannelDelivery }
               </span>
             )}
           </div>
-          <p className="mt-2 text-body-sm font-semibold text-neutral-0">{delivery.title}</p>
-          <p className="mt-0.5 line-clamp-3 text-body-sm text-neutral-300">{delivery.body}</p>
+          <p className="mt-2 text-body-sm font-semibold text-neutral-0">{message.title}</p>
+          <p className="mt-0.5 line-clamp-3 text-body-sm text-neutral-300">{message.body}</p>
         </motion.div>
 
-        <p className="mt-auto text-caption text-neutral-500">Simulated delivery · real AI-generated copy</p>
-      </div>
-    </PhoneFrame>
+          <p className="mt-auto text-caption text-neutral-500">Simulated delivery · grounded customer nudge</p>
+        </div>
+      </PhoneFrame>
+      <ChannelFitNote delivery={delivery} channel="push" />
+    </div>
   );
 }

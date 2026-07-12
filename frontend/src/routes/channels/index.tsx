@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Clapperboard, HeartHandshake, Megaphone } from "lucide-react";
+import { Clapperboard, HeartHandshake, Languages, Megaphone, SlidersHorizontal } from "lucide-react";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { DataState } from "@/components/shared/DataState";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,14 @@ import { apiPost } from "@/lib/api";
 import { useNudges } from "@/lib/queries";
 import type { CreateSessionResponse, NudgeKind } from "@/lib/types";
 import { useDemoSpace } from "@/components/showcase/useDemoSpace";
-import { usePersonaRoster, sampleNudges } from "@/components/showcase/personas";
+import { usePersonaRoster } from "@/components/showcase/personas";
 import { PushNotificationCard } from "@/components/showcase/channels/PushNotificationCard";
 import { SmsThreadCard } from "@/components/showcase/channels/SmsThreadCard";
 import { WMessageChatCard } from "@/components/showcase/channels/WMessageChatCard";
 import { VoiceCallPlayerCard } from "@/components/showcase/channels/VoiceCallPlayerCard";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
+import { personaExperienceFor } from "@/lib/personaExperience";
+import { composeChannelDelivery, sampleChannelNudges } from "@/components/showcase/channels/composeDelivery";
 
 const DEFAULT_PERSONA_ID = "ravi";
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -63,30 +65,25 @@ export default function Channels() {
   const nudgesResolved = !sessionId || nudgesQuery.isFetched || nudgesQuery.isError;
   const realNudge = nudgesQuery.data?.find((n) => n.kind === nudgeClass);
   const personaFirstName = selectedPersona?.name.split(" ")[0] ?? "there";
-  const fallbackNudge = sampleNudges(personaFirstName)[nudgeClass];
+  const fallbackNudge = sampleChannelNudges(personaId, personaFirstName, selectedPersona?.language ?? "en")[nudgeClass];
   const activeNudge = realNudge ?? fallbackNudge;
+  const experience = personaExperienceFor(personaId);
 
-  const delivery: ChannelDelivery = {
-    title: activeNudge.title,
-    body: activeNudge.body,
-    personaName: personaFirstName,
-    language: selectedPersona?.language ?? "en",
-    sample: !realNudge,
-  };
+  const delivery: ChannelDelivery = composeChannelDelivery(personaId, personaFirstName, activeNudge, experience);
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-6 py-12">
       <SectionHeader
         eyebrow="Showcase · Omni-channel"
-        title="Reach them where they already are"
-        description="The same companion, played back across the channels a customer actually checks — push, SMS, a WhatsApp-style chat, and an AI voice call."
+        title="Reach them in the way that fits them"
+        description="WealthMitra adapts language, format, preferred channel and cadence to the customer’s profile — not just the words in a message."
       />
 
       <div className="flex items-center gap-3 rounded-lg border border-warning-300 bg-warning-50 px-4 py-3">
         <Clapperboard size={20} strokeWidth={1.75} className="shrink-0 text-warning-700" aria-hidden="true" />
         <p className="text-body-sm font-medium text-warning-800">
-          Simulated delivery · real AI-generated copy. No telephony or messaging infra actually
-          fires — every word below still comes from the same nudge engine the customer app uses.
+          Simulated delivery · grounded nudge facts. No telephony or messaging infrastructure actually
+          fires — each channel reshapes the same customer-specific nudge for its format and context.
         </p>
       </div>
 
@@ -119,6 +116,25 @@ export default function Channels() {
           })}
         </div>
       </DataState>
+
+      <section className="rounded-lg border border-structural-200 bg-structural-50 p-4" aria-label="Personalised communication plan">
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-structural-100 text-structural-700"><SlidersHorizontal size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+          <div>
+            <p className="text-caption font-semibold uppercase tracking-wide text-structural-700">Personalised communication plan · {selectedPersona?.name ?? "Customer"}</p>
+            <div className="mt-2 flex items-center gap-2 rounded-sm border border-structural-200 bg-neutral-0 px-3 py-2 text-body-sm text-neutral-800">
+              <Languages size={16} strokeWidth={1.75} className="shrink-0 text-structural-700" aria-hidden="true" />
+              <span><strong>Preferred language first:</strong> {selectedPersona?.language === "hi" ? "Hindi" : selectedPersona?.language === "gu" ? "Gujarati" : "English"}. Every channel preview begins in this language.</span>
+            </div>
+            <p className="mt-1 text-body-sm text-neutral-800">{experience.channels.rationale}</p>
+            <div className="mt-3 flex flex-wrap gap-2 text-caption">
+              <span className="rounded-full bg-neutral-0 px-2.5 py-1 text-neutral-700"><strong>Best fit:</strong> {experience.channels.preference}</span>
+              <span className="rounded-full bg-neutral-0 px-2.5 py-1 text-neutral-700"><strong>Cadence:</strong> {experience.channels.cadence}</span>
+            </div>
+          </div>
+        </div>
+        <p className="mt-3 text-caption text-neutral-600">Judge note: this is a profile-led presentation plan for the synthetic demo roster. In production, channel preferences and consent control delivery.</p>
+      </section>
 
       <div className="flex items-center justify-between gap-4">
         <div

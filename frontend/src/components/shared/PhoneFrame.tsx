@@ -43,7 +43,13 @@ export function PhoneFrame({
   return (
     <div
       className={cn(
-        "flex h-[780px] w-[390px] flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-0 shadow-float-lg",
+        // Bounded by the *document's own* viewport rather than a fixed
+        // 780px — inside an iframe (Presenter stage) that viewport is the
+        // iframe's rendered box, so the frame shrinks to fit instead of
+        // overflowing and forcing the whole phone to scroll. Standalone
+        // `/app` still gets the full 780px on any reasonably tall screen.
+        // The message list (not this frame) is where content scrolls.
+        "mx-auto flex h-[min(780px,calc(100dvh_-_6rem))] w-full max-w-[390px] flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-0 shadow-float-lg",
         className
       )}
     >

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.routing.intents import classify_intent
+from app.routing.intents import classify_intent, detect_product_category
 
 # COMPLIANCE MOAT REGRESSION MATRIX: every regulated product category, in every
 # supported language, must classify as `regulated_query` — never fall through
@@ -104,6 +104,70 @@ def test_pension_and_nps_hit_literacy_not_regulated():
 
 def test_fd_intent():
     assert classify_intent("open a fixed deposit", "en") == "fd_query"
+    assert classify_intent("open an RD", "en") == "fd_query"
+
+
+@pytest.mark.parametrize("text", ["I want a card", "I want to apply for a card", "Which card should I get?"])
+def test_generic_credit_card_requests_do_not_fall_into_rd_matching(text):
+    assert classify_intent(text, "en") == "loan_card_query"
+
+
+def test_debit_card_question_is_not_a_credit_rm_lead():
+    assert classify_intent("I need a debit card", "en") != "loan_card_query"
+
+
+# "CC" and other card synonyms without the literal word "card" were falling
+# through to `other` (and from there to ungrounded LLM improvisation) instead
+# of the deterministic card-discovery journey. Every phrasing below must
+# route to `loan_card_query`, and the bare "cc" abbreviation must not misfire
+# on an unrelated email-cc sentence.
+_CARD_SYNONYM_PHRASINGS: list[tuple[str, str]] = [
+    ("en", "Which CC should I get?"),
+    ("en", "which credit card"),
+    ("en", "best card for travel"),
+    ("en", "credit card recommendation"),
+    ("en", "cc"),
+    ("en", "c.c."),
+    ("en", "plastic"),
+    ("hi", "नया कार्ड"),
+    ("hi", "क्रेडिट कार्ड"),
+    ("hi", "कौन सा कार्ड"),
+    ("gu", "ક્રેડિટ કાર્ડ"),
+    ("gu", "કયું કાર્ડ"),
+]
+
+
+@pytest.mark.parametrize("lang,phrase", _CARD_SYNONYM_PHRASINGS, ids=[f"{l}-{p}" for l, p in _CARD_SYNONYM_PHRASINGS])
+def test_card_synonym_phrasings_classify_as_loan_card_query(lang, phrase):
+    assert classify_intent(phrase, lang) == "loan_card_query"
+
+
+def test_bare_cc_does_not_misfire_on_email_cc_sentences():
+    assert classify_intent("add me in cc of the email", "en") != "loan_card_query"
+    assert classify_intent("please cc my manager", "en") != "loan_card_query"
+
+
+# Explicit request to be connected to a human RM — the "money shot" handoff.
+# Must classify distinctly from a fresh regulated_query/other intent so the
+# orchestrator can route it straight to rm_lead (see routing.engine.decide).
+_RM_HANDOFF_PHRASINGS: list[str] = [
+    "go ahead with rm",
+    "go ahead with the rm",
+    "connect me to a relationship manager",
+    "connect me to an rm",
+    "talk to an advisor",
+    "speak to an rm",
+    "proceed with the rm",
+]
+
+
+@pytest.mark.parametrize("phrase", _RM_HANDOFF_PHRASINGS)
+def test_rm_handoff_phrasings_classify_as_rm_handoff(phrase):
+    assert classify_intent(phrase, "en") == "rm_handoff"
+
+
+def test_rm_handoff_wins_even_when_a_regulated_product_is_named():
+    assert classify_intent("connect me to an rm about insurance", "en") == "rm_handoff"
 
 
 def test_aa_connect_intent():
@@ -168,3 +232,37 @@ def test_lang_argument_is_accepted_but_does_not_change_matching():
     # given script must not change the classification.
     assert classify_intent("what is sip", "gu") == "literacy"
     assert classify_intent("यूलिप के बारे में बताओ", "en") == "regulated_query"
+
+
+# --- BUG A: detect_product_category names the customer's exact product ask -
+
+
+_CATEGORY_PHRASINGS = [
+    ("I want to open a fixed deposit", "deposit"),
+    ("open an FD for me", "deposit"),
+    ("I want to start a recurring deposit", "deposit"),
+    ("I want to open a PPF account", "govt_scheme"),
+    ("tell me about SCSS", "govt_scheme"),
+    ("start a SIP", "mutual_fund"),
+    ("I want a mutual fund", "mutual_fund"),
+    ("open a demat account", "equity_demat"),
+    ("I want insurance", "insurance"),
+]
+
+
+@pytest.mark.parametrize("text,expected_category", _CATEGORY_PHRASINGS)
+def test_detect_product_category_names_the_exact_type(text, expected_category):
+    result = detect_product_category(text)
+    assert result is not None
+    assert result[0] == expected_category
+
+
+def test_detect_product_category_is_none_for_a_generic_ask():
+    assert detect_product_category("I want to invest my surplus") is None
+    assert detect_product_category("how is my spending?") is None
+
+
+def test_detect_product_category_fd_does_not_misfire_on_card():
+    # "rd"/"fd" are matched as whole words (see `_keyword_matches`) so a
+    # credit-card request never gets mistaken for a deposit ask.
+    assert detect_product_category("I want a credit card") is None

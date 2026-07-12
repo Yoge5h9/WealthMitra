@@ -13,6 +13,7 @@ frame, so the client never hangs on a half-finished conversation.
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from collections.abc import Iterator
 from datetime import datetime, timezone
@@ -27,6 +28,7 @@ from app.api.sessions import resolve_session
 from app.core import audit
 from app.core.spaces import Space
 from app.domain.models import AuditEntry
+from app.onboarding import advance as advance_onboarding
 
 router = APIRouter()
 
@@ -61,14 +63,18 @@ def _record_turn_failure(space: Space, session_id: str, exc: Exception) -> str:
 
 @router.post("/chat")
 def chat(body: ChatRequest) -> StreamingResponse:
-    space, _state = resolve_session(body.session_id)
+    space, state = resolve_session(body.session_id)
     orchestrator = get_orchestrator()
 
     def stream() -> Iterator[str]:
         try:
-            for frame in orchestrator.run_turn(space, body.session_id, body.message, body.language):
+            frames = advance_onboarding(space, body.session_id, body.message) if "onboarding" in state else orchestrator.run_turn(
+                space, body.session_id, body.message, body.language
+            )
+            for frame in frames:
                 yield _sse(frame)
         except Exception as exc:  # noqa: BLE001 — the stream must always close with a done frame
+            logging.getLogger(__name__).exception("chat turn failed")
             ref = _record_turn_failure(space, body.session_id, exc)
             yield _sse({"type": "done", "audit_ref": ref, "error": True})
 

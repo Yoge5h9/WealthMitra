@@ -70,6 +70,14 @@ export interface LeadSuitability {
   recommended_shelf: string[];
   excluded: string[];
   reasons: string[];
+  offer_recommendations?: Array<{
+    id: string;
+    name: string;
+    provider_name: string;
+    source: "idbi" | "partner";
+    reasons: string[];
+    display_disclaimer: string;
+  }>;
 }
 
 export interface LeadConsent {
@@ -259,7 +267,11 @@ export type CardType =
   | "goal"
   | "literacy"
   | "nudge"
-  | "distress_support";
+  | "distress_support"
+  | "profile_question"
+  | "profile_summary"
+  | "credit_product_detail"
+  | "credit_eligibility_result";
 
 export interface ChatCard {
   card_type: CardType;

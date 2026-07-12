@@ -2,10 +2,12 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, Landmark, Link2 } from "lucide-react";
 import { MoneyText } from "@/components/shared/MoneyText";
+import { t, type LanguageCode } from "@/lib/i18n";
 import type { NetWorthValue } from "./types";
 
 export interface NetWorthHeroProps {
   value: NetWorthValue;
+  language: LanguageCode;
 }
 
 /**
@@ -15,7 +17,7 @@ export interface NetWorthHeroProps {
  * pattern for a figure this sensitive. The internal/external split makes the
  * AA-connected state legible without a second screen.
  */
-export function NetWorthHero({ value }: NetWorthHeroProps) {
+export function NetWorthHero({ value, language }: NetWorthHeroProps) {
   const [revealed, setRevealed] = useState(false);
   const reduceMotion = Boolean(useReducedMotion());
 
@@ -24,14 +26,14 @@ export function NetWorthHero({ value }: NetWorthHeroProps) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-caption font-semibold uppercase tracking-wide text-structural-100">
-            Total net worth
+            {t(language, "dashboard.netWorth.title")}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setRevealed((r) => !r)}
           aria-pressed={revealed}
-          aria-label={revealed ? "Hide net worth" : "Reveal net worth"}
+          aria-label={t(language, revealed ? "dashboard.netWorth.hide" : "dashboard.netWorth.reveal")}
           className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-neutral-0 transition-colors duration-[var(--motion-micro)] ease-out hover:bg-neutral-0/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
         >
           {revealed ? <EyeOff size={20} strokeWidth={1.75} /> : <Eye size={20} strokeWidth={1.75} />}
@@ -57,7 +59,9 @@ export function NetWorthHero({ value }: NetWorthHeroProps) {
               className="absolute inset-0 flex items-center rounded-sm bg-structural-600/70 backdrop-blur-md"
               aria-hidden="true"
             >
-              <span className="px-1 text-body-sm font-medium text-neutral-0/80">Tap the eye to reveal</span>
+              <span className="px-1 text-body-sm font-medium text-neutral-0/80">
+                {t(language, "dashboard.netWorth.tapToReveal")}
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -67,19 +71,19 @@ export function NetWorthHero({ value }: NetWorthHeroProps) {
         <div className="rounded-lg border border-neutral-0/15 bg-neutral-0/10 p-3">
           <div className="flex items-center gap-1.5 text-structural-100">
             <Landmark size={14} strokeWidth={1.75} aria-hidden="true" />
-            <span className="text-caption font-medium">In the bank</span>
+            <span className="text-caption font-medium">{t(language, "dashboard.netWorth.inBank")}</span>
           </div>
           <MoneyText value={value.internal} size="lg" compact className="mt-1" />
         </div>
         <div className="rounded-lg border border-neutral-0/15 bg-neutral-0/10 p-3">
           <div className="flex items-center gap-1.5 text-structural-100">
             <Link2 size={14} strokeWidth={1.75} aria-hidden="true" />
-            <span className="text-caption font-medium">Outside accounts</span>
+            <span className="text-caption font-medium">{t(language, "dashboard.netWorth.outside")}</span>
           </div>
           {value.external_connected ? (
             <MoneyText value={value.external} size="lg" compact className="mt-1" />
           ) : (
-            <p className="mt-1 text-body-sm text-structural-100">Not linked</p>
+            <p className="mt-1 text-body-sm text-structural-100">{t(language, "dashboard.netWorth.notLinked")}</p>
           )}
         </div>
       </div>

@@ -2,6 +2,7 @@ import { AlertTriangle, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CardRouter } from "@/components/chat/cards/CardRouter";
+import { t, type LanguageCode } from "@/lib/i18n";
 import type { ChatMessage } from "@/routes/customer/types";
 
 const timeFormatter = new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -18,9 +19,22 @@ export interface MessageBubbleProps {
   onSendMessage?: (text: string) => void;
   onOpenAudit?: () => void;
   sending?: boolean;
+  language?: LanguageCode;
+  companionBubbleClass?: string;
+  userBubbleClass?: string;
 }
 
-export function MessageBubble({ message, onRetry, sessionId, onSendMessage, onOpenAudit, sending }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  onRetry,
+  sessionId,
+  onSendMessage,
+  onOpenAudit,
+  sending,
+  language = "en",
+  companionBubbleClass,
+  userBubbleClass,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   if (message.error) {
@@ -29,7 +43,7 @@ export function MessageBubble({ message, onRetry, sessionId, onSendMessage, onOp
         <div className="flex max-w-[85%] flex-col gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 py-3">
           <div className="flex items-center gap-2 text-danger-700">
             <AlertTriangle size={16} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
-            <p className="text-body-sm">Something went wrong on our side. Nothing was changed — you can try again.</p>
+            <p className="text-body-sm">{t(language, "chat.errorBody")}</p>
           </div>
           {message.retryText && onRetry && (
             <Button
@@ -39,7 +53,7 @@ export function MessageBubble({ message, onRetry, sessionId, onSendMessage, onOp
               onClick={() => onRetry(message.retryText!)}
             >
               <RotateCcw size={16} strokeWidth={1.75} />
-              Try again
+              {t(language, "chat.tryAgain")}
             </Button>
           )}
         </div>
@@ -69,8 +83,8 @@ export function MessageBubble({ message, onRetry, sessionId, onSendMessage, onOp
         className={cn(
           "max-w-[85%] px-4 py-3 text-body",
           isUser
-            ? "rounded-lg rounded-tr-sm bg-structural-600 text-neutral-0"
-            : "rounded-lg rounded-tl-sm border border-neutral-200 bg-neutral-0 text-neutral-800"
+            ? cn("rounded-lg rounded-tr-sm", userBubbleClass ?? "bg-structural-600 text-neutral-0")
+            : cn("rounded-lg rounded-tl-sm border text-neutral-800", companionBubbleClass ?? "border-neutral-200 bg-neutral-0")
         )}
       >
         <p className="whitespace-pre-wrap">
