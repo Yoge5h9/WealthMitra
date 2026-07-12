@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     gemini_api_key_2: str | None = None
     anthropic_api_key: str | None = None
+    openai_api_key: str | None = None
+    openai_base_url: str = "https://api.openai.com/v1"
+    llm_model_complex: str = "gpt-5.4-mini"
+    llm_model_simple: str = "gpt-5.4-nano"
     port: int = 8000
 
     @property
@@ -35,6 +39,11 @@ class Settings(BaseSettings):
             raise ValueError(
                 "llm_provider is 'anthropic' but anthropic_api_key is not set "
                 "(set ANTHROPIC_API_KEY in the environment or .env)"
+            )
+        if self.llm_provider == "openai_compatible" and not self.openai_api_key:
+            raise ValueError(
+                "llm_provider is 'openai_compatible' but openai_api_key is not set "
+                "(set OPENAI_API_KEY in the environment or .env)"
             )
         return self
 

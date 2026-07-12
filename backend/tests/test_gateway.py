@@ -22,6 +22,7 @@ from app.gateway import (
 from app.gateway.providers.anthropic import AnthropicProvider
 from app.gateway.providers.claude_cli import ClaudeCLIProvider
 from app.gateway.providers.gemini import GeminiProvider
+from app.gateway.providers.openai_compatible import OpenAICompatibleProvider
 
 # --- routing / pricing tables (mirror config/models.yaml) -----------------
 
@@ -41,6 +42,12 @@ ANTH_ROUTING = {"intent_assist": "claude-haiku-4-5", "nudge_copy": "claude-haiku
                 "literacy": "claude-sonnet-5"}
 ANTH_PRICING = {"claude-haiku-4-5": {"input_per_mtok": 1.00, "output_per_mtok": 5.00},
                 "claude-sonnet-5": {"input_per_mtok": 3.00, "output_per_mtok": 15.00}}
+
+OAI_ROUTING = {"intent_assist": "gpt-5.4-nano", "nudge_copy": "gpt-5.4-nano",
+               "conversational": "gpt-5.4-mini", "lead_narrative": "gpt-5.4-mini",
+               "literacy": "gpt-5.4-mini"}
+OAI_PRICING = {"gpt-5.4-mini": {"input_per_mtok": 0.25, "output_per_mtok": 2.00},
+               "gpt-5.4-nano": {"input_per_mtok": 0.05, "output_per_mtok": 0.40}}
 
 _TOOL = ("get_quote", {"symbol": "IDBI"})
 
@@ -192,6 +199,92 @@ class FakeAnthMessages:
         return _FakeAnthStream(self.scenario)
 
 
+# --- openai_compatible fake (injected httpx.Client) ------------------------
+
+def _oai_message(text=None, tool=None):
+    message = {"content": text}
+    if tool is not None:
+        message["tool_calls"] = [
+            {"id": "call_1", "type": "function", "function": {"name": tool[0], "arguments": json.dumps(tool[1])}}
+        ]
+    return message
+
+
+def _oai_body(text=None, tool=None, model="gpt-5.4-mini"):
+    return {
+        "choices": [{"message": _oai_message(text=text, tool=tool)}],
+        "usage": {"prompt_tokens": 9, "completion_tokens": 4},
+        "model": model,
+    }
+
+
+class FakeOaiResponse:
+    def __init__(self, status_code, payload):
+        self.status_code = status_code
+        self._payload = payload
+        self.text = json.dumps(payload)
+
+    def json(self):
+        return self._payload
+
+
+class FakeOaiStreamResponse:
+    def __init__(self, status_code, lines):
+        self.status_code = status_code
+        self._lines = lines
+        self.text = ""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def iter_lines(self):
+        return iter(self._lines)
+
+
+def _oai_sse_lines(scenario):
+    if scenario == "tool":
+        chunk = {
+            "choices": [{"delta": {"tool_calls": [
+                {"index": 0, "id": "call_1", "type": "function",
+                 "function": {"name": _TOOL[0], "arguments": json.dumps(_TOOL[1])}},
+            ]}}],
+            "model": "gpt-5.4-mini",
+        }
+        return [f"data: {json.dumps(chunk)}", "data: [DONE]"]
+    lines = []
+    for piece in ["Hello there. ", "How are you?"]:
+        lines.append(f"data: {json.dumps({'choices': [{'delta': {'content': piece}}], 'model': 'gpt-5.4-mini'})}")
+    lines.append(f"data: {json.dumps({'choices': [], 'usage': {'prompt_tokens': 9, 'completion_tokens': 4}, 'model': 'gpt-5.4-mini'})}")
+    lines.append("data: [DONE]")
+    return lines
+
+
+class FakeOaiClient:
+    def __init__(self, scenario):
+        self.scenario = scenario
+        self.calls = 0
+
+    def post(self, url, json=None):
+        self.calls += 1
+        s = self.scenario
+        if s == "auth":
+            return FakeOaiResponse(401, {"error": {"message": "invalid api key"}})
+        if s == "ratelimit_then_ok":
+            if self.calls == 1:
+                return FakeOaiResponse(429, {"error": {"message": "rate limited"}})
+            return FakeOaiResponse(200, _oai_body(text="Recovered."))
+        if s == "tool":
+            return FakeOaiResponse(200, _oai_body(tool=_TOOL))
+        return FakeOaiResponse(200, _oai_body(text="Hello there. How are you?"))
+
+    def stream(self, method, url, json=None):
+        self.calls += 1
+        return FakeOaiStreamResponse(200, _oai_sse_lines(self.scenario))
+
+
 # --- gateway builders per provider ----------------------------------------
 
 def build_cli(scenario, on_response=None):
@@ -211,7 +304,12 @@ def build_anthropic(scenario, on_response=None):
     return Gateway(provider=prov, provider_name="anthropic", routing=ANTH_ROUTING, on_response=on_response, retry_base_delay=0)
 
 
-PROVIDERS = [("claude_cli", build_cli), ("gemini", build_gemini), ("anthropic", build_anthropic)]
+def build_openai(scenario, on_response=None):
+    prov = OpenAICompatibleProvider(client=FakeOaiClient(scenario), pricing=OAI_PRICING)
+    return Gateway(provider=prov, provider_name="openai_compatible", routing=OAI_ROUTING, on_response=on_response, retry_base_delay=0)
+
+
+PROVIDERS = [("claude_cli", build_cli), ("gemini", build_gemini), ("anthropic", build_anthropic), ("openai_compatible", build_openai)]
 
 
 def _text_req():
@@ -337,6 +435,7 @@ def test_cli_tool_choice_any_without_call_triggers_retry():
 @pytest.mark.parametrize(("build", "reader"), [
     (build_gemini, lambda gw: gw._provider._client.models.calls),
     (build_anthropic, lambda gw: gw._provider._client.messages.calls),
+    (build_openai, lambda gw: gw._provider._client.calls),
 ])
 def test_rate_limit_retried_then_succeeds(build, reader):
     gw = build("ratelimit_then_ok")
@@ -355,11 +454,43 @@ def test_models_yaml_covers_all_task_classes_and_prices():
     cfg = yaml.safe_load(_DEFAULT_CONFIG.read_text())
     assert cfg["active_provider"] == "claude_cli"
     task_classes = {"intent_assist", "conversational", "nudge_copy", "lead_narrative", "literacy"}
-    for name in ("claude_cli", "gemini", "anthropic"):
+    for name in ("claude_cli", "gemini", "anthropic", "openai_compatible"):
         pcfg = cfg["providers"][name]
         assert set(pcfg["routing"]) == task_classes
         for model in set(pcfg["routing"].values()):
             assert model in pcfg["pricing"], f"{name}:{model} missing price row"
+
+
+def test_openai_compatible_registered_and_selectable():
+    """The provider must be resolvable via config/models.yaml like every other."""
+    import yaml
+
+    from app.gateway.gateway import _DEFAULT_CONFIG
+
+    cfg = yaml.safe_load(_DEFAULT_CONFIG.read_text())
+    assert "openai_compatible" in cfg["providers"]
+
+    gw = build_openai("text")
+    assert gw.provider_name == "openai_compatible"
+
+
+def test_openai_compatible_task_class_model_mapping():
+    gw = build_openai("text")
+    for tc in ("conversational", "lead_narrative", "literacy"):
+        assert gw.model_for(tc) == "gpt-5.4-mini"
+    for tc in ("intent_assist", "nudge_copy"):
+        assert gw.model_for(tc) == "gpt-5.4-nano"
+
+
+def test_openai_compatible_model_env_overrides(monkeypatch):
+    from app.core.config import settings
+    from app.gateway.gateway import Gateway
+
+    monkeypatch.setattr(settings, "llm_model_complex", "gpt-5.4-mini-custom")
+    monkeypatch.setattr(settings, "llm_model_simple", "gpt-5.4-nano-custom")
+    routing = Gateway._openai_model_overrides(OAI_ROUTING)
+    assert routing["conversational"] == "gpt-5.4-mini-custom"
+    assert routing["intent_assist"] == "gpt-5.4-nano-custom"
 
 
 def test_default_gateway_builds_claude_cli_from_yaml():
@@ -431,8 +562,20 @@ def _build_echo(pid: str, text: str) -> Gateway:
         def stream(self, **kw):
             return EchoStream()
 
-    prov = AnthropicProvider(client=SimpleNamespace(messages=EchoMessages()), pricing=ANTH_PRICING)
-    return Gateway(provider=prov, provider_name="anthropic", routing=ANTH_ROUTING, retry_base_delay=0)
+    if pid == "anthropic":
+        prov = AnthropicProvider(client=SimpleNamespace(messages=EchoMessages()), pricing=ANTH_PRICING)
+        return Gateway(provider=prov, provider_name="anthropic", routing=ANTH_ROUTING, retry_base_delay=0)
+
+    _dumps = json.dumps
+
+    class EchoOaiClient:
+        def stream(self, method, url, json=None):
+            lines = ["data: " + _dumps({"choices": [{"delta": {"content": p}}], "model": "gpt-5.4-mini"}) for p in pieces]
+            lines.append("data: [DONE]")
+            return FakeOaiStreamResponse(200, lines)
+
+    prov = OpenAICompatibleProvider(client=EchoOaiClient(), pricing=OAI_PRICING)
+    return Gateway(provider=prov, provider_name="openai_compatible", routing=OAI_ROUTING, retry_base_delay=0)
 
 
 @pytest.mark.parametrize("text", _REASSEMBLY_TEXTS)

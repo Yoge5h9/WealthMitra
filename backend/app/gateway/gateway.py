@@ -62,6 +62,8 @@ class Gateway:
             pcfg = cfg["providers"][name]
             self._provider_name = name
             self._routing = pcfg["routing"]
+            if name == "openai_compatible":
+                self._routing = self._openai_model_overrides(self._routing)
             self._provider = self._build_provider(name, pcfg)
 
     # -- construction helpers ---------------------------------------------
@@ -80,6 +82,19 @@ class Gateway:
     def _routing_from_config(name: str, config_path: str | Path | None) -> dict[str, str]:
         cfg = _load_config(Path(config_path) if config_path else None)
         return cfg["providers"][name]["routing"]
+
+    @staticmethod
+    def _openai_model_overrides(routing: dict[str, str]) -> dict[str, str]:
+        """Substitute config/models.yaml's default gpt-5.4-mini/nano ids with
+        Settings.llm_model_complex/llm_model_simple (env LLM_MODEL_COMPLEX /
+        LLM_MODEL_SIMPLE) — lets an operator repoint the tier to a different
+        model id (or a Groq-hosted equivalent) without touching the routing
+        table's task_class -> tier shape.
+        """
+        from app.core.config import settings
+
+        overrides = {"gpt-5.4-mini": settings.llm_model_complex, "gpt-5.4-nano": settings.llm_model_simple}
+        return {task_class: overrides.get(model, model) for task_class, model in routing.items()}
 
     @staticmethod
     def _build_provider(name: str, pcfg: dict) -> LLMProvider:
@@ -103,6 +118,18 @@ class Gateway:
             from app.gateway.providers.anthropic import AnthropicProvider
 
             return AnthropicProvider(client=anthropic.Anthropic(api_key=settings.anthropic_api_key), pricing=pricing)
+        if name == "openai_compatible":
+            import httpx
+
+            from app.core.config import settings
+            from app.gateway.providers.openai_compatible import OpenAICompatibleProvider
+
+            client = httpx.Client(
+                base_url=settings.openai_base_url,
+                headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+                timeout=60.0,
+            )
+            return OpenAICompatibleProvider(client=client, pricing=pricing)
         raise GatewayError(name, f"unknown provider '{name}' — check config/models.yaml active_provider", None)
 
     # -- routing -----------------------------------------------------------
