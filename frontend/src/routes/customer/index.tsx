@@ -7,7 +7,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { Button } from "@/components/ui/button";
 import { ChatHeader, type AppTab } from "@/components/chat/ChatHeader";
@@ -109,7 +109,6 @@ export default function CustomerChat() {
             <>
               <ChatHeader
                 personaName={session.persona.name}
-                communicationStyle={experience.chat.label}
                 avatarState={session.avatarState}
                 language={session.language}
                 onLanguageChange={session.setLanguage}
@@ -124,10 +123,6 @@ export default function CustomerChat() {
 
               {tab === "chat" ? (
                 <>
-                  <div className={`mx-4 mt-3 flex items-start gap-2 rounded-lg border px-3 py-2 ${experience.dashboard.accentClass}`}>
-                    <Sparkles className="mt-0.5 shrink-0" size={15} strokeWidth={1.75} aria-hidden="true" />
-                    <p className="text-caption"><span className="font-semibold">Personalised for you:</span> {experience.chat.description}</p>
-                  </div>
                   <div className="min-h-0 flex-1 overflow-y-auto">
                     <MessageList
                       messages={session.messages}
@@ -190,6 +185,7 @@ export default function CustomerChat() {
           hasLeads={hasLeads}
           leadCount={leadCount}
           language={session.language}
+          experience={experience}
           onOpenAudit={() => setAuditOpen(true)}
         />
       )}

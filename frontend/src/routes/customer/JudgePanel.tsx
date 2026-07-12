@@ -7,10 +7,11 @@
  * never sees this panel; it never renders inside `/present`, which pins one
  * persona per iframe and shows the phone alone (see routes/customer/index.tsx).
  */
-import { ArrowUpRight, ScrollText } from "lucide-react";
+import { ArrowUpRight, ScrollText, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 import type { LanguageCode } from "@/components/shared/LangToggle";
+import type { PersonaExperience } from "@/lib/personaExperience";
 
 export interface JudgePanelProps {
   spaceId: string | null;
@@ -18,10 +19,11 @@ export interface JudgePanelProps {
   hasLeads: boolean;
   leadCount: number;
   language: LanguageCode;
+  experience: PersonaExperience;
   onOpenAudit: () => void;
 }
 
-export function JudgePanel({ spaceId, sessionId, hasLeads, leadCount, language, onOpenAudit }: JudgePanelProps) {
+export function JudgePanel({ spaceId, sessionId, hasLeads, leadCount, language, experience, onOpenAudit }: JudgePanelProps) {
   const auditReady = Boolean(sessionId);
   const rmHref = spaceId ? `/rm?space=${encodeURIComponent(spaceId)}` : "/rm";
 
@@ -35,6 +37,19 @@ export function JudgePanel({ spaceId, sessionId, hasLeads, leadCount, language, 
       </div>
 
       <div className="space-y-3">
+        <section className="rounded-lg border border-structural-200 bg-structural-50 p-3" aria-label="Persona adaptation shown to judges">
+          <div className="flex items-center gap-2 text-structural-700">
+            <Sparkles size={16} strokeWidth={1.75} aria-hidden="true" />
+            <p className="text-caption font-semibold uppercase tracking-wide">Persona adaptation</p>
+          </div>
+          <dl className="mt-2 space-y-2 text-caption">
+            <div><dt className="font-semibold text-neutral-700">Chat</dt><dd className="text-neutral-600">{experience.chat.label}</dd></div>
+            <div><dt className="font-semibold text-neutral-700">Dashboard</dt><dd className="text-neutral-600">{experience.dashboard.title}</dd></div>
+            <div><dt className="font-semibold text-neutral-700">Channels</dt><dd className="text-neutral-600">{experience.channels.preference} · {experience.channels.cadence}</dd></div>
+          </dl>
+          <p className="mt-2 text-caption text-neutral-500">Judge view only — the phone shows the adapted experience, not an explanation of it.</p>
+        </section>
+
         {/* Audit trail — same drawer the old in-phone icon opened; the
             entry point moves, the compliance content doesn't. */}
         <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">

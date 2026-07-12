@@ -92,11 +92,6 @@ export function CustomerDashboard({ sessionId, spaceId, personaId, language, exp
       >
         {summary.data && (
           <>
-            <section className={`rounded-lg border p-4 ${experience.dashboard.accentClass}`}>
-              <p className="text-caption font-semibold uppercase tracking-wide">Your dashboard focus</p>
-              <h2 className="mt-1 font-display text-h4 font-semibold">{experience.dashboard.title}</h2>
-              <p className="mt-1 text-body-sm">{experience.dashboard.description}</p>
-            </section>
             <NetWorthHero value={summary.data.metrics.net_worth} language={language} />
 
             {experience.dashboard.primary === "cashflow" && cashflowSection()}
