@@ -140,8 +140,6 @@ function candidateVoicesForLanguage(voices: SpeechSynthesisVoice[], language: La
 
 const naturalVoiceCache = new Map<LanguageCode, SpeechSynthesisVoice>();
 const VOICE_PIN_KEY = "wm_voice_pin";
-const COMPANION_VOICE_PIN_KEY = "wm_companion_voice_pin";
-let companionVoiceCache: SpeechSynthesisVoice | null = null;
 
 function savedVoiceUri(language: LanguageCode): string | null {
   try {
@@ -177,38 +175,6 @@ function preferredVoice(voices: SpeechSynthesisVoice[], language: LanguageCode):
   return pinVoice(language, best);
 }
 
-/** The demo has one recognizable WealthMitra companion voice. The voice that
- * worked well for Priya's English flow is selected from the same English
- * ranking and then reused for Hindi and English instead of selecting a new
- * persona- or language-specific browser voice. */
-function preferredCompanionVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  const savedUri = (() => {
-    try {
-      return window.sessionStorage.getItem(COMPANION_VOICE_PIN_KEY) || savedVoiceUri("en");
-    } catch {
-      return savedVoiceUri("en");
-    }
-  })();
-  const saved = savedUri ? voices.find((voice) => voice.voiceURI === savedUri) : null;
-  if (saved) {
-    companionVoiceCache = saved;
-    return saved;
-  }
-
-  const cached = companionVoiceCache ? voices.find((voice) => voice.voiceURI === companionVoiceCache?.voiceURI) : null;
-  if (cached) return cached;
-
-  const selected = preferredVoice(voices, "en");
-  if (!selected) return null;
-  companionVoiceCache = selected;
-  try {
-    window.sessionStorage.setItem(COMPANION_VOICE_PIN_KEY, selected.voiceURI);
-  } catch {
-    // Voice consistency still holds for this module lifetime without storage.
-  }
-  return selected;
-}
-
 /** Picks the most natural available voice for `language`, caching the
  * result. Returns `null` (never throws) if speechSynthesis is unavailable
  * or the voice list hasn't populated yet — callers fall back to the
@@ -221,13 +187,14 @@ export function pickNaturalVoice(language: LanguageCode): SpeechSynthesisVoice |
   return preferredVoice(voices, language);
 }
 
-/** Resolves the single companion voice before an utterance is started.
- * Browsers often populate their voices asynchronously; waiting briefly
- * prevents one screen from falling back to a different browser default. */
-export function resolveNaturalVoice(_language: LanguageCode): Promise<SpeechSynthesisVoice | null> {
+/** Resolves and pins a natural voice before an utterance is started. Browsers
+ * often populate their voices asynchronously; waiting briefly prevents one
+ * screen from falling back to a browser default while another gets the
+ * selected natural voice for the same language. */
+export function resolveNaturalVoice(language: LanguageCode): Promise<SpeechSynthesisVoice | null> {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve(null);
   const synthesis = window.speechSynthesis;
-  const immediate = preferredCompanionVoice(synthesis.getVoices());
+  const immediate = preferredVoice(synthesis.getVoices(), language);
   if (immediate) return Promise.resolve(immediate);
 
   return new Promise((resolve) => {
@@ -237,7 +204,7 @@ export function resolveNaturalVoice(_language: LanguageCode): Promise<SpeechSynt
       settled = true;
       window.clearTimeout(timeout);
       synthesis.removeEventListener("voiceschanged", onVoicesChanged);
-      resolve(preferredCompanionVoice(synthesis.getVoices()));
+      resolve(preferredVoice(synthesis.getVoices(), language));
     };
     const onVoicesChanged = () => finish();
     const timeout = window.setTimeout(finish, 500);
