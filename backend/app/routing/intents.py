@@ -51,10 +51,10 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
         # keep this below distress, which always suppresses selling.
         "loan_card_query",
         (
-            "credit card", "card reward", "card limit", "personal loan", "home loan", "housing loan",
-            "mortgage", "loan for home", "loan chahiye", "home loan chahiye", "credit card chahiye",
-            "क्रेडिट कार्ड", "पर्सनल लोन", "होम लोन", "घर के लिए लोन", "लोन चाहिए",
-            "ક્રેડિટ કાર્ડ", "પર્સનલ લોન", "હોમ લોન", "લોન જોઈએ",
+            "credit card", "creditcard", "card reward", "card limit", "plastic", "personal loan", "home loan",
+            "housing loan", "mortgage", "loan for home", "loan chahiye", "home loan chahiye", "credit card chahiye",
+            "क्रेडिट कार्ड", "कार्ड", "पर्सनल लोन", "होम लोन", "घर के लिए लोन", "लोन चाहिए",
+            "ક્રેડિટ કાર્ડ", "કાર્ડ", "પર્સનલ લોન", "હોમ લોન", "લોન જોઈએ",
         ),
     ),
     (
@@ -130,6 +130,39 @@ _GENERIC_CARD_REQUEST = re.compile(
 )
 _NON_CREDIT_CARD_TERMS = ("debit card", "prepaid card")
 
+# The bare "cc"/"c.c." abbreviation is only ever a card synonym when it
+# co-occurs with a card-request verb/question ("which cc should I get") or
+# the whole message is short and card-centric ("cc", "c.c."). Matched as a
+# standalone token (not surrounded by letters or dots) so it never fires
+# inside ordinary words like "account" or "success", and gated by context so
+# it never fires on an unrelated email-cc sentence ("please cc my manager").
+_CC_TOKEN = re.compile(r"(?<![\w.])c\.?c\.?(?![\w.])", re.IGNORECASE)
+_CARD_REQUEST_CONTEXT = re.compile(
+    r"\b(?:get|want|need|apply|recommend(?:ation)?|which|best|should|suggest)\b", re.IGNORECASE
+)
+_SHORT_CARD_MESSAGE_WORD_LIMIT = 3
+_CARD_WORD_PATTERN = re.compile(r"\bcards?\b|\bcreditcard\b|\bplastic\b", re.IGNORECASE)
+
+
+def _is_card_context_cc(normalized: str) -> bool:
+    if not _CC_TOKEN.search(normalized):
+        return False
+    if _CARD_REQUEST_CONTEXT.search(normalized):
+        return True
+    return len(normalized.split()) <= _SHORT_CARD_MESSAGE_WORD_LIMIT
+
+
+def is_generic_card_phrase(text: str) -> bool:
+    """True when `text` colloquially names a card in English — the literal
+    word "card"/"cards", the compact "creditcard", "plastic" slang, or a
+    context-gated "cc"/"c.c." shorthand.
+
+    Shared with the orchestrator's credit-card discovery gate so both
+    surfaces agree on what counts as a generic (unnamed) card request.
+    """
+    normalized = f" {text.lower().strip()} "
+    return bool(_CARD_WORD_PATTERN.search(normalized) or _is_card_context_cc(normalized))
+
 
 def _keyword_matches(normalized: str, keyword: str) -> bool:
     """Match product abbreviations as words, not arbitrary substrings.
@@ -166,7 +199,9 @@ def classify_intent(text: str, lang: str) -> Intent:
     # A customer often says "I need a card" rather than the full phrase
     # "credit card". Treat an action-oriented request as a credit journey,
     # but do not misroute debit/prepaid servicing questions to an RM.
-    if not any(term in normalized for term in _NON_CREDIT_CARD_TERMS) and _GENERIC_CARD_REQUEST.search(normalized):
+    if not any(term in normalized for term in _NON_CREDIT_CARD_TERMS) and (
+        _GENERIC_CARD_REQUEST.search(normalized) or _is_card_context_cc(normalized)
+    ):
         return "loan_card_query"
     for intent, keywords in _KEYWORD_TABLE:
         if intent == "distress_signal":

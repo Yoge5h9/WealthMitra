@@ -28,7 +28,7 @@ from app.core import audit, events
 from app.core.spaces import Space
 from app.domain.models import AuditEntry, LeadPacket, Metric, PersonaProfile, Product
 from app.gateway.contract import LLMRequest, LLMResponse, Message, TaskClass
-from app.routing import build_lead_packet, classify_intent, decide
+from app.routing import build_lead_packet, classify_intent, decide, is_generic_card_phrase
 
 from . import guardrails, prompts, tools
 from .tools import ComplianceError, ToolContext
@@ -57,7 +57,6 @@ _AVATAR_END = {
 }
 _AFFIRMATIVE = re.compile(r"^\s*(?:yes|yes please|please do|go ahead|sure|haan|ha|हाँ|હા)\s*[.!]*\s*$", re.IGNORECASE)
 _NEGATIVE = re.compile(r"^\s*(?:no|not now|no thanks|nah|nahi|नहीं|ना|ના)\s*[.!]*\s*$", re.IGNORECASE)
-_GENERIC_ENGLISH_CARD = re.compile(r"\bcards?\b", re.IGNORECASE)
 
 
 def _default_now() -> datetime:
@@ -139,7 +138,7 @@ class Orchestrator:
         if named_offer is not None and intent == "credit_product_info":
             yield from self._credit_product_turn(space, session_id, state, profile, message, named_offer, metrics)
             return
-        if intent == "loan_card_query" and named_offer is None and _GENERIC_ENGLISH_CARD.search(message):
+        if intent == "loan_card_query" and named_offer is None and is_generic_card_phrase(message):
             yield from self._credit_need_turn(space, session_id, state, message)
             return
 

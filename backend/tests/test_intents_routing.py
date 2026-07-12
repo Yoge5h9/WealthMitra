@@ -116,6 +116,37 @@ def test_debit_card_question_is_not_a_credit_rm_lead():
     assert classify_intent("I need a debit card", "en") != "loan_card_query"
 
 
+# "CC" and other card synonyms without the literal word "card" were falling
+# through to `other` (and from there to ungrounded LLM improvisation) instead
+# of the deterministic card-discovery journey. Every phrasing below must
+# route to `loan_card_query`, and the bare "cc" abbreviation must not misfire
+# on an unrelated email-cc sentence.
+_CARD_SYNONYM_PHRASINGS: list[tuple[str, str]] = [
+    ("en", "Which CC should I get?"),
+    ("en", "which credit card"),
+    ("en", "best card for travel"),
+    ("en", "credit card recommendation"),
+    ("en", "cc"),
+    ("en", "c.c."),
+    ("en", "plastic"),
+    ("hi", "नया कार्ड"),
+    ("hi", "क्रेडिट कार्ड"),
+    ("hi", "कौन सा कार्ड"),
+    ("gu", "ક્રેડિટ કાર્ડ"),
+    ("gu", "કયું કાર્ડ"),
+]
+
+
+@pytest.mark.parametrize("lang,phrase", _CARD_SYNONYM_PHRASINGS, ids=[f"{l}-{p}" for l, p in _CARD_SYNONYM_PHRASINGS])
+def test_card_synonym_phrasings_classify_as_loan_card_query(lang, phrase):
+    assert classify_intent(phrase, lang) == "loan_card_query"
+
+
+def test_bare_cc_does_not_misfire_on_email_cc_sentences():
+    assert classify_intent("add me in cc of the email", "en") != "loan_card_query"
+    assert classify_intent("please cc my manager", "en") != "loan_card_query"
+
+
 def test_aa_connect_intent():
     assert classify_intent("connect my other bank account", "en") == "aa_connect"
 
