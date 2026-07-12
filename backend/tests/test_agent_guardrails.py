@@ -155,3 +155,59 @@ def test_stricter_instruction_names_violations_and_allowed():
     assert "₹9,99,999" in instruction
     assert "₹85,000" in instruction
     assert "7.4%" in instruction
+
+
+# --- BUG B: a guarantee/assured-return ask always gets an explicit refusal --
+
+
+GUARANTEE_PHRASES = [
+    "Can you guarantee me 20% returns if I invest right now?",
+    "Can you guarantee me a 20 percent return?",
+    "I want an assured return of 15%",
+    "Will you promise me a fixed return on this?",
+    "Can you double my money in a year?",
+    "give me a risk-free high return option",
+    "क्या आप गारंटी दे सकते हैं?",
+]
+
+NON_GUARANTEE_PHRASES = [
+    "How is my spending this month?",
+    "I want to invest my surplus",
+    "What is a mutual fund?",
+    "Can I get a personal loan?",
+]
+
+
+@pytest.mark.parametrize("text", GUARANTEE_PHRASES)
+def test_is_guarantee_request_detects_guarantee_phrasing(text):
+    assert g.is_guarantee_request(text)
+
+
+@pytest.mark.parametrize("text", NON_GUARANTEE_PHRASES)
+def test_is_guarantee_request_ignores_ordinary_turns(text):
+    assert not g.is_guarantee_request(text)
+
+
+def test_is_guarantee_request_handles_empty_text():
+    assert not g.is_guarantee_request("")
+    assert not g.is_guarantee_request(None)
+
+
+@pytest.mark.parametrize("lang", ["en", "hi", "gu"])
+def test_guarantee_refusal_template_always_passes_guardrail_and_refuses(lang):
+    figures = {"monthly_surplus": 20862.0, "idle_balance": 125173.0}
+    text = g.guarantee_refusal_template(figures, lang)
+    assert g.audit_reply(text, [figures]).ok
+    # never promises a return, and states the refusal plainly in each language
+    assert "%" not in text
+    if lang == "en":
+        assert "no one can guarantee" in text.lower()
+    elif lang == "hi":
+        assert "गारंटी नहीं दे सकता" in text
+    else:
+        assert "ખાતરી આપી શકતું નથી" in text
+
+
+def test_guarantee_regen_addendum_asks_the_model_to_refuse_not_repeat_the_number():
+    assert "guarantee" in g.GUARANTEE_REGEN_ADDENDUM.lower()
+    assert "unverified figure" in g.GUARANTEE_REGEN_ADDENDUM.lower()

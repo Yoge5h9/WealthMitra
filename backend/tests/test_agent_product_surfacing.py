@@ -58,6 +58,10 @@ def reply_text(frames) -> str:
     return "".join(f["text"] for f in frames if f["type"] == "token")
 
 
+def cards(frames) -> list[dict]:
+    return [f["card"] for f in frames if f["type"] == "card"]
+
+
 def system_content(fake) -> str:
     return fake.requests[0].messages[0].content
 
@@ -249,3 +253,60 @@ def test_net_worth_question_for_unconnected_aa_persona_states_figure_and_offers_
     assert "Account Aggregator" in system_content(fake)
     text = reply_text(frames)
     assert "5,47,386" in text
+
+
+# --- BUG A: an explicit product-type ask always surfaces THAT category ------
+#
+# ravi's own risk band is "moderate" (mf_index_sip/mf_elss_direct/nps — no
+# deposit product at all in that cell). Before the fix, the deterministic
+# `recommendation` card that rides alongside the auto_execute confirm card was
+# independently re-derived from (segment, band) and picked the first VANILLA
+# product in that cell — an Index Fund SIP — even when the customer explicitly
+# asked to open a fixed deposit and the turn auto-executed an FD. The card
+# must instead reflect the SAME product routing already decided on.
+
+
+def test_open_an_fd_recommendation_card_is_a_deposit_not_the_moderate_band_sip(space):
+    sid = make_session(space, "ravi")
+    frames, _ = run(space, sid, "I want to open a fixed deposit", [
+        resp(tool_calls=[call("request_execution", {"product_id": "fd_regular", "amount": 10000})]),
+        resp(text="I can set up the IDBI Regular Fixed Deposit for ₹10,000. Confirm below."),
+    ])
+    rec = next(c for c in cards(frames) if c["card_type"] == "recommendation")
+    assert rec["product"]["category"] == "deposit"
+    assert rec["product"]["id"] == "fd_regular"
+    assert "sip" not in rec["product"]["name"].lower()
+
+
+def test_start_a_sip_recommendation_card_is_a_mutual_fund_not_a_deposit(space):
+    sid = make_session(space, "ravi")
+    frames, _ = run(space, sid, "start a SIP", [
+        resp(tool_calls=[call("request_execution", {"product_id": "mf_index_sip", "amount": 2000})]),
+        resp(text="I can set up ₹2,000 a month into the Index Fund SIP. Confirm below."),
+    ])
+    rec = next(c for c in cards(frames) if c["card_type"] == "recommendation")
+    assert rec["product"]["category"] == "mutual_fund"
+    assert "deposit" not in rec["product"]["name"].lower()
+
+
+def test_fd_ask_system_prompt_lists_the_deposit_product_before_the_sip(space):
+    # The shelf grounding block always contains BOTH the customer's own-band
+    # products and the unioned conservative-band deposit — an explicit "fixed
+    # deposit" ask must steer the model's attention to the deposit line first.
+    sid = make_session(space, "ravi")
+    _, fake = run(space, sid, "I want to open a fixed deposit", [resp(text="Happy to help.")])
+    content = system_content(fake)
+    assert "specifically asked about a fixed/recurring deposit" in content
+    assert content.index("IDBI Regular Fixed Deposit") < content.index("Index Fund SIP")
+
+
+def test_system_prompt_reorders_shelf_and_names_requested_category():
+    shelf = eligible_shelf("mass_retail_salaried", "moderate")
+    conservative = eligible_shelf("mass_retail_salaried", "conservative")
+    shelf = shelf + [p for p in conservative if p.id not in {x.id for x in shelf}]
+    text = prompts.system_prompt(
+        _RAVI, "mass_retail_salaried", "en", "auto_execute", shelf=shelf,
+        requested_category=("deposit", "fixed/recurring deposit"),
+    )
+    assert "specifically asked about a fixed/recurring deposit" in text
+    assert text.index("IDBI Regular Fixed Deposit") < text.index("Index Fund SIP")

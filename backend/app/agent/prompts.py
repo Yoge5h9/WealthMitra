@@ -62,7 +62,11 @@ _BASE = (
     "If you don't have a number, call a tool or leave it out.\n"
     "2. Use only products returned by get_eligible_products. Never mention a product that is "
     "not on that shelf, and never widen the shelf yourself.\n"
-    "3. Be honest, plain-spoken and brief. No guaranteed-return claims.\n"
+    "3. Be honest, plain-spoken and brief. No guaranteed-return claims. If the customer asks for a "
+    "guaranteed, assured, promised, fixed or risk-free return, or to 'double their money' — you MUST "
+    "immediately and explicitly say that no one can guarantee market or investment returns and that you "
+    "never promise a fixed or assured return. Say this before anything else and do not repeat their unverified "
+    "number back to them. You may then, separately, mention factual, non-guaranteed options.\n"
     "4. Never expose internal terms to the customer — segment names (hni, mass_retail, affluent, etc.), "
     "'suitability matrix', 'shelf', 'pre-eligibility', any tool name, or the word 'demo'. Speak in plain, "
     "everyday customer language. Do not quote a raw reason string verbatim (never say things like 'the reason "
@@ -160,20 +164,42 @@ def _shelf_lines(shelf: list[Product]) -> list[str]:
     ]
 
 
-def shelf_context_block(shelf: list[Product]) -> str:
+def shelf_context_block(shelf: list[Product], *, requested_category: str | None = None) -> str:
     """Stable, per-turn grounding block so the model never has to gamble on
     calling `get_eligible_products` to know the customer has real options —
     this is what makes "no products available" impossible rather than merely
     discouraged. Empty shelf (should not happen once the suitability matrix
     has full segment x band coverage) renders no block at all.
+
+    When `requested_category` is given (the customer named a specific product
+    type this turn — see `app.routing.detect_product_category`), the shelf is
+    stably re-sorted so matching-category products are listed FIRST: the
+    model reads top-to-bottom, so a named "fixed deposit" ask must never have
+    to compete for attention with an unrelated SIP listed above it.
     """
     if not shelf:
         return ""
-    lines = "\n".join(_shelf_lines(shelf))
+    ordered = shelf
+    if requested_category:
+        ordered = sorted(shelf, key=lambda p: 0 if p.category == requested_category else 1)
+    lines = "\n".join(_shelf_lines(ordered))
     return (
         "CUSTOMER'S ELIGIBLE PRODUCTS (real, tool-sourced — use ONLY these; call get_eligible_products for the "
         "full detail, but you already know these exist so NEVER claim none are available):\n"
         f"{lines}"
+    )
+
+
+def requested_category_note(category_label: str) -> str:
+    """One directive sentence added when the customer named a specific product
+    type this turn (see `app.routing.detect_product_category`) — the model
+    must present that exact category first, not a different one it happens to
+    find more attractive to pitch.
+    """
+    return (
+        f"The customer specifically asked about a {category_label}. If a product of that exact category "
+        "appears in the eligible list above, present THAT product as your primary answer — never substitute "
+        "a different category just because it seems like a better fit."
     )
 
 
@@ -208,6 +234,8 @@ def system_prompt(
     shelf: list[Product] | None = None,
     net_worth: dict | None = None,
     aa_available: bool = False,
+    requested_category: tuple[str, str] | None = None,
+    lead_already_shared: bool = False,
 ) -> str:
     lang_name = _LANGUAGE_NAME.get(language, _LANGUAGE_NAME["en"])
     tone = _TONE_BY_SEGMENT.get(segment, _DEFAULT_TONE)
@@ -215,12 +243,20 @@ def system_prompt(
         guidance = loans_cards_guidance(card_context or {})
     else:
         guidance = _MODE_GUIDANCE.get(mode, _MODE_GUIDANCE["info_only"])
+        if mode == "rm_lead" and lead_already_shared:
+            guidance += (
+                " A Relationship Manager lead for this was already created earlier in this conversation — do "
+                "NOT claim a new one was just created. Simply reassure them it's already with the RM."
+            )
 
     context_blocks = []
     if shelf is not None:
-        block = shelf_context_block(shelf)
+        category_key = requested_category[0] if requested_category else None
+        block = shelf_context_block(shelf, requested_category=category_key)
         if block:
             context_blocks.append(block)
+            if requested_category:
+                context_blocks.append(requested_category_note(requested_category[1]))
     if net_worth is not None:
         context_blocks.append(net_worth_context_line(net_worth, aa_available=aa_available))
     context = ("\n\n" + "\n\n".join(context_blocks)) if context_blocks else ""

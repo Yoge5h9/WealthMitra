@@ -63,6 +63,12 @@ class ToolContext:
     # create_rm_lead must refuse deterministically no matter what the model
     # attempts on a decline turn.
     lead_blocked: bool = False
+    # Set by the orchestrator when this turn's rm_lead (investment_insurance)
+    # request reused an already-open lead for this session/family instead of
+    # creating a duplicate — see Orchestrator._existing_open_lead. Purely
+    # informational for the prompt; create_rm_lead still just surfaces
+    # `built_lead` either way.
+    lead_already_shared: bool = False
     _metrics: dict[str, Metric] | None = field(default=None, repr=False)
 
     def metrics(self) -> dict[str, Metric]:

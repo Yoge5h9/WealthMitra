@@ -159,6 +159,62 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
     ),
 )
 
+# Maps a customer's NAMED product-type ask to the catalogue `Product.category`
+# it must resolve to (see app/catalogue/shelf.py) and a plain-language label
+# for prompt grounding. Deliberately independent of `classify_intent`'s coarser
+# buckets (e.g. both "start a SIP" and "open an FD" classify as different
+# intents already, but "invest in equity" and "open a PPF" both land in
+# `invest_surplus`) — this is what lets the product-surfacing path always
+# steer toward the SPECIFIC category the customer named, not just the right
+# high-level intent. Checked in order; first match wins.
+_CATEGORY_KEYWORDS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    (
+        "deposit", "fixed/recurring deposit",
+        ("fixed deposit", "recurring deposit", "term deposit", "fd", "rd", "फिक्स्ड डिपॉज़िट", "એફડી"),
+    ),
+    (
+        "govt_scheme", "government savings scheme",
+        ("ppf", "public provident fund", "scss", "senior citizens savings", "sukanya", "ssy"),
+    ),
+    ("nps", "NPS", ("nps", "national pension")),
+    (
+        "mutual_fund", "mutual fund/SIP",
+        ("sip", "mutual fund", "index fund", "elss", "flexicap", "flexi cap", "flexi-cap",
+         "small cap", "smallcap", "mid cap", "midcap", "tax-saving fund", "tax saving fund"),
+    ),
+    (
+        "bond", "government bond",
+        ("g-sec", "gsec", "g sec", "government bond", "rbi bond", "t-bill", "treasury bill", "floating rate bond"),
+    ),
+    (
+        "equity_demat", "demat/trading account",
+        ("demat", "equity trading", "stock trading", "share trading", "trading account"),
+    ),
+    (
+        "insurance", "insurance",
+        ("insurance", "ulip", "term plan", "term insurance", "health cover", "life cover"),
+    ),
+)
+
+
+def detect_product_category(text: str) -> tuple[str, str] | None:
+    """Best-effort, deterministic detection of a NAMED product category in
+    `text` — e.g. "I want to open a fixed deposit" -> ("deposit", "fixed/recurring
+    deposit"). Returns `None` when the customer hasn't named a specific type
+    (a generic "I want to invest" carries no category signal here).
+
+    This never decides routing on its own — it only tells the product-surfacing
+    path (see `Orchestrator._build_messages`) which category to prioritise in
+    what the customer is shown, so an explicit ask never resolves to the wrong
+    product family.
+    """
+    normalized = f" {text.lower().strip()} "
+    for category, label, keywords in _CATEGORY_KEYWORDS:
+        if any(_keyword_matches(normalized, kw) for kw in keywords):
+            return category, label
+    return None
+
+
 _CARD_ALIASES = ("aspire", "euphoria", "imperium", "royale")
 _CARD_APPLICATION_TERMS = ("apply", "want", "need", "get", "check my eligibility", "eligible for")
 _GENERIC_CARD_REQUEST = re.compile(

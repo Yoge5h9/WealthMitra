@@ -36,7 +36,7 @@ from app.core import audit, events
 from app.core.spaces import Space
 from app.domain.models import AuditEntry, LeadPacket, Metric, PersonaExternal, PersonaProfile, Product
 from app.gateway.contract import LLMRequest, LLMResponse, Message, TaskClass
-from app.routing import Route, build_lead_packet, classify_intent, decide
+from app.routing import Route, build_lead_packet, classify_intent, decide, detect_product_category
 from app.routing.leads import tag_for_card_verdict
 
 from . import guardrails, prompts, tools
@@ -128,6 +128,7 @@ class Orchestrator:
         surplus = float(metrics["monthly_surplus"].value)
 
         intent = classify_intent(message, lang)
+        requested_category = detect_product_category(message)
         named_offer = resolve_offer(message)
         if named_offer is not None and intent == "credit_product_info":
             yield from self._credit_product_turn(space, session_id, state, profile, message, named_offer, metrics)
@@ -177,14 +178,21 @@ class Orchestrator:
                     space, session_id, persona_id, metrics, segment, band, surplus
                 )
             else:
-                offer_recommendations = (
-                    recommendations_for(profile, {key: metric.value for key, metric in metrics.items()},
-                                        family=family, message=message)
-                    if "insurance" in message.lower() else []
-                )
-                ctx.built_lead = self._build_lead(
-                    space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations
-                )
+                existing_lead = self._existing_open_lead(space, state, family)
+                if existing_lead is not None:
+                    ctx.built_lead = existing_lead
+                    ctx.lead_already_shared = True
+                else:
+                    offer_recommendations = (
+                        recommendations_for(profile, {key: metric.value for key, metric in metrics.items()},
+                                            family=family, message=message)
+                        if "insurance" in message.lower() else []
+                    )
+                    lead = self._build_lead(
+                        space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations
+                    )
+                    ctx.built_lead = lead
+                    state.setdefault("rm_leads", {})[family] = lead.lead_id
 
         # classify_intent already ran deterministically above the routing gate;
         # a literacy/definition question always lands in info_only (it is
@@ -198,12 +206,13 @@ class Orchestrator:
             lead_family=route.lead_family, card_context=card_context,
             shelf=prompt_shelf, net_worth=metrics["net_worth"].value,
             aa_available=persona.external.aa_available,
+            requested_category=requested_category, lead_already_shared=ctx.lead_already_shared,
         )
         toolspecs = tools.literacy_toolspecs() if is_literacy else tools.tools_for_mode(mode, family=route.lead_family)
         final_text = self._tool_loop(space, session_id, ctx, messages, toolspecs, task_class)
 
         final_text, audit_ref = self._guard(
-            space, session_id, ctx, messages, task_class, final_text, metrics, lang, shelf=prompt_shelf
+            space, session_id, ctx, messages, task_class, final_text, metrics, lang, message, shelf=prompt_shelf
         )
 
         self._append_history(state, message, final_text)
@@ -214,7 +223,7 @@ class Orchestrator:
         yield {"type": "avatar", "state": _AVATAR_END[mode]}
         for chunk in _chunks(final_text):
             yield {"type": "token", "text": chunk}
-        for card in self._cards(ctx, mode, metrics, segment, band, surplus):
+        for card in self._cards(ctx, mode, metrics, segment, band, surplus, product_ctx=product_ctx):
             yield {"type": "card", "card": card}
         yield {"type": "done", "audit_ref": audit_ref}
 
@@ -326,6 +335,7 @@ class Orchestrator:
         lead_family: str | None = None, card_context: dict | None = None,
         shelf: list[Product] | None = None,
         net_worth: dict | None = None, aa_available: bool = False,
+        requested_category: tuple[str, str] | None = None, lead_already_shared: bool = False,
     ) -> list[Message]:
         if literacy:
             system_content = prompts.literacy_system_prompt(profile, segment, lang)
@@ -334,6 +344,7 @@ class Orchestrator:
             system_content = prompts.system_prompt(
                 profile, segment, lang, mode, lead_family=lead_family, card_context=card_context,
                 shelf=shelf, net_worth=net_worth, aa_available=aa_available,
+                requested_category=requested_category, lead_already_shared=lead_already_shared,
             )
             window = HISTORY_LIMIT
         msgs = [Message(role="system", content=system_content)]
@@ -375,7 +386,7 @@ class Orchestrator:
             return json.dumps({"error": str(e), "note": "This action is not permitted here."}, ensure_ascii=False)
 
     def _guard(
-        self, space, session_id, ctx, messages, task_class, final_text, metrics, lang,
+        self, space, session_id, ctx, messages, task_class, final_text, metrics, lang, message,
         *, shelf: list[Product] | None = None,
     ) -> tuple[str, str]:
         # The eligible shelf is deterministic, catalogue-sourced data we already
@@ -386,12 +397,15 @@ class Orchestrator:
         # wrongly flagged as hallucinated.
         extra = [m.value for m in metrics.values()] + [p.model_dump() for p in (shelf or [])]
         amounts, percents = guardrails.build_allowed(ctx.tool_results, extra)
+        guarantee_requested = guardrails.is_guarantee_request(message)
         verdict = guardrails.audit_numbers(final_text, amounts, percents)
         ref = self._audit_guardrail(space, session_id, "number_audit", verdict, regenerated=False, fell_back=False)
         if verdict.ok:
             return final_text, ref
 
         instruction = guardrails.stricter_instruction(verdict, amounts, percents)
+        if guarantee_requested:
+            instruction += guardrails.GUARANTEE_REGEN_ADDENDUM
         regen_messages = [*messages, Message(role="system", content=instruction)]
         req = LLMRequest(messages=regen_messages, tools=None, tool_choice="none",
                          task_class=task_class, temperature=0.0, max_tokens=1024)
@@ -407,11 +421,38 @@ class Orchestrator:
             "monthly_surplus": float(metrics["monthly_surplus"].value),
             "idle_balance": float(metrics["idle_balance"].value),
         }
-        safe = guardrails.safe_template(figures, lang)
+        # A guarantee-request turn must never fall back to the generic,
+        # non-committal facts template — that reads as an evasive dodge (it
+        # neither confirms nor denies a guarantee), which is the exact
+        # compliance gap this branch closes.
+        safe = (
+            guardrails.guarantee_refusal_template(figures, lang)
+            if guarantee_requested
+            else guardrails.safe_template(figures, lang)
+        )
         ref = self._audit_guardrail(space, session_id, "number_audit", verdict2, regenerated=True, fell_back=True)
         return safe, ref
 
     # -- lead construction -------------------------------------------------
+
+    @staticmethod
+    def _existing_open_lead(space: Space, state: dict, family: str) -> LeadPacket | None:
+        """At most one RM lead per (session, lead_family): a second regulated/
+        premium turn in the SAME session and family (e.g. an informational
+        "what premium options do I have" followed later by an explicit "go
+        ahead with rm") must reuse the lead already created, never create a
+        duplicate. `state["rm_leads"]` is this session's own record of which
+        lead it already opened per family — see where it is set in `run_turn`.
+        A lead the RM console has already marked `converted` no longer counts
+        as open, so a genuinely new request afterward can still open one.
+        """
+        lead_id = state.get("rm_leads", {}).get(family)
+        if lead_id is None:
+            return None
+        lead = next((l for l in space.leads if l.lead_id == lead_id), None)
+        if lead is None or lead.status == "converted":
+            return None
+        return lead
 
     def _build_lead(
         self, space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations,
@@ -501,7 +542,7 @@ class Orchestrator:
 
     # -- cards -------------------------------------------------------------
 
-    def _cards(self, ctx, mode, metrics, segment, band, surplus) -> list[dict]:
+    def _cards(self, ctx, mode, metrics, segment, band, surplus, *, product_ctx: Product | None = None) -> list[dict]:
         if mode == "rm_lead" and ctx.built_lead is not None:
             return [self._rm_lead_card(ctx.built_lead)]
         if mode == "distress_suppress":
@@ -513,7 +554,15 @@ class Orchestrator:
             }]
         if mode == "auto_execute":
             cards: list[dict] = []
-            rec = self._recommendation_card(metrics, segment, band, surplus)
+            # `product_ctx` is the SAME deterministic product routing already
+            # decided this turn on (see `_representative_product`) — reusing it
+            # here, rather than independently re-deriving "the" vanilla product
+            # from the customer's own segment/band, is what keeps the
+            # recommendation card honest for an explicit ask like "open an FD":
+            # ravi's own moderate band has no deposit product at all, so a
+            # fresh re-derivation would silently surface an Index Fund SIP
+            # instead of the FD routing actually auto-executed.
+            rec = self._product_card(product_ctx) if product_ctx is not None else self._recommendation_card(metrics, segment, band, surplus)
             if rec:
                 cards.append(rec)
             if ctx.confirm:
@@ -551,6 +600,10 @@ class Orchestrator:
         product = next((p for p in shelf if p.tag == "vanilla"), shelf[0] if shelf else None)
         if product is None:
             return None
+        return self._product_card(product)
+
+    @staticmethod
+    def _product_card(product: Product) -> dict:
         return {
             "card_type": "recommendation",
             "product": {

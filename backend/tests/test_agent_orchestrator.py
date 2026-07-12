@@ -598,6 +598,96 @@ def test_clean_reply_skips_regeneration(space):
     assert len(fake.requests) == 1
 
 
+# --- BUG B: a guarantee ask never falls back to the generic evasive dodge ---
+
+
+def test_guarantee_ask_double_failure_falls_back_to_an_explicit_refusal_not_a_dodge(space):
+    # Reproduces the reported failure: the model tries to explain why it
+    # can't confirm the customer's own 20% figure, re-mentions "20%" (an
+    # unverified number) both times, the guardrail rejects both attempts, and
+    # the turn falls back to the safe template. The generic facts-only
+    # template ("Here's what I can confirm... I'll connect you with a
+    # specialist") neither confirms nor denies a guarantee — it must instead
+    # explicitly refuse the guarantee.
+    sid = make_session(space, "ravi")
+    frames, _ = run(space, sid, "Can you guarantee me 20% returns if I invest right now?", [
+        resp(text="Sure, a 20% return is realistic if markets do well."),
+        resp(text="I really can't promise 20%, but it could happen."),
+    ])
+    text = reply_text(frames)
+    assert "no one can guarantee" in text.lower()
+    assert "20%" not in text
+    assert "connect you with a specialist" not in text.lower()
+    verdicts = [e for e in audit.for_session(space, sid) if e.kind == "guardrail" and e.name == "number_audit"]
+    assert verdicts[-1].outputs_summary["fell_back"] is True
+
+
+def test_guarantee_ask_first_pass_clean_reply_is_untouched(space):
+    # A reply that already refuses cleanly (no unverified numbers) must pass
+    # straight through — the guardrail should never rewrite a compliant reply.
+    sid = make_session(space, "ravi")
+    frames, fake = run(space, sid, "Can you guarantee me 20% returns?", [
+        resp(text="No one can guarantee market returns — I can't promise a fixed outcome here."),
+    ])
+    assert len(fake.requests) == 1
+    text = reply_text(frames)
+    assert "no one can guarantee" in text.lower()
+
+
+# --- BUG C: at most one RM lead per (session, lead_family) ------------------
+
+
+def test_premium_info_question_then_explicit_rm_consent_creates_exactly_one_lead(space):
+    # devika's computed (hni, moderate) shelf is entirely regulated, so a pure
+    # "what premium options do I have" question already (correctly) routes to
+    # rm_lead and opens a lead — see test_agent_product_surfacing.py's
+    # test_hni_premium_options_ask_routes_to_rm_and_names_a_specialist_product.
+    # A later explicit "go ahead with rm" in the SAME session must reuse that
+    # lead, never open a second one.
+    sid = make_session(space, "devika")
+    run(space, sid, "what premium investment options do I have?", [
+        resp(text="Our IDBI Capital Wealth Management desk fits this — an RM will review it with you."),
+    ])
+    assert len(space.leads) == 1
+    first_lead_id = space.leads[0].lead_id
+
+    frames, _ = run(space, sid, "go ahead with rm", [
+        resp(text="Understood — your Relationship Manager already has this and will be in touch."),
+    ])
+    assert len(space.leads) == 1                       # no duplicate
+    assert space.leads[0].lead_id == first_lead_id
+    routed = next(c for c in cards(frames) if c["card_type"] == "routed_to_rm")
+    assert routed["lead_id"] == first_lead_id
+
+
+def test_distress_persona_never_creates_a_lead_across_repeated_regulated_asks(space):
+    sid = make_session(space, "vikram")
+    run(space, sid, "what premium investment options do I have?", [
+        resp(text="Let's first get your cash-flow steady."),
+    ])
+    run(space, sid, "go ahead with rm", [
+        resp(text="Let's first get your cash-flow steady."),
+    ])
+    assert space.leads == []
+
+
+def test_card_empathy_consent_flow_still_creates_exactly_one_lead(space):
+    # The loans_cards consent-gated flow (BUG3/BUG4 above) must be unaffected
+    # by the investment_insurance dedup guard — it lives in a separate branch.
+    sid = make_session(space, "arjun")
+    run(space, sid, "which credit card should I get", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text="Those unsecured cards need India residency, so they wouldn't fit you. The Imperium Platinum, "
+                  "secured against an IDBI FD/FCNR deposit, is a real alternative — want an RM to review it?"),
+    ])
+    run(space, sid, "Yes please", [
+        resp(tool_calls=[call("create_rm_lead", {"trigger_utterance": "Imperium secured card, NRI", "card_id": "idbi_imperium_platinum"})]),
+        resp(text="Done — an RM will review the Imperium Platinum secured-card path with you. This is not an approval."),
+    ])
+    assert len(space.leads) == 1
+    assert space.leads[0].family == "loans_cards"
+
+
 # --- language + session state -----------------------------------------------
 
 

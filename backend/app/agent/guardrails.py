@@ -246,6 +246,69 @@ def audit_reply(reply: str | None, tool_results: list[dict], extra: list[object]
     return audit_numbers(reply, amounts, percents)
 
 
+# A customer asking for a guaranteed/assured/promised return (or to "double
+# their money", or a "risk-free" high return) must always get an explicit
+# refusal of the guarantee — never a vague, evasive dodge. Substrings are
+# deliberately stems ("guarante" covers guarantee/guaranteed/guarantees,
+# "assur" covers assure/assured/assurance) so common inflections all match.
+_GUARANTEE_KEYWORDS = (
+    "guarante", "assur", "risk-free", "risk free", "riskfree",
+    "double my money", "double the money", "sure shot", "sureshot",
+    "गारंटी", "पक्का रिटर्न", "निश्चित रिटर्न", "ગેરંટી", "ખાતરીપૂર્વક",
+)
+
+
+def is_guarantee_request(text: str | None) -> bool:
+    """True when `text` asks for a guaranteed/assured/promised return.
+
+    Used to force an explicit, honest refusal — see `guarantee_refusal_template`
+    and the orchestrator's guardrail step — rather than letting a hallucinated
+    number-audit failure fall back to the generic, non-committal safe template.
+    """
+    if not text:
+        return False
+    normalized = f" {text.lower().strip()} "
+    if any(keyword in normalized for keyword in _GUARANTEE_KEYWORDS):
+        return True
+    return "promis" in normalized and "return" in normalized
+
+
+GUARANTEE_REGEN_ADDENDUM = (
+    " The customer also asked for a guaranteed/assured/promised return: state plainly that no one can "
+    "guarantee market or investment returns and that you never promise a fixed or assured return. Do not "
+    "repeat back the unverified figure they asked about."
+)
+
+
+def guarantee_refusal_template(figures: dict[str, float], language: str) -> str:
+    """Deterministic fallback for a guarantee-request turn whose reply still
+    fails the number-audit guardrail after one regeneration attempt.
+
+    Unlike `safe_template`, this ALWAYS leads with an explicit refusal of the
+    guarantee — the generic facts-only template reads as an evasive dodge on
+    a guarantee ask (it neither confirms nor denies a guarantee exists), which
+    is exactly the compliance gap this template closes.
+    """
+    facts = facts_string(figures, language)
+    if language == "hi":
+        return (
+            "कोई भी व्यक्ति बाज़ार या निवेश के रिटर्न की गारंटी नहीं दे सकता, और मैं भी तय या पक्के रिटर्न का "
+            f"वादा नहीं करता। आपके खातों से यह पक्का बता सकता हूँ: {facts}। जब चाहें, मैं आपको बिना-गारंटी वाले "
+            "असली विकल्प दिखा सकता हूँ।"
+        )
+    if language == "gu":
+        return (
+            "કોઈ પણ બજાર કે રોકાણના વળતરની ખાતરી આપી શકતું નથી, અને હું પણ નિશ્ચિત કે ખાતરીપૂર્વકના વળતરનું વચન "
+            f"આપતો નથી. તમારા ખાતાં પરથી હું આટલું ચોક્કસ કહી શકું છું: {facts}. તૈયાર હો ત્યારે હું તમને ખાતરી "
+            "વગરના ખરેખરા વિકલ્પો બતાવી શકું."
+        )
+    return (
+        "No one can guarantee market or investment returns, and I never promise a fixed or assured return. "
+        f"Here's what I can confirm from your accounts: {facts}. Whenever you're ready, I can walk you through "
+        "real, non-guaranteed options."
+    )
+
+
 def format_inr(n: float) -> str:
     """Indian digit grouping: 547386 → "5,47,386" (last 3, then pairs)."""
     value = int(round(n))

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.routing.intents import classify_intent
+from app.routing.intents import classify_intent, detect_product_category
 
 # COMPLIANCE MOAT REGRESSION MATRIX: every regulated product category, in every
 # supported language, must classify as `regulated_query` — never fall through
@@ -232,3 +232,37 @@ def test_lang_argument_is_accepted_but_does_not_change_matching():
     # given script must not change the classification.
     assert classify_intent("what is sip", "gu") == "literacy"
     assert classify_intent("यूलिप के बारे में बताओ", "en") == "regulated_query"
+
+
+# --- BUG A: detect_product_category names the customer's exact product ask -
+
+
+_CATEGORY_PHRASINGS = [
+    ("I want to open a fixed deposit", "deposit"),
+    ("open an FD for me", "deposit"),
+    ("I want to start a recurring deposit", "deposit"),
+    ("I want to open a PPF account", "govt_scheme"),
+    ("tell me about SCSS", "govt_scheme"),
+    ("start a SIP", "mutual_fund"),
+    ("I want a mutual fund", "mutual_fund"),
+    ("open a demat account", "equity_demat"),
+    ("I want insurance", "insurance"),
+]
+
+
+@pytest.mark.parametrize("text,expected_category", _CATEGORY_PHRASINGS)
+def test_detect_product_category_names_the_exact_type(text, expected_category):
+    result = detect_product_category(text)
+    assert result is not None
+    assert result[0] == expected_category
+
+
+def test_detect_product_category_is_none_for_a_generic_ask():
+    assert detect_product_category("I want to invest my surplus") is None
+    assert detect_product_category("how is my spending?") is None
+
+
+def test_detect_product_category_fd_does_not_misfire_on_card():
+    # "rd"/"fd" are matched as whole words (see `_keyword_matches`) so a
+    # credit-card request never gets mistaken for a deposit ask.
+    assert detect_product_category("I want a credit card") is None

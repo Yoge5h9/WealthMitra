@@ -4,12 +4,13 @@ package — see engine.py for the rationale.
 """
 
 from app.routing.engine import LeadFamily, Route, RoutePath, decide, priority_score, wants_to_buy
-from app.routing.intents import Intent, classify_intent, is_generic_card_phrase
+from app.routing.intents import Intent, classify_intent, detect_product_category, is_generic_card_phrase
 from app.routing.leads import age_band, build_lead_packet, city_tier
 
 __all__ = [
     "Intent",
     "classify_intent",
+    "detect_product_category",
     "is_generic_card_phrase",
     "Route",
     "RoutePath",
