@@ -1,0 +1,70 @@
+# Model Gateway routing + pricing.
+#
+# active_provider is the default; Settings.llm_provider overrides it when set
+# (it defaults to "claude_cli", so in practice Settings decides).
+#
+# Per-provider task_class -> model maps drive routing. Pricing is USD per
+# million tokens, used for the cost_estimate_usd on every response and audit
+# entry. claude_cli runs under a Claude Code subscription, so its cost is 0.
+#
+# Model ids / pricing verified 2026-07-11:
+#   Anthropic (docs.claude.com, cached 2026-06-24): claude-haiku-4-5 $1.00/$5.00;
+#     claude-sonnet-5 $3.00/$15.00 ($2.00/$10.00 intro through 2026-08-31).
+#   Gemini (verified 2026-07-12): the pinned gemini-2.5-* ids return 404 for
+#     newer API projects and gemini-pro-latest has no free-tier quota, so we
+#     route to the rolling aliases instead. gemini-flash-latest currently
+#     resolves to gemini-3.5-flash ($1.50/$9.00); gemini-flash-lite-latest to
+#     gemini-3.1-flash-lite ($0.25/$1.50).
+#   openai_compatible (verified 2026-07-12, OpenAI price sheet): gpt-5.4-mini
+#     $0.75/$4.50 (cached input $0.075); gpt-5.4-nano $0.20/$1.25 (cached
+#     input $0.02). If base_url is repointed at Groq, update these to the Groq
+#     sheet. Settings.llm_model_complex/llm_model_simple (env
+#     LLM_MODEL_COMPLEX/LLM_MODEL_SIMPLE) override the model id at runtime; the
+#     routing table below only fixes which task_classes get complex vs. simple.
+
+active_provider: claude_cli
+
+providers:
+  claude_cli:
+    routing:
+      intent_assist: haiku
+      nudge_copy: haiku
+      conversational: haiku
+      lead_narrative: haiku
+      literacy: haiku
+    pricing:
+      haiku: {input_per_mtok: 0.0, output_per_mtok: 0.0}
+      sonnet: {input_per_mtok: 0.0, output_per_mtok: 0.0}
+
+  gemini:
+    routing:
+      intent_assist: gemini-flash-lite-latest
+      nudge_copy: gemini-flash-lite-latest
+      conversational: gemini-flash-latest
+      lead_narrative: gemini-flash-latest
+      literacy: gemini-flash-latest
+    pricing:
+      gemini-flash-latest: {input_per_mtok: 1.50, output_per_mtok: 9.00}
+      gemini-flash-lite-latest: {input_per_mtok: 0.25, output_per_mtok: 1.50}
+
+  anthropic:
+    routing:
+      intent_assist: claude-haiku-4-5
+      nudge_copy: claude-haiku-4-5
+      conversational: claude-sonnet-5
+      lead_narrative: claude-sonnet-5
+      literacy: claude-sonnet-5
+    pricing:
+      claude-haiku-4-5: {input_per_mtok: 1.00, output_per_mtok: 5.00}
+      claude-sonnet-5: {input_per_mtok: 3.00, output_per_mtok: 15.00}
+
+  openai_compatible:
+    routing:
+      intent_assist: gpt-5.4-nano
+      nudge_copy: gpt-5.4-nano
+      conversational: gpt-5.4-mini
+      lead_narrative: gpt-5.4-mini
+      literacy: gpt-5.4-mini
+    pricing:
+      gpt-5.4-mini: {input_per_mtok: 0.75, output_per_mtok: 4.50}
+      gpt-5.4-nano: {input_per_mtok: 0.20, output_per_mtok: 1.25}

@@ -1,0 +1,43 @@
+# Render Blueprint — one-click deploy for the WealthMitra demo.
+#
+# Usage: https://dashboard.render.com/blueprints -> "New Blueprint Instance"
+# -> point at this repo. Render reads this file and provisions the service
+# below; you'll be prompted for OPENAI_API_KEY during setup (sync: false).
+#
+# See README.md "One-click deploy" for the full walkthrough.
+
+services:
+  - type: web
+    name: wealthmitra
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # `starter` avoids Render's free-tier spin-down (the free plan sleeps
+    # after 15 min idle and takes ~30-60s to wake on the next request —
+    # a bad first impression for a judge opening a cold link). Downgrade to
+    # `free` if cost is a concern and a cold start is acceptable.
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      # Deployed default provider. claude_cli only works where the Claude
+      # CLI binary + auth are present (dev machines) — it is NOT a valid
+      # deploy-time choice. See backend/app/core/config.py: an unset key for
+      # the active provider fails app startup loudly, by design.
+      - key: LLM_PROVIDER
+        value: openai_compatible
+      - key: OPENAI_API_KEY
+        sync: false
+      # Overridable: repoint at any OpenAI-wire-compatible endpoint (e.g. Groq,
+      # a self-hosted vLLM) without a code change.
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: LLM_MODEL_COMPLEX
+        value: gpt-5.4-mini
+      - key: LLM_MODEL_SIMPLE
+        value: gpt-5.4-nano
+      # Documented free fallback provider — not active unless LLM_PROVIDER is
+      # switched to "gemini". Second key fails over automatically on 429/revoke.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY_2
+        sync: false

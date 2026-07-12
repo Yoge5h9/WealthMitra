@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic>=2
+pydantic-settings
+httpx
+pytest
+pytest-asyncio
+pytest-cov
+pyyaml
+google-genai
+anthropic

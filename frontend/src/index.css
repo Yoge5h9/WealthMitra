@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/600.css";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * shadcn/ui's semantic color/radius contract, remapped onto our own
+ * brand/structural/neutral/semantic tokens from tokens.css instead of
+ * shadcn's default oklch grayscale — so Button/Card and any component
+ * added later automatically render in the WealthMitra palette.
+ */
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-heading: var(--font-display);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+:root {
+  --background: var(--color-neutral-50);
+  --foreground: var(--color-neutral-800);
+  --card: var(--color-neutral-0);
+  --card-foreground: var(--color-neutral-800);
+  --popover: var(--color-neutral-0);
+  --popover-foreground: var(--color-neutral-800);
+  --primary: var(--color-brand-500);
+  /* brand-500 vs white text is ~2.6:1 — dark ink clears
+     AA (~7:1) the same way the .dark theme below already does. */
+  --primary-foreground: var(--color-neutral-950);
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-neutral-800);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+  --accent: var(--color-structural-50);
+  --accent-foreground: var(--color-structural-700);
+  --destructive: var(--color-danger-500);
+  --border: var(--color-neutral-200);
+  --input: var(--color-neutral-200);
+  --ring: var(--color-focus-ring);
+  --chart-1: var(--color-structural-500);
+  --chart-2: var(--color-brand-500);
+  --chart-3: var(--color-success-500);
+  --chart-4: var(--color-warning-500);
+  --chart-5: var(--color-neutral-500);
+}
+
+.dark {
+  --background: var(--color-neutral-950);
+  --foreground: var(--color-neutral-100);
+  --card: var(--color-neutral-900);
+  --card-foreground: var(--color-neutral-100);
+  --popover: var(--color-neutral-900);
+  --popover-foreground: var(--color-neutral-100);
+  --primary: var(--color-brand-500);
+  --primary-foreground: var(--color-neutral-950);
+  --secondary: var(--color-neutral-800);
+  --secondary-foreground: var(--color-neutral-100);
+  --muted: var(--color-neutral-800);
+  --muted-foreground: var(--color-neutral-400);
+  --accent: var(--color-structural-900);
+  --accent-foreground: var(--color-structural-200);
+  --destructive: var(--color-danger-400);
+  --border: var(--color-neutral-800);
+  --input: var(--color-neutral-800);
+  --ring: var(--color-focus-ring);
+  --chart-1: var(--color-structural-400);
+  --chart-2: var(--color-brand-400);
+  --chart-3: var(--color-success-400);
+  --chart-4: var(--color-warning-400);
+  --chart-5: var(--color-neutral-400);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

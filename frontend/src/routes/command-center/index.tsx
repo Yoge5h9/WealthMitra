@@ -1,0 +1,202 @@
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Database, HandHeart, Sparkles, UsersRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DataState } from "@/components/shared/DataState";
+import { SectionHeader } from "@/components/shared/SectionHeader";
+import { useDemoSpace } from "@/components/showcase/useDemoSpace";
+import { NEW_TO_IDBI_SHOWCASE_PERSONA, usePersonaRoster } from "@/components/showcase/personas";
+import { PersonaCard } from "@/components/showcase/PersonaCard";
+import { SurfaceLinksGrid } from "@/components/showcase/SurfaceLinksGrid";
+import { GuidedTour } from "@/components/showcase/GuidedTour";
+import { ResetDemoButton } from "@/components/showcase/ResetDemoButton";
+
+const DEFAULT_PERSONA_ID = "new_to_idbi";
+
+function scrollToPersonas(target: HTMLElement | null) {
+  if (!target) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+}
+
+export default function CommandCenter() {
+  const { spaceId } = useDemoSpace();
+  const navigate = useNavigate();
+  const personasQuery = usePersonaRoster();
+  const [selectedPersonaId, setSelectedPersonaId] = useState(DEFAULT_PERSONA_ID);
+  const [tourReplaySignal, setTourReplaySignal] = useState(0);
+  const personaSectionRef = useRef<HTMLDivElement>(null);
+
+  function handleSelectPersona(personaId: string) {
+    setSelectedPersonaId(personaId);
+    const params = new URLSearchParams();
+    if (spaceId) params.set("space", spaceId);
+    params.set("persona", personaId);
+    navigate(`/app?${params.toString()}`);
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-16 px-6 py-12">
+      {/* Hero */}
+      <section className="relative overflow-hidden rounded-2xl border border-structural-800 bg-gradient-to-br from-structural-900 via-structural-800 to-structural-600 px-6 py-16 sm:px-12 sm:py-20">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] lg:gap-14">
+          <div className="flex max-w-2xl flex-col items-start gap-6">
+          <span className="inline-flex items-center gap-2 rounded-full border border-neutral-0/25 bg-neutral-0/10 px-3 py-1 text-caption font-semibold uppercase tracking-wide text-structural-100">
+            <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
+            IDBI Innovate 2026 · Track 01 prototype
+          </span>
+          <h1 className="font-display text-display font-bold tracking-tight text-neutral-0">
+            A wealth companion that's on your side.
+          </h1>
+          <p className="max-w-2xl text-lg text-structural-50">
+            WealthMitra helps customers understand their money, stay on track, and manage savings,
+            investing and protection in one place. With permissioned IDBI and external data, it gives
+            clear next steps — then brings in the right specialist RM when personalised advice is needed.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              size="touch"
+              className="gap-2"
+              onClick={() => scrollToPersonas(personaSectionRef.current)}
+            >
+              Start the demo
+              <ArrowRight size={18} strokeWidth={2} aria-hidden="true" />
+            </Button>
+            <Button
+              size="touch"
+              variant="outline"
+              className="border-neutral-0/30 bg-transparent text-neutral-0 hover:bg-neutral-0/10 hover:text-neutral-0"
+              onClick={() => setTourReplaySignal((n) => n + 1)}
+            >
+              Replay guided tour
+            </Button>
+          </div>
+          </div>
+
+          <aside className="rounded-xl border border-neutral-0/20 bg-neutral-0/10 p-5 backdrop-blur-sm" aria-label="WealthMitra feature loop">
+            <p className="text-caption font-semibold uppercase tracking-wide text-structural-100">The complete wealth loop</p>
+            <div className="mt-4 space-y-3">
+              <div className="flex gap-3 border-b border-neutral-0/15 pb-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-brand-300"><Sparkles size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+                <div><p className="font-display text-body font-semibold text-neutral-0">Understand and stay on track</p><p className="mt-0.5 text-caption text-structural-100">Cash flow, goals, learning and useful nudges—explained simply.</p></div>
+              </div>
+              <div className="flex gap-3 border-b border-neutral-0/15 pb-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-brand-300"><Database size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+                <div><p className="font-display text-body font-semibold text-neutral-0">See the whole picture</p><p className="mt-0.5 text-caption text-structural-100">Permissioned IDBI and external wealth data in one view through AA.</p></div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-brand-300"><UsersRound size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+                <div><p className="font-display text-body font-semibold text-neutral-0">Find the right next step</p><p className="mt-0.5 text-caption text-structural-100">Eligibility-gated IDBI and partner options, with RM handoff for specialist help.</p></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Why WealthMitra matters">
+        <div className="rounded-lg border border-neutral-200 bg-neutral-0 p-5">
+          <HandHeart className="text-structural-600" size={22} strokeWidth={1.75} aria-hidden="true" />
+          <h2 className="mt-3 font-display text-h4 font-semibold text-neutral-900">Customer clarity</h2>
+          <p className="mt-1 text-body-sm text-neutral-600">One trusted place to analyse money, learn, and stay on track across savings, investing and protection.</p>
+        </div>
+        <div className="rounded-lg border border-neutral-200 bg-neutral-0 p-5">
+          <UsersRound className="text-structural-600" size={22} strokeWidth={1.75} aria-hidden="true" />
+          <h2 className="mt-3 font-display text-h4 font-semibold text-neutral-900">RM-ready handoffs</h2>
+          <p className="mt-1 text-body-sm text-neutral-600">A decision-ready Lead Packet gives the specialist RM richer context, less qualification work and a better conversation.</p>
+        </div>
+        <div className="rounded-lg border border-neutral-200 bg-neutral-0 p-5">
+          <Database className="text-structural-600" size={22} strokeWidth={1.75} aria-hidden="true" />
+          <h2 className="mt-3 font-display text-h4 font-semibold text-neutral-900">A trusted ecosystem</h2>
+          <p className="mt-1 text-body-sm text-neutral-600">Eligibility-gated IDBI and approved partner products create relevant leads without compromising customer fit.</p>
+        </div>
+      </section>
+
+      {/* Persona switcher */}
+      <section ref={personaSectionRef} className="scroll-mt-8 space-y-6">
+        <SectionHeader
+          eyebrow="Step 1 · Pick a persona"
+          title="Start fresh, or explore a known customer"
+          description="Begin with the new-customer conversation to see profile-building memory, or choose a seeded customer with transactions, goals and (where noted) Account Aggregator holdings."
+        />
+        <DataState
+          status={personasQuery.isLoading ? "loading" : personasQuery.isError ? "error" : personasQuery.data?.length ? "success" : "empty"}
+          emptyTitle="No personas seeded yet"
+          emptyDescription="The persona roster couldn't be found on this backend."
+          errorDescription="Couldn't load the persona roster. Your demo space is still safe — try again."
+          onRetry={() => personasQuery.refetch()}
+          skeleton={
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-44 animate-pulse rounded-lg border border-neutral-200 bg-neutral-100" />
+              ))}
+            </div>
+          }
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[NEW_TO_IDBI_SHOWCASE_PERSONA, ...(personasQuery.data ?? []).filter((persona) => persona.id !== "vikram")].map((persona) => (
+              <PersonaCard
+                key={persona.id}
+                persona={persona}
+                selected={persona.id === selectedPersonaId}
+                onSelect={handleSelectPersona}
+              />
+            ))}
+          </div>
+        </DataState>
+      </section>
+
+      {/* Surface links */}
+      <section className="space-y-6">
+        <SectionHeader
+          eyebrow="Step 2 · Explore every surface"
+          title="One engine, four ways to see it"
+          description="Every link below shares this same demo space — actions on one surface show up live on the others."
+        />
+        <SurfaceLinksGrid spaceId={spaceId} defaultPersonaId={selectedPersonaId} />
+      </section>
+
+      {/* What's real vs. pre-loaded for this demo */}
+      <section className="space-y-6">
+        <SectionHeader
+          eyebrow="Before you dive in"
+          title="What's real, and what's ready-made"
+          description="Two honest facts about this prototype — no fine print."
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-lg border border-success-300 bg-success-50 p-6">
+            <span className="inline-flex items-center gap-2 text-caption font-semibold uppercase tracking-wide text-success-700">
+              <CheckCircle2 size={16} strokeWidth={1.75} aria-hidden="true" />
+              Live and working
+            </span>
+            <p className="mt-3 text-body text-neutral-800">
+              The companion conversation, every number it shows, and the handoff to a human relationship
+              manager for specialised products are all computed and routed live, right in front of you.
+            </p>
+          </div>
+          <div className="rounded-lg border border-structural-300 bg-structural-50 p-6">
+            <span className="inline-flex items-center gap-2 text-caption font-semibold uppercase tracking-wide text-structural-700">
+              <Database size={16} strokeWidth={1.75} aria-hidden="true" />
+              Pre-loaded for this demo
+            </span>
+            <p className="mt-3 text-body text-neutral-800">
+              Each customer's transaction history and Account Aggregator holdings are realistic sample data,
+              loaded in advance so you can explore instantly — there's no live bank connection in this
+              prototype.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Space utilities */}
+      <section className="flex flex-col gap-3 border-t border-neutral-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-caption text-neutral-500">
+          Demo space:{" "}
+          <span className="font-medium tabular-nums text-neutral-700">{spaceId ?? "provisioning…"}</span>
+        </p>
+        <ResetDemoButton spaceId={spaceId} />
+      </section>
+
+      <GuidedTour reopenSignal={tourReplaySignal} />
+    </div>
+  );
+}

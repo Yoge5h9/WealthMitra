@@ -1,0 +1,32 @@
+{
+  "mass_retail_salaried": {
+    "conservative": ["fd_regular", "fd_suvidha_tax_saver", "recurring_deposit", "ppf", "ssy", "rbi_floating_bond", "insurance_term"],
+    "moderate": ["mf_index_sip", "mf_elss_direct", "nps"],
+    "growth": ["mf_active_equity", "demat_trading"]
+  },
+  "mass_retail_gig": {
+    "conservative": ["fd_regular", "recurring_deposit", "mf_liquid", "ppf", "insurance_term"],
+    "moderate": ["mf_index_sip", "nps", "rbi_floating_bond"],
+    "growth": ["mf_elss_direct", "demat_trading"]
+  },
+  "affluent": {
+    "conservative": ["fd_utsav", "fd_suvidha_tax_saver", "rbi_retail_direct_gsec", "mf_liquid", "insurance_term"],
+    "moderate": ["mf_index_sip", "mf_elss_direct", "nps", "demat_trading"],
+    "growth": ["mf_active_equity", "wealth_advisory"]
+  },
+  "hni": {
+    "conservative": ["fd_utsav", "rbi_retail_direct_gsec", "demat_trading"],
+    "moderate": ["wealth_advisory", "mf_active_equity", "insurance_health", "insurance_general"],
+    "growth": ["pms", "aif", "insurance_ulip"]
+  },
+  "nri": {
+    "conservative": ["nre_deposit", "nro_deposit", "fcnr_deposit"],
+    "moderate": ["mf_index_sip", "mf_elss_direct"],
+    "growth": ["mf_active_equity", "demat_trading"]
+  },
+  "senior": {
+    "conservative": ["fd_senior_citizen", "fd_chiranjeevi", "scss", "ppf", "insurance_health"],
+    "moderate": ["nps", "mf_liquid"],
+    "growth": []
+  }
+}

@@ -1,0 +1,37 @@
+# Docs and root-level project files — not runtime inputs.
+README.md
+Makefile
+render.yaml
+Dockerfile
+.dockerignore
+
+# VCS and editor
+.git
+.gitignore
+.DS_Store
+
+# Python artifacts
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+**/.pytest_cache
+.coverage
+**/.coverage
+backend/tests
+
+# Frontend build artifacts (rebuilt fresh in stage 1)
+node_modules
+frontend/node_modules
+frontend/dist
+
+# Test fixtures / caches not needed by the running app
+# (data/synthetic — the actual seed data — is explicitly COPYed in the Dockerfile)
+data/tests
+data/.pytest_cache
+
+# Secrets — never bake real env values into the image
+.env
+.env.*
+!.env.example

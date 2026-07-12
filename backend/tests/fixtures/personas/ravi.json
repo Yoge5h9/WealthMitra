@@ -1,0 +1,57 @@
+{
+  "profile": {
+    "id": "ravi",
+    "name": "Ravi Kumar",
+    "age": 28,
+    "city": "Mumbai",
+    "segment": "mass_retail_salaried",
+    "language": "en",
+    "risk_tolerance": "moderate",
+    "dependents": 0,
+    "occupation": "salaried",
+    "avatar": "ravi.png",
+    "story": "Salaried professional building his first SIP habit."
+  },
+  "transactions": [
+    {
+      "id": "t1",
+      "date": "2026-06-01",
+      "amount": 85000,
+      "type": "credit",
+      "category": "salary",
+      "description": "Monthly salary",
+      "account": "sa"
+    },
+    {
+      "id": "t2",
+      "date": "2026-06-05",
+      "amount": 15000,
+      "type": "debit",
+      "category": "rent",
+      "description": "Rent payment",
+      "account": "sa"
+    }
+  ],
+  "goals": [
+    {
+      "name": "Emergency fund",
+      "horizon_years": 1,
+      "target": 300000,
+      "saved_so_far": 120000
+    }
+  ],
+  "external": {
+    "aa_available": true,
+    "connected": false,
+    "holdings": [
+      {
+        "id": "h1",
+        "type": "mutual_fund",
+        "institution": "HDFC AMC",
+        "amount": 50000,
+        "rate": 12.0
+      }
+    ],
+    "liabilities": []
+  }
+}

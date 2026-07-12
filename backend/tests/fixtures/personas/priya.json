@@ -1,0 +1,33 @@
+{
+  "profile": {
+    "id": "priya",
+    "name": "Priya Sharma",
+    "age": 26,
+    "city": "Jaipur",
+    "segment": "mass_retail_salaried",
+    "language": "hi",
+    "risk_tolerance": "conservative",
+    "dependents": 1,
+    "occupation": "gig_worker",
+    "avatar": "priya.png",
+    "story": "Gig worker with irregular income and no external accounts connected."
+  },
+  "transactions": [
+    {
+      "id": "t1",
+      "date": "2026-06-03",
+      "amount": 4200,
+      "type": "credit",
+      "category": "gig_payout",
+      "description": "Ride-share payout",
+      "account": "sa"
+    }
+  ],
+  "goals": [],
+  "external": {
+    "aa_available": false,
+    "connected": false,
+    "holdings": [],
+    "liabilities": []
+  }
+}
