@@ -62,4 +62,6 @@ export const CARD_TYPES: readonly CardType[] = [
   "literacy",
   "nudge",
   "distress_support",
+  "profile_question",
+  "profile_summary",
 ] as const;

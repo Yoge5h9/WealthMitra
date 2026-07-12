@@ -36,6 +36,14 @@ export interface RoutedToRmCard extends ChatCard {
   priority_score: number;
   next_best_action: string;
   what_happens_next: string;
+  recommendations?: Array<{
+    id: string;
+    name: string;
+    provider_name: string;
+    source: "idbi" | "partner";
+    reasons: string[];
+    display_disclaimer: string;
+  }>;
 }
 
 export interface ExecutionConfirmCard extends ChatCard {
@@ -93,4 +101,20 @@ export interface AaConnectCard extends ChatCard {
   card_type: "aa_connect";
   headline: string;
   body: string;
+}
+
+export interface ProfileQuestionCard extends ChatCard {
+  card_type: "profile_question";
+  step: number;
+  total_steps: number;
+  key: string;
+  question: string;
+  options: string[];
+}
+
+export interface ProfileSummaryCard extends ChatCard {
+  card_type: "profile_summary";
+  answers: Record<string, string>;
+  missing_data: string[];
+  next_step: string;
 }

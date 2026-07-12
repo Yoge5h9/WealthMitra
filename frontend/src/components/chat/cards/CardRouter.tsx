@@ -10,6 +10,8 @@ import { GoalCard } from "@/components/chat/cards/GoalCard";
 import { NudgeCard } from "@/components/chat/cards/NudgeCard";
 import { AaConnectCard } from "@/components/chat/cards/AaConnectCard";
 import { GenericCard } from "@/components/chat/cards/GenericCard";
+import { ProfileQuestionCard } from "@/components/chat/cards/ProfileQuestionCard";
+import { ProfileSummaryCard } from "@/components/chat/cards/ProfileSummaryCard";
 import type {
   AaConnectCard as AaConnectCardData,
   DistressSupportCard as DistressSupportCardData,
@@ -21,6 +23,8 @@ import type {
   RecommendationCard as RecommendationCardData,
   RoutedToRmCard as RoutedToRmCardData,
   SpendSummaryCard as SpendSummaryCardData,
+  ProfileQuestionCard as ProfileQuestionCardData,
+  ProfileSummaryCard as ProfileSummaryCardData,
 } from "@/components/chat/cards/types";
 
 export interface CardRouterProps {
@@ -76,6 +80,12 @@ export function CardRouter({ card, sessionId, onSendMessage, onOpenAudit, sendin
 
     case "aa_connect":
       return <AaConnectCard card={card as AaConnectCardData} />;
+
+    case "profile_question":
+      return <ProfileQuestionCard card={card as ProfileQuestionCardData} disabled={sending} onPick={(answer) => onSendMessage?.(answer)} />;
+
+    case "profile_summary":
+      return <ProfileSummaryCard card={card as ProfileSummaryCardData} />;
 
     default:
       return <GenericCard card={card} />;

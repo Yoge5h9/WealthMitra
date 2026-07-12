@@ -1,0 +1,42 @@
+[
+  {
+    "id": "idbi_aspire_platinum",
+    "name": "IDBI Aspire Platinum Credit Card",
+    "family": "loans_cards",
+    "product_type": "credit_card",
+    "provider_name": "IDBI Bank",
+    "source": "idbi",
+    "journey": "rm_only",
+    "display_disclaimer": "Eligibility, credit limit and final terms are decided by IDBI Bank after assessment."
+  },
+  {
+    "id": "idbi_personal_loan",
+    "name": "IDBI Personal Loan",
+    "family": "loans_cards",
+    "product_type": "personal_loan",
+    "provider_name": "IDBI Bank",
+    "source": "idbi",
+    "journey": "rm_only",
+    "display_disclaimer": "Eligibility, amount and repayment terms are subject to IDBI Bank credit assessment."
+  },
+  {
+    "id": "idbi_home_loan",
+    "name": "IDBI Home Loan",
+    "family": "loans_cards",
+    "product_type": "home_loan",
+    "provider_name": "IDBI Bank",
+    "source": "idbi",
+    "journey": "rm_only",
+    "display_disclaimer": "Eligibility and final terms depend on repayment capacity and IDBI Bank assessment."
+  },
+  {
+    "id": "tata_aig_medicare",
+    "name": "Tata AIG Medicare",
+    "family": "investment_insurance",
+    "product_type": "health_insurance",
+    "provider_name": "Tata AIG General Insurance",
+    "source": "partner",
+    "journey": "rm_only",
+    "display_disclaimer": "Insurance is distributed by IDBI Bank under non-risk participation; purchase is voluntary and subject to insurer terms."
+  }
+]

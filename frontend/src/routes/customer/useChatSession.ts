@@ -108,6 +108,9 @@ function saveActivePersona(data: ActivePersona): void {
  * another tab without either side minting its own private space. `/present`
  * always passes an explicit `?space=`, which still wins below. */
 const DEFAULT_SPACE_ID = "default";
+const NEW_TO_IDBI_PERSONA: PersonaRosterItem = {
+  id: "new_to_idbi", name: "New to IDBI", age: 0, city: "", segment: "starting profile", language: "en", avatar: "", story: "No banking history yet",
+};
 
 export interface UseChatSessionResult {
   status: ChatSessionStatus;
@@ -172,7 +175,9 @@ export function useChatSession(): UseChatSessionResult {
     []
   );
 
-  const persona = rosterQuery.data?.find((p) => p.id === personaId) ?? null;
+  const persona = personaId === NEW_TO_IDBI_PERSONA.id
+    ? NEW_TO_IDBI_PERSONA
+    : rosterQuery.data?.find((p) => p.id === personaId) ?? null;
 
   /** Applies one SSE frame to the live message list + avatar state. Shared
    * between the greeting (a plain array) and a live chat turn (a stream) so

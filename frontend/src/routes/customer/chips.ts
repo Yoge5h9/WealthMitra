@@ -30,6 +30,7 @@ const BY_LANGUAGE: Record<LanguageCode, string[]> = {
 
 /** Suggested prompts for a persona in a given (possibly toggled) language. */
 export function chipsFor(personaId: string, language: LanguageCode): string[] {
+  if (personaId === "new_to_idbi") return [];
   const known = BY_PERSONA[personaId];
   if (known && language === (personaId === "meera" ? "gu" : personaId === "shanta" || personaId === "priya" ? "hi" : "en")) {
     return known;

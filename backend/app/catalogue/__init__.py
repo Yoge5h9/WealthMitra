@@ -1,5 +1,6 @@
 from .shelf import compare, eligible_shelf, narrow
 from .suitability import CATALOGUE, RISK_BANDS, SUPPRESSED, Catalogue, is_suppressed, load_catalogue, reasons
+from .recommendations import recommendations_for
 
 __all__ = [
     "CATALOGUE",
@@ -12,4 +13,5 @@ __all__ = [
     "load_catalogue",
     "narrow",
     "reasons",
+    "recommendations_for",
 ]

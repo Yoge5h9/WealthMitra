@@ -23,7 +23,7 @@ from collections.abc import Callable, Iterator
 from datetime import datetime, timezone
 
 from app.analytics import AnalyticsEngine
-from app.catalogue import eligible_shelf
+from app.catalogue import eligible_shelf, recommendations_for
 from app.core import audit, events
 from app.core.spaces import Space
 from app.domain.models import AuditEntry, LeadPacket, Metric, PersonaProfile, Product
@@ -121,7 +121,7 @@ class Orchestrator:
         if mode == "rm_lead":
             family = route.lead_family or "investment_insurance"
             ctx.built_lead = self._build_lead(
-                space, session_id, persona_id, message, family, metrics, segment, band, surplus
+                space, session_id, persona_id, message, family, metrics, segment, band, surplus, intent
             )
 
         # classify_intent already ran deterministically above the routing gate;
@@ -244,7 +244,7 @@ class Orchestrator:
 
     # -- lead construction -------------------------------------------------
 
-    def _build_lead(self, space, session_id, persona_id, message, family, metrics, segment, band, surplus) -> LeadPacket:
+    def _build_lead(self, space, session_id, persona_id, message, family, metrics, segment, band, surplus, intent) -> LeadPacket:
         persona = space.personas[persona_id]
         profile: PersonaProfile = persona.profile
         ext = persona.external
@@ -259,9 +259,10 @@ class Orchestrator:
             "risk_band": metrics["risk_band"].value,
             "goals": metrics["goal_progress"].value.get("goals", []),
         }
-        shelf = eligible_shelf(
-            segment, band, monthly_surplus=surplus, is_affluent_or_hni=segment in _AFFLUENT_SEGMENTS
-        )
+        shelf = eligible_shelf(segment, band, monthly_surplus=surplus, is_affluent_or_hni=segment in _AFFLUENT_SEGMENTS)
+        offer_recommendations = recommendations_for(profile, lead_metrics, family=family, message=message) if (
+            family == "loans_cards" or (intent == "regulated_query" and "insurance" in message.lower())
+        ) else []
         lead = build_lead_packet(
             profile, lead_metrics, shelf, message, family, seq=len(space.leads) + 1, now=self.now()
         )
@@ -269,6 +270,18 @@ class Orchestrator:
         # captured by POST /api/aa/consent), not build_lead_packet's static
         # {None, False} placeholder.
         lead = lead.model_copy(update={"consent": self._consent_snapshot(space, session_id)})
+        if offer_recommendations:
+            next_best_action = (
+                f"RM to review {offer_recommendations[0]['name']} eligibility and terms with {profile.name}."
+                if family == "loans_cards"
+                else f"RM to review {offer_recommendations[0]['name']} suitability and coverage with {profile.name}."
+            )
+            lead = lead.model_copy(update={"suitability": {
+                **lead.suitability,
+                "recommended_shelf": [offer["name"] for offer in offer_recommendations],
+                "offer_recommendations": offer_recommendations,
+                "reasons": ["Offers are ranked from the stated need and profile facts.", "Every offer remains RM-review only."],
+            }, "next_best_action": next_best_action})
         space.leads.append(lead)
         audit.record(
             space,
@@ -312,6 +325,7 @@ class Orchestrator:
                 "family": lead.family,
                 "priority_score": lead.priority_score,
                 "next_best_action": lead.next_best_action,
+                "recommendations": lead.suitability.get("offer_recommendations", []),
                 "what_happens_next": "A qualified IDBI Relationship Manager has been briefed and will reach out. "
                                      "Your details were shared securely, only with your consent.",
             }]

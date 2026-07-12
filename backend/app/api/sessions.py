@@ -22,6 +22,7 @@ from app.analytics import AnalyticsEngine
 from app.core import audit
 from app.core.spaces import DEFAULT_SPACE_ID, Space, get_space_store
 from app.domain.models import AuditEntry, PersonaProfile
+from app.onboarding import greeting as onboarding_greeting
 
 router = APIRouter()
 
@@ -64,11 +65,12 @@ def resolve_session(session_id: str) -> tuple[Space, dict]:
 @router.post("/spaces/{space_id}/sessions")
 def create_session(space_id: str, body: SessionRequest) -> dict:
     space = get_space_or_404(space_id)
-    if body.persona_id not in space.personas:
+    is_new_customer = body.persona_id == "new_to_idbi"
+    if not is_new_customer and body.persona_id not in space.personas:
         raise HTTPException(status_code=404, detail=f"unknown persona: {body.persona_id}")
 
-    profile = space.personas[body.persona_id].profile
-    language = body.language or (profile.language if profile.language in LANGUAGES else "en")
+    profile = space.personas[body.persona_id].profile if not is_new_customer else None
+    language = body.language or (profile.language if profile and profile.language in LANGUAGES else "en")
 
     session_id = f"sess_{secrets.token_hex(8)}"
     space.sessions[session_id] = {
@@ -79,6 +81,10 @@ def create_session(space_id: str, body: SessionRequest) -> dict:
     }
     _SESSION_INDEX[session_id] = space.id
 
+    if is_new_customer:
+        return {"session_id": session_id, "greeting": onboarding_greeting(space, session_id)}
+
+    assert profile is not None
     greeting = _greeting_frames(space, session_id, profile, language)
     return {"session_id": session_id, "greeting": greeting}
 

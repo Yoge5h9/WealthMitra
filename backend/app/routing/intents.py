@@ -17,6 +17,7 @@ Intent = Literal[
     "fd_query",
     "goal_set",
     "regulated_query",
+    "loan_card_query",
     "distress_signal",
     "literacy",
     "aa_connect",
@@ -41,6 +42,17 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
             "ईएमआई नहीं भर पा रहा", "ईएमआई नहीं भर पा रही", "कर्ज में हूं", "कर्ज़ में हूं",
             "ओवरड्राफ्ट", "ईएमआई का बोझ",
             "ઈએમઆઈ ભરી શકતો નથી", "ઈએમઆઈ ભરી શકતી નથી", "ઓવરડ્રાફ્ટ", "દેવામાં છું",
+        ),
+    ),
+    (
+        # Credit eligibility and repayment terms must be reviewed by an RM;
+        # keep this below distress, which always suppresses selling.
+        "loan_card_query",
+        (
+            "credit card", "card reward", "card limit", "personal loan", "home loan", "housing loan",
+            "mortgage", "loan for home", "loan chahiye", "home loan chahiye", "credit card chahiye",
+            "क्रेडिट कार्ड", "पर्सनल लोन", "होम लोन", "घर के लिए लोन", "लोन चाहिए",
+            "ક્રેડિટ કાર્ડ", "પર્સનલ લોન", "હોમ લોન", "લોન જોઈએ",
         ),
     ),
     (

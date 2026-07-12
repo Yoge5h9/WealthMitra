@@ -1,5 +1,5 @@
 import { Dialog } from "radix-ui";
-import { MapPin, Users, X } from "lucide-react";
+import { MapPin, Sparkles, Users, X } from "lucide-react";
 import { DataState } from "@/components/shared/DataState";
 import type { LanguageCode } from "@/components/shared/LangToggle";
 import { t } from "@/lib/i18n";
@@ -87,6 +87,16 @@ export function PersonaPicker({
               onRetry={onRetry}
             >
               <ul className="space-y-2">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => onPick("new_to_idbi", "en")}
+                    className="flex min-h-11 w-full items-center gap-3 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-left transition-colors duration-[var(--motion-micro)] ease-out hover:bg-brand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
+                  >
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700"><Sparkles size={18} strokeWidth={1.75} aria-hidden="true" /></span>
+                    <span className="min-w-0 flex-1"><span className="block text-body-sm font-semibold text-neutral-900">New to IDBI</span><span className="block text-caption text-neutral-600">Build a four-question starting profile</span></span>
+                  </button>
+                </li>
                 {roster?.map((persona) => (
                   <li key={persona.id}>
                     <button

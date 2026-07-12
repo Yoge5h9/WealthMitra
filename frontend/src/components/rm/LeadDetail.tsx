@@ -297,6 +297,25 @@ export function LeadDetail({ lead, spaceId, pending, onStatusChange, className }
                 </div>
               )}
             </div>
+            {lead.suitability.offer_recommendations && lead.suitability.offer_recommendations.length > 0 && (
+              <div>
+                <p className="mb-2 text-caption font-medium text-neutral-600">RM review brief</p>
+                <ul className="space-y-2">
+                  {lead.suitability.offer_recommendations.map((offer) => (
+                    <li key={offer.id} className="rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-body-sm font-medium text-neutral-900">{offer.name}</p>
+                        <span className="rounded-full bg-neutral-100 px-2 py-1 text-caption font-medium text-neutral-600">
+                          {offer.source === "idbi" ? "IDBI" : "Partner"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-caption text-neutral-600">{offer.reasons[0]}</p>
+                      <p className="mt-1 text-caption text-neutral-500">{offer.display_disclaimer}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {lead.suitability.excluded.length > 0 && (
               <div>
                 <p className="mb-2 text-caption font-medium text-neutral-600">Excluded</p>

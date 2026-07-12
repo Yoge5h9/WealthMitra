@@ -18,7 +18,7 @@ RoutePath = Literal["auto_execute", "rm_lead", "distress_suppress", "info_only"]
 LeadFamily = Literal["investment_insurance", "loans_cards"]
 
 _DISTRESS_FLAGS = frozenset({"emi_stressed", "overdraft"})
-_WANTS_TO_BUY: frozenset[Intent] = frozenset({"invest_surplus", "goal_set", "regulated_query", "fd_query"})
+_WANTS_TO_BUY: frozenset[Intent] = frozenset({"invest_surplus", "goal_set", "regulated_query", "fd_query", "loan_card_query"})
 
 # The documented priority-score formula, deliberately not an undocumented
 # `*2` on the surplus term. Weights are named constants so retuning is a
@@ -68,6 +68,13 @@ def decide(intent: Intent, behaviour_flags: list[str], product: Product | None) 
         if product is not None:
             reasons.append(f"product_attached:{product.id}")
         return Route(path="distress_suppress", reasons=reasons)
+
+    if intent == "loan_card_query":
+        return Route(
+            path="rm_lead",
+            lead_family="loans_cards",
+            reasons=["credit_product_requires_rm_eligibility_review"],
+        )
 
     product_tag = product.tag if product is not None else None
     if intent == "regulated_query" or product_tag == "regulated":
