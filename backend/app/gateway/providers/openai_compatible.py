@@ -80,18 +80,19 @@ class OpenAICompatibleProvider:
                     "name": t.name,
                     "description": t.description,
                     "parameters": t.input_schema,
-                    "strict": True,
                 },
             }
             for t in req.tools
         ]
 
     def _payload(self, req: LLMRequest, model: str, *, stream: bool) -> dict:
+        # gpt-5.x only supports the default temperature (1) — any other value
+        # 400s — so temperature is omitted; and it requires max_completion_tokens
+        # (max_tokens is rejected as unsupported).
         payload: dict[str, Any] = {
             "model": model,
             "messages": self._messages(req),
-            "temperature": req.temperature,
-            "max_tokens": req.max_tokens,
+            "max_completion_tokens": req.max_tokens,
         }
         tools = self._tools(req)
         if tools:

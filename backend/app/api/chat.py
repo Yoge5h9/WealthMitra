@@ -13,6 +13,7 @@ frame, so the client never hangs on a half-finished conversation.
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from collections.abc import Iterator
 from datetime import datetime, timezone
@@ -73,6 +74,7 @@ def chat(body: ChatRequest) -> StreamingResponse:
             for frame in frames:
                 yield _sse(frame)
         except Exception as exc:  # noqa: BLE001 — the stream must always close with a done frame
+            logging.getLogger(__name__).exception("chat turn failed")
             ref = _record_turn_failure(space, body.session_id, exc)
             yield _sse({"type": "done", "audit_ref": ref, "error": True})
 
