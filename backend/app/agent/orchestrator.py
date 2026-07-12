@@ -192,15 +192,18 @@ class Orchestrator:
         # routing.engine.decide) so this never touches the compliance modes.
         is_literacy = intent == "literacy" and mode == "info_only"
         task_class = "literacy" if is_literacy else _TASK_CLASS[mode]
+        prompt_shelf = self._shelf_for_prompt(mode, route.lead_family, segment, band, surplus)
         messages = self._build_messages(
             profile, segment, lang, mode, state, message, literacy=is_literacy,
             lead_family=route.lead_family, card_context=card_context,
+            shelf=prompt_shelf, net_worth=metrics["net_worth"].value,
+            aa_available=persona.external.aa_available,
         )
         toolspecs = tools.literacy_toolspecs() if is_literacy else tools.tools_for_mode(mode, family=route.lead_family)
         final_text = self._tool_loop(space, session_id, ctx, messages, toolspecs, task_class)
 
         final_text, audit_ref = self._guard(
-            space, session_id, ctx, messages, task_class, final_text, metrics, lang
+            space, session_id, ctx, messages, task_class, final_text, metrics, lang, shelf=prompt_shelf
         )
 
         self._append_history(state, message, final_text)
@@ -225,17 +228,66 @@ class Orchestrator:
         """A stand-in vanilla product so routing can decide auto_execute BEFORE
         the LLM picks anything. None if the customer has no eligible vanilla
         product for this intent (then routing falls through to info_only).
+
+        A fixed/recurring deposit is looked up against the CONSERVATIVE band
+        regardless of the customer's own risk band: an FD is the most vanilla,
+        capital-safe product there is, and a growth-band customer explicitly
+        asking to "open an FD" must never dead-end just because their own band
+        cell happens to hold only equity-flavoured products.
         """
         if intent not in _VANILLA_INTENTS:
             return None
-        category = "deposit" if intent == "fd_query" else None
+        category, lookup_band = ("deposit", "conservative") if intent == "fd_query" else (None, band)
         try:
             shelf = eligible_shelf(
-                segment, band, category, monthly_surplus=surplus, is_affluent_or_hni=segment in _AFFLUENT_SEGMENTS
+                segment, lookup_band, category, monthly_surplus=surplus,
+                is_affluent_or_hni=segment in _AFFLUENT_SEGMENTS,
             )
         except ValueError:
             return None
-        return next((p for p in shelf if p.tag == "vanilla"), None)
+        # Prefer a vanilla product (so a mixed shelf still routes auto_execute).
+        # A shelf that is ENTIRELY regulated (e.g. HNI's moderate band) must
+        # still attach its first regulated product rather than None — decide()
+        # only recognises "this needs an RM" from an attached regulated
+        # product; returning None here made an all-regulated shelf look
+        # indistinguishable from "no eligible product at all" and silently
+        # fell through to info_only instead of the RM hand-off.
+        return next((p for p in shelf if p.tag == "vanilla"), next(iter(shelf), None))
+
+    def _shelf_for_prompt(
+        self, mode: str, lead_family: str | None, segment: str, band: str | None, surplus: float | None
+    ) -> list[Product] | None:
+        """The customer's eligible shelf, injected into the system prompt so the
+        model never has to gamble on remembering to call `get_eligible_products`
+        to learn it has real options — see prompts.shelf_context_block. Not
+        computed for distress (no selling) or the loans_cards card conversation
+        (that gets the card catalogue via a dedicated tool, never the investment
+        shelf, per the compliance boundary between the two product families).
+
+        Always unioned with the segment's CONSERVATIVE-band shelf (deposits/govt
+        schemes) even when the customer's own band is different: those products
+        are appropriate for anyone regardless of growth appetite, and folding
+        them in guarantees a plain FD/RD/govt-scheme option is always groundable
+        for an "open an FD" type ask, never only whatever the customer's own
+        growth/moderate band happens to contain.
+        """
+        if mode == "distress_suppress" or (mode == "rm_lead" and lead_family == "loans_cards") or band is None:
+            return None
+        is_affluent_or_hni = segment in _AFFLUENT_SEGMENTS
+        try:
+            shelf = eligible_shelf(segment, band, monthly_surplus=surplus, is_affluent_or_hni=is_affluent_or_hni)
+        except ValueError:
+            return None
+        if band != "conservative":
+            try:
+                conservative = eligible_shelf(
+                    segment, "conservative", monthly_surplus=surplus, is_affluent_or_hni=is_affluent_or_hni
+                )
+            except ValueError:
+                conservative = []
+            seen = {p.id for p in shelf}
+            shelf = shelf + [p for p in conservative if p.id not in seen]
+        return shelf
 
     def _card_context(self, profile: PersonaProfile, external: PersonaExternal) -> dict:
         """The known-facts checklist handed to the loans_cards prompt each
@@ -272,13 +324,16 @@ class Orchestrator:
     def _build_messages(
         self, profile, segment, lang, mode, state, message, *, literacy: bool,
         lead_family: str | None = None, card_context: dict | None = None,
+        shelf: list[Product] | None = None,
+        net_worth: dict | None = None, aa_available: bool = False,
     ) -> list[Message]:
         if literacy:
             system_content = prompts.literacy_system_prompt(profile, segment, lang)
             window = LITERACY_HISTORY_WINDOW
         else:
             system_content = prompts.system_prompt(
-                profile, segment, lang, mode, lead_family=lead_family, card_context=card_context
+                profile, segment, lang, mode, lead_family=lead_family, card_context=card_context,
+                shelf=shelf, net_worth=net_worth, aa_available=aa_available,
             )
             window = HISTORY_LIMIT
         msgs = [Message(role="system", content=system_content)]
@@ -319,8 +374,17 @@ class Orchestrator:
                                   guardrails.Verdict(ok=False), regenerated=False, fell_back=False, note=str(e))
             return json.dumps({"error": str(e), "note": "This action is not permitted here."}, ensure_ascii=False)
 
-    def _guard(self, space, session_id, ctx, messages, task_class, final_text, metrics, lang) -> tuple[str, str]:
-        extra = [m.value for m in metrics.values()]
+    def _guard(
+        self, space, session_id, ctx, messages, task_class, final_text, metrics, lang,
+        *, shelf: list[Product] | None = None,
+    ) -> tuple[str, str]:
+        # The eligible shelf is deterministic, catalogue-sourced data we already
+        # put in the system prompt (see `_shelf_for_prompt`) so the model can
+        # name a real product's min/return without first calling
+        # get_eligible_products — the guardrail's allowed figures must include
+        # the same data it was told about, or a well-grounded reply would be
+        # wrongly flagged as hallucinated.
+        extra = [m.value for m in metrics.values()] + [p.model_dump() for p in (shelf or [])]
         amounts, percents = guardrails.build_allowed(ctx.tool_results, extra)
         verdict = guardrails.audit_numbers(final_text, amounts, percents)
         ref = self._audit_guardrail(space, session_id, "number_audit", verdict, regenerated=False, fell_back=False)

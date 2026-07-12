@@ -107,6 +107,22 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
         ),
     ),
     (
+        # A personal net-worth/holdings question ("what is my net worth",
+        # "what do I have") must never fall into the generic `literacy`
+        # bucket below just because it happens to start with "what is" — the
+        # literacy path only offers a glossary lookup, no data tools, so it
+        # can only ever return a definition, never the customer's real
+        # figure. Checked ahead of `literacy` so the "what is" keyword never
+        # wins first.
+        "spend_query",
+        (
+            "net worth", "my net worth", "how much do i have", "what do i have", "how much am i worth",
+            "total wealth", "everything i have", "what have i got", "what all do i have",
+            "मेरी कुल संपत्ति", "कुल संपत्ति", "मेरे पास कितना है", "मेरे पास कुल कितना",
+            "મારી કુલ સંપત્તિ", "કુલ સંપત્તિ", "મારી પાસે કેટલું",
+        ),
+    ),
+    (
         "literacy",
         (
             "what is", "what's", "explain", "kya hai", "kya hota", "क्या है", "क्या होता", "શું છે",

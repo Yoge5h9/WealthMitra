@@ -15,7 +15,8 @@ session language (en / hi / gu) — no translation sandwich.
 
 from __future__ import annotations
 
-from app.domain.models import PersonaProfile
+from app.agent.guardrails import format_inr
+from app.domain.models import PersonaProfile, Product
 
 _LANGUAGE_NAME = {"en": "English", "hi": "Hindi (हिंदी)", "gu": "Gujarati (ગુજરાતી)"}
 
@@ -65,7 +66,11 @@ _BASE = (
     "4. Never expose internal terms to the customer — segment names (hni, mass_retail, affluent, etc.), "
     "'suitability matrix', 'shelf', 'pre-eligibility', any tool name, or the word 'demo'. Speak in plain, "
     "everyday customer language. Do not quote a raw reason string verbatim (never say things like 'the reason "
-    "shown is ...') — explain the reason naturally in your own words instead."
+    "shown is ...') — explain the reason naturally in your own words instead.\n"
+    "5. NEVER tell the customer there are no products/options available for them — every customer has at least "
+    "one eligible option below. If the best fit is a specialist/regulated item (an actively-managed fund, "
+    "insurance, PMS, AIF, or wealth-advisory), present it plainly as a specialist product and offer to connect a "
+    "Relationship Manager to review it — you may discuss it, you just never auto-execute it yourself."
 )
 
 _MODE_GUIDANCE = {
@@ -142,6 +147,56 @@ def loans_cards_guidance(known: dict) -> str:
     )
 
 
+_PRODUCT_TAG_NOTE = {
+    "vanilla": "auto-executable",
+    "regulated": "specialist product — connect an RM, never auto-executed",
+}
+
+
+def _shelf_lines(shelf: list[Product]) -> list[str]:
+    return [
+        f"- {p.name} ({p.category}, min ₹{p.min_amount:,}, {p.expected_return}) — {_PRODUCT_TAG_NOTE[p.tag]}"
+        for p in shelf
+    ]
+
+
+def shelf_context_block(shelf: list[Product]) -> str:
+    """Stable, per-turn grounding block so the model never has to gamble on
+    calling `get_eligible_products` to know the customer has real options —
+    this is what makes "no products available" impossible rather than merely
+    discouraged. Empty shelf (should not happen once the suitability matrix
+    has full segment x band coverage) renders no block at all.
+    """
+    if not shelf:
+        return ""
+    lines = "\n".join(_shelf_lines(shelf))
+    return (
+        "CUSTOMER'S ELIGIBLE PRODUCTS (real, tool-sourced — use ONLY these; call get_eligible_products for the "
+        "full detail, but you already know these exist so NEVER claim none are available):\n"
+        f"{lines}"
+    )
+
+
+def net_worth_context_line(net_worth: dict, *, aa_available: bool) -> str:
+    """One grounded line the model can always fall back on for a "what do I
+    have" / net-worth question — never a dictionary definition, never a flat
+    "I can't see your accounts". `net_worth` is the raw `net_worth` Metric
+    value ({"internal", "external", "total", "external_connected"}).
+    """
+    total = net_worth.get("total", 0.0)
+    connected = bool(net_worth.get("external_connected"))
+    line = f"CUSTOMER'S NET WORTH (real, tool-sourced): ₹{format_inr(total)} today"
+    if connected:
+        return f"{line}, including linked accounts held elsewhere."
+    if aa_available:
+        return (
+            f"{line} from IDBI accounts alone. Other accounts are not yet linked — you may mention that "
+            "connecting them via Account Aggregator would complete the picture, but never claim you cannot see "
+            "any figure."
+        )
+    return f"{line} from IDBI accounts alone."
+
+
 def system_prompt(
     profile: PersonaProfile,
     segment: str,
@@ -150,6 +205,9 @@ def system_prompt(
     *,
     lead_family: str | None = None,
     card_context: dict | None = None,
+    shelf: list[Product] | None = None,
+    net_worth: dict | None = None,
+    aa_available: bool = False,
 ) -> str:
     lang_name = _LANGUAGE_NAME.get(language, _LANGUAGE_NAME["en"])
     tone = _TONE_BY_SEGMENT.get(segment, _DEFAULT_TONE)
@@ -157,6 +215,16 @@ def system_prompt(
         guidance = loans_cards_guidance(card_context or {})
     else:
         guidance = _MODE_GUIDANCE.get(mode, _MODE_GUIDANCE["info_only"])
+
+    context_blocks = []
+    if shelf is not None:
+        block = shelf_context_block(shelf)
+        if block:
+            context_blocks.append(block)
+    if net_worth is not None:
+        context_blocks.append(net_worth_context_line(net_worth, aa_available=aa_available))
+    context = ("\n\n" + "\n\n".join(context_blocks)) if context_blocks else ""
+
     return (
         f"{_BASE}\n\n"
         f"CUSTOMER: {profile.name}, age {profile.age}, {profile.occupation} in {profile.city}. "
@@ -166,6 +234,7 @@ def system_prompt(
         f"in {lang_name}, matching how a warm local companion would speak. Keep replies short "
         f"(2-4 sentences unless asked for more).\n\n"
         f"{guidance}"
+        f"{context}"
     )
 
 
