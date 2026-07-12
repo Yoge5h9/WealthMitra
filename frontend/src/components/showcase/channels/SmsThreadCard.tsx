@@ -12,15 +12,16 @@ const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const SMS_CHAR_LIMIT = 160;
 
 function toSmsBody(delivery: ChannelDelivery): string {
-  const raw = `WM-IDBIBK: ${delivery.body}`;
+  const raw = `WM-IDBIBK: ${delivery.messages.sms.body}`;
   return raw.length > SMS_CHAR_LIMIT ? `${raw.slice(0, SMS_CHAR_LIMIT - 1)}…` : raw;
 }
 
 /** SMS app thread view — a single incoming short-code message bubble. */
 export function SmsThreadCard({ delivery }: { delivery: ChannelDelivery }) {
   return (
-    <PhoneFrame headerTitle="Messages">
-      <div className="flex h-full flex-col">
+    <div className="w-[390px] max-w-full space-y-2">
+      <PhoneFrame headerTitle="Messages">
+        <div className="flex h-full flex-col">
         <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-0 px-3 py-2.5">
           <ChevronLeft size={18} strokeWidth={1.75} className="text-neutral-500" aria-hidden="true" />
           <div>
@@ -42,9 +43,10 @@ export function SmsThreadCard({ delivery }: { delivery: ChannelDelivery }) {
           <p className="pl-1 text-caption text-neutral-400">Delivered · now</p>
         </div>
 
-        <ChannelFitNote delivery={delivery} channel="sms" />
-        <p className="bg-neutral-0 px-3 pb-2 text-caption text-neutral-500">Simulated delivery · real AI-generated copy</p>
-      </div>
-    </PhoneFrame>
+          <p className="border-t border-neutral-200 bg-neutral-0 px-3 py-2 text-caption text-neutral-500">Simulated delivery · grounded customer nudge</p>
+        </div>
+      </PhoneFrame>
+      <ChannelFitNote delivery={delivery} channel="sms" />
+    </div>
   );
 }

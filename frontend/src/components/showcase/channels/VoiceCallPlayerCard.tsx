@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
 import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
-import { pickNaturalVoice } from "@/components/chat/useVoice";
+import { speakWithNaturalVoice } from "@/components/chat/useVoice";
 import type { LanguageCode } from "@/components/shared/LangToggle";
 
 const SPEECH_LANG: Record<string, string> = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
@@ -23,7 +23,9 @@ function supportsSpeech(): boolean {
 
 /** AI voice-call player — waveform + browser `speechSynthesis` reading the nudge copy aloud. */
 export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery }) {
+  const message = delivery.messages.voice;
   const [isPlaying, setIsPlaying] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [supported] = useState(supportsSpeech);
   const reduceMotion = Boolean(useReducedMotion());
   const barHeights = useMemo(
@@ -44,30 +46,32 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
     // Stopping playback whenever the underlying delivery changes (persona
     // switch, nudge-class toggle) — a stale utterance must never keep
     // reading copy that's no longer on screen.
-  }, [delivery.title, delivery.body, supported]);
+  }, [message.title, message.body, supported]);
 
-  function toggle() {
+  async function toggle() {
     if (!supported) return;
     if (isPlaying) {
       window.speechSynthesis.cancel();
       setIsPlaying(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(`${delivery.title}. ${delivery.body}`);
+    if (starting) return;
+    setStarting(true);
+    const utterance = new SpeechSynthesisUtterance(`${message.title}. ${message.body}`);
     utterance.lang = SPEECH_LANG[delivery.language] ?? "en-IN";
     utterance.rate = 0.97;
     utterance.pitch = 1.0;
-    const voice = pickNaturalVoice(toLanguageCode(delivery.language));
-    if (voice) utterance.voice = voice;
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);
-    window.speechSynthesis.speak(utterance);
-    setIsPlaying(true);
+    const started = await speakWithNaturalVoice(utterance, toLanguageCode(delivery.language));
+    setStarting(false);
+    setIsPlaying(started);
   }
 
   return (
-    <PhoneFrame headerTitle="Voice call">
-      <div className="flex h-full flex-col items-center justify-between bg-structural-900 px-6 py-8 text-neutral-0">
+    <div className="w-[390px] max-w-full space-y-2">
+      <PhoneFrame headerTitle="Voice call">
+        <div className="flex h-full flex-col items-center justify-between bg-structural-900 px-6 py-8 text-neutral-0">
         <div className="flex flex-col items-center gap-3">
           <span className="text-caption font-medium uppercase tracking-wide text-structural-300">
             WealthMitra Voice · Incoming
@@ -101,8 +105,9 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
           {supported ? (
             <Button
               size="icon-touch"
-              onClick={toggle}
+              onClick={() => void toggle()}
               aria-label={isPlaying ? "Pause voice playback" : "Play voice playback"}
+              disabled={starting}
               className="size-14 rounded-full bg-brand-500 text-neutral-950 hover:bg-brand-400"
             >
               {isPlaying ? (
@@ -122,10 +127,9 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
             Simulated call · real AI-generated copy, read aloud
           </p>
         </div>
-        <div className="-mx-6 -mb-8 mt-4 w-[calc(100%+3rem)]">
-          <ChannelFitNote delivery={delivery} channel="voice" />
         </div>
-      </div>
-    </PhoneFrame>
+      </PhoneFrame>
+      <ChannelFitNote delivery={delivery} channel="voice" />
+    </div>
   );
 }

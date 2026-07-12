@@ -8,13 +8,14 @@ import { apiPost } from "@/lib/api";
 import { useNudges } from "@/lib/queries";
 import type { CreateSessionResponse, NudgeKind } from "@/lib/types";
 import { useDemoSpace } from "@/components/showcase/useDemoSpace";
-import { usePersonaRoster, sampleNudges } from "@/components/showcase/personas";
+import { usePersonaRoster } from "@/components/showcase/personas";
 import { PushNotificationCard } from "@/components/showcase/channels/PushNotificationCard";
 import { SmsThreadCard } from "@/components/showcase/channels/SmsThreadCard";
 import { WMessageChatCard } from "@/components/showcase/channels/WMessageChatCard";
 import { VoiceCallPlayerCard } from "@/components/showcase/channels/VoiceCallPlayerCard";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
 import { personaExperienceFor } from "@/lib/personaExperience";
+import { composeChannelDelivery, sampleChannelNudges } from "@/components/showcase/channels/composeDelivery";
 
 const DEFAULT_PERSONA_ID = "ravi";
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -64,20 +65,11 @@ export default function Channels() {
   const nudgesResolved = !sessionId || nudgesQuery.isFetched || nudgesQuery.isError;
   const realNudge = nudgesQuery.data?.find((n) => n.kind === nudgeClass);
   const personaFirstName = selectedPersona?.name.split(" ")[0] ?? "there";
-  const fallbackNudge = sampleNudges(personaFirstName)[nudgeClass];
+  const fallbackNudge = sampleChannelNudges(personaId, personaFirstName, selectedPersona?.language ?? "en")[nudgeClass];
   const activeNudge = realNudge ?? fallbackNudge;
   const experience = personaExperienceFor(personaId);
 
-  const delivery: ChannelDelivery = {
-    title: activeNudge.title,
-    body: activeNudge.body,
-    personaName: personaFirstName,
-    language: selectedPersona?.language ?? "en",
-    sample: !realNudge,
-    communicationPreference: experience.channels.preference,
-    cadence: experience.channels.cadence,
-    channelFits: experience.channels.fits,
-  };
+  const delivery: ChannelDelivery = composeChannelDelivery(personaId, personaFirstName, activeNudge, experience);
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-6 py-12">
@@ -90,8 +82,8 @@ export default function Channels() {
       <div className="flex items-center gap-3 rounded-lg border border-warning-300 bg-warning-50 px-4 py-3">
         <Clapperboard size={20} strokeWidth={1.75} className="shrink-0 text-warning-700" aria-hidden="true" />
         <p className="text-body-sm font-medium text-warning-800">
-          Simulated delivery · real AI-generated copy. No telephony or messaging infra actually
-          fires — every word below still comes from the same nudge engine the customer app uses.
+          Simulated delivery · grounded nudge facts. No telephony or messaging infrastructure actually
+          fires — each channel reshapes the same customer-specific nudge for its format and context.
         </p>
       </div>
 

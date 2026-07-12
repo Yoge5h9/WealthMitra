@@ -139,7 +139,41 @@ function candidateVoicesForLanguage(voices: SpeechSynthesisVoice[], language: La
 }
 
 const naturalVoiceCache = new Map<LanguageCode, SpeechSynthesisVoice>();
-let voiceschangedListenerBound = false;
+const VOICE_PIN_KEY = "wm_voice_pin";
+
+function savedVoiceUri(language: LanguageCode): string | null {
+  try {
+    const saved = window.sessionStorage.getItem(`${VOICE_PIN_KEY}_${language}`);
+    return saved || null;
+  } catch {
+    return null;
+  }
+}
+
+function pinVoice(language: LanguageCode, voice: SpeechSynthesisVoice): SpeechSynthesisVoice {
+  naturalVoiceCache.set(language, voice);
+  try {
+    window.sessionStorage.setItem(`${VOICE_PIN_KEY}_${language}`, voice.voiceURI);
+  } catch {
+    // Session storage is a consistency enhancement, never a dependency.
+  }
+  return voice;
+}
+
+function preferredVoice(voices: SpeechSynthesisVoice[], language: LanguageCode): SpeechSynthesisVoice | null {
+  const pinnedUri = savedVoiceUri(language);
+  const pinned = pinnedUri ? voices.find((voice) => voice.voiceURI === pinnedUri) : null;
+  if (pinned) return pinVoice(language, pinned);
+
+  const cached = naturalVoiceCache.get(language);
+  const cacheMatch = cached ? voices.find((voice) => voice.voiceURI === cached.voiceURI) : null;
+  if (cacheMatch) return cacheMatch;
+
+  const candidates = candidateVoicesForLanguage(voices, language);
+  if (candidates.length === 0) return null;
+  const best = candidates.reduce((a, b) => (scoreVoiceName(b.name, language) > scoreVoiceName(a.name, language) ? b : a));
+  return pinVoice(language, best);
+}
 
 /** Picks the most natural available voice for `language`, caching the
  * result. Returns `null` (never throws) if speechSynthesis is unavailable
@@ -148,28 +182,45 @@ let voiceschangedListenerBound = false;
  * Call channel demo (VoiceCallPlayerCard) can reuse the same selection. */
 export function pickNaturalVoice(language: LanguageCode): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
-
-  if (!voiceschangedListenerBound) {
-    voiceschangedListenerBound = true;
-    // getVoices() is frequently empty on first call and populates
-    // asynchronously; clearing the cache lets the next pickNaturalVoice()
-    // re-rank against the now-populated list instead of sticking with an
-    // early no-match.
-    window.speechSynthesis.addEventListener("voiceschanged", () => naturalVoiceCache.clear());
-  }
-
-  const cached = naturalVoiceCache.get(language);
-  if (cached) return cached;
-
   const voices = window.speechSynthesis.getVoices();
   if (voices.length === 0) return null;
+  return preferredVoice(voices, language);
+}
 
-  const candidates = candidateVoicesForLanguage(voices, language);
-  if (candidates.length === 0) return null;
+/** Resolves and pins a voice before an utterance is started. Browsers often
+ * populate their voices asynchronously; waiting briefly prevents one screen
+ * from falling back to the browser default while another gets the selected
+ * natural voice. The first resolved English voice is reused by all English
+ * chat and AI-call playback for the browser session. */
+export function resolveNaturalVoice(language: LanguageCode): Promise<SpeechSynthesisVoice | null> {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve(null);
+  const synthesis = window.speechSynthesis;
+  const immediate = preferredVoice(synthesis.getVoices(), language);
+  if (immediate) return Promise.resolve(immediate);
 
-  const best = candidates.reduce((a, b) => (scoreVoiceName(b.name, language) > scoreVoiceName(a.name, language) ? b : a));
-  naturalVoiceCache.set(language, best);
-  return best;
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      synthesis.removeEventListener("voiceschanged", onVoicesChanged);
+      resolve(preferredVoice(synthesis.getVoices(), language));
+    };
+    const onVoicesChanged = () => finish();
+    const timeout = window.setTimeout(finish, 500);
+    synthesis.addEventListener("voiceschanged", onVoicesChanged);
+  });
+}
+
+/** Starts an utterance only after it has the same pinned natural voice used
+ * throughout the corresponding language experience. */
+export async function speakWithNaturalVoice(utterance: SpeechSynthesisUtterance, language: LanguageCode): Promise<boolean> {
+  const voice = await resolveNaturalVoice(language);
+  if (!voice) return false;
+  utterance.voice = voice;
+  window.speechSynthesis.speak(utterance);
+  return true;
 }
 
 export interface UseSpeechOutputResult {
@@ -179,10 +230,8 @@ export interface UseSpeechOutputResult {
   speak: (text: string, language: LanguageCode) => void;
 }
 
-/** Speech-synthesis toggle for companion replies. Selects the most natural
- * available voice per language via `pickNaturalVoice` (falls back silently
- * to the browser's own `lang`-based default if no ranked voice is found —
- * never throws if a regional voice isn't installed). */
+/** Speech-synthesis toggle for companion replies. It waits for and pins the
+ * same natural voice that the AI-call playback uses for each language. */
 export function useSpeechOutput(): UseSpeechOutputResult {
   const [supported] = useState(() => typeof window !== "undefined" && "speechSynthesis" in window);
   const [enabled, setEnabled] = useState(false);
@@ -201,9 +250,7 @@ export function useSpeechOutput(): UseSpeechOutputResult {
       utterance.lang = SYNTH_LANG[language];
       utterance.rate = 0.97;
       utterance.pitch = 1.0;
-      const voice = pickNaturalVoice(language);
-      if (voice) utterance.voice = voice;
-      window.speechSynthesis.speak(utterance);
+      void speakWithNaturalVoice(utterance, language);
     },
     [supported, enabled]
   );

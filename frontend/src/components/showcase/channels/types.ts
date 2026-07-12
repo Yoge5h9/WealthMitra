@@ -7,9 +7,12 @@ export interface ChannelFit {
   emphasis: "primary" | "supporting" | "opt_in";
 }
 
-export interface ChannelDelivery {
+export interface ChannelMessage {
   title: string;
   body: string;
+}
+
+export interface ChannelDelivery {
   personaName: string;
   language: string;
   /** True when this is the built-in fallback copy, not real AI-generated nudge text. */
@@ -17,4 +20,5 @@ export interface ChannelDelivery {
   communicationPreference: string;
   cadence: string;
   channelFits: Record<ChannelKey, ChannelFit>;
+  messages: Record<ChannelKey, ChannelMessage>;
 }
