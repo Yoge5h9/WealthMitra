@@ -29,8 +29,8 @@ _NEXT_BEST_ACTION_WITH_SHELF: dict[LeadFamily, str] = {
     "loans_cards": "RM to discuss {product} eligibility and repayment terms with {name}.",
 }
 _NEXT_BEST_ACTION_NO_SHELF: dict[LeadFamily, str] = {
-    "investment_insurance": "RM to review {name}'s investment goals and recommend from the eligible shelf.",
-    "loans_cards": "RM to review {name}'s credit profile and recommend from the eligible shelf.",
+    "investment_insurance": "RM to review {name}'s investment goals and recommend suitable options.",
+    "loans_cards": "RM to review {name}'s credit profile and recommend suitable options.",
 }
 
 

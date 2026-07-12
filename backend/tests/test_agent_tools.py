@@ -283,6 +283,32 @@ def test_create_rm_lead_for_card_delegates_to_the_orchestrator_builder_with_the_
     assert entry.name == "create_rm_lead"
 
 
+def test_create_rm_lead_blocked_for_card_when_declined_this_turn(space):
+    # BUG4: a decline must deterministically prevent a lead in code, never
+    # relying on the model choosing not to call the tool.
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.lead_family = "loans_cards"
+    ctx.lead_blocked = True
+    ctx.card_lead_builder = lambda card_id, trigger, verdict: _fake_lead()
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "no thanks", "card_id": "idbi_aspire_platinum"})
+
+
+def test_create_rm_lead_blocked_for_investment_family_when_declined_this_turn(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.built_lead = _fake_lead()
+    ctx.lead_blocked = True
+    with pytest.raises(ComplianceError):
+        tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "no thanks"})
+
+
+def test_create_rm_lead_not_blocked_by_default(space):
+    ctx = ctx_for(space, "ravi", mode="rm_lead")
+    ctx.built_lead = _fake_lead()
+    result = tools.dispatch(ctx, "create_rm_lead", {"trigger_utterance": "go ahead"})
+    assert result["lead_id"] == _fake_lead().lead_id
+
+
 def test_unknown_tool_raises(space):
     with pytest.raises(ComplianceError):
         tools.dispatch(ctx_for(space), "transfer_funds", {})

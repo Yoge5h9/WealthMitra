@@ -64,8 +64,17 @@ _AVATAR_END = {
     "auto_execute": "celebrating",
     "info_only": "speaking",
 }
-_AFFIRMATIVE = re.compile(r"^\s*(?:yes|yes please|please do|go ahead|sure|haan|ha|हाँ|હા)\s*[.!]*\s*$", re.IGNORECASE)
 _NEGATIVE = re.compile(r"^\s*(?:no|not now|no thanks|nah|nahi|नहीं|ना|ના)\s*[.!]*\s*$", re.IGNORECASE)
+
+# Intents that mean the customer has clearly moved to a different topic — an
+# open card conversation does NOT continue into one of these, it hands off to
+# whatever route that intent normally resolves to. Everything else (a bare
+# yes/no, "for everyday spend", "pick one for me", or any intent classify_intent
+# can't pin down as a fresh topic) is treated as still talking about the card.
+_CARD_CONTINUATION_BREAK_INTENTS = frozenset({
+    "distress_signal", "rm_handoff", "regulated_query", "credit_product_info",
+    "fd_query", "goal_set", "invest_surplus", "aa_connect", "literacy", "greeting",
+})
 
 
 def _default_now() -> datetime:
@@ -124,24 +133,30 @@ class Orchestrator:
             yield from self._credit_product_turn(space, session_id, state, profile, message, named_offer, metrics)
             return
 
+        card_mode_was_open = bool(state.get("card_mode_open"))
         product_ctx = self._representative_product(intent, segment, band, surplus)
-        route = decide(intent, flags, product_ctx)
+        route = decide(intent, flags, product_ctx, card_conversation_open=card_mode_was_open)
 
-        # A "yes"/"no" reply to a card conversation that ended last turn
-        # without a lead (a clarifying question still open, or the empathy
-        # flow awaiting consent) is not something `classify_intent` can see —
-        # "yes" alone classifies as `other`. This is a narrow, one-turn-only
-        # continuation of the SAME deterministic gate result, never a second
-        # scripted flow: distress always still wins, and the flag is consumed
-        # (popped) whether or not it ends up being used this turn.
-        continuing_card = state.pop("card_mode_open", False) and bool(
-            _AFFIRMATIVE.match(message.strip()) or _NEGATIVE.match(message.strip())
-        )
+        # A follow-up to a card conversation that ended last turn without a
+        # lead (a clarifying question still open, or the empathy flow awaiting
+        # consent) is not something `classify_intent` can see in isolation —
+        # "for everyday spend" classifies as `spend_query`, "go ahead pick
+        # yourself" as `other`. Anything that isn't a clear switch to a
+        # different topic (see `_CARD_CONTINUATION_BREAK_INTENTS`) stays in the
+        # SAME deterministic gate result, never a second scripted flow:
+        # distress always still wins, and the flag is consumed (popped)
+        # whether or not it ends up being used this turn.
+        state.pop("card_mode_open", None)
+        continuing_card = card_mode_was_open and intent not in _CARD_CONTINUATION_BREAK_INTENTS
         if continuing_card and route.path != "distress_suppress":
             route = Route(
                 path="rm_lead", lead_family="loans_cards",
                 reasons=["card_conversation_continuation", f"original_intent:{intent}"],
             )
+        # A bare decline of the open card conversation must deterministically
+        # block a lead this turn — never left to the model's judgement (see
+        # tools.create_rm_lead's ctx.lead_blocked check).
+        declined = continuing_card and bool(_NEGATIVE.match(message.strip()))
 
         mode = route.path
         self._audit_routing(space, session_id, intent, flags, route)
@@ -150,6 +165,7 @@ class Orchestrator:
 
         ctx = ToolContext(space, persona_id, session_id, mode, engine=self.engine, now=self.now)
         ctx._metrics = metrics
+        ctx.lead_blocked = declined
 
         card_context = None
         if mode == "rm_lead":
@@ -190,7 +206,6 @@ class Orchestrator:
         self._append_history(state, message, final_text)
 
         if mode == "rm_lead" and route.lead_family == "loans_cards":
-            declined = continuing_card and _NEGATIVE.match(message.strip())
             state["card_mode_open"] = ctx.built_lead is None and not declined
 
         yield {"type": "avatar", "state": _AVATAR_END[mode]}
@@ -483,8 +498,8 @@ class Orchestrator:
                 "expected_return": product.expected_return,
             },
             "why": [
-                f"Matched to the '{segment}' / '{band}' shelf by the suitability matrix.",
-                "On your eligible shelf — nothing outside it is ever shown.",
+                "Matched to your profile and risk comfort.",
+                "Only products you qualify for are ever shown here.",
             ],
         }
 

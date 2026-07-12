@@ -147,6 +147,29 @@ def test_bare_cc_does_not_misfire_on_email_cc_sentences():
     assert classify_intent("please cc my manager", "en") != "loan_card_query"
 
 
+# Explicit request to be connected to a human RM — the "money shot" handoff.
+# Must classify distinctly from a fresh regulated_query/other intent so the
+# orchestrator can route it straight to rm_lead (see routing.engine.decide).
+_RM_HANDOFF_PHRASINGS: list[str] = [
+    "go ahead with rm",
+    "go ahead with the rm",
+    "connect me to a relationship manager",
+    "connect me to an rm",
+    "talk to an advisor",
+    "speak to an rm",
+    "proceed with the rm",
+]
+
+
+@pytest.mark.parametrize("phrase", _RM_HANDOFF_PHRASINGS)
+def test_rm_handoff_phrasings_classify_as_rm_handoff(phrase):
+    assert classify_intent(phrase, "en") == "rm_handoff"
+
+
+def test_rm_handoff_wins_even_when_a_regulated_product_is_named():
+    assert classify_intent("connect me to an rm about insurance", "en") == "rm_handoff"
+
+
 def test_aa_connect_intent():
     assert classify_intent("connect my other bank account", "en") == "aa_connect"
 

@@ -18,7 +18,9 @@ RoutePath = Literal["auto_execute", "rm_lead", "distress_suppress", "info_only"]
 LeadFamily = Literal["investment_insurance", "loans_cards"]
 
 _DISTRESS_FLAGS = frozenset({"emi_stressed", "overdraft"})
-_WANTS_TO_BUY: frozenset[Intent] = frozenset({"invest_surplus", "goal_set", "regulated_query", "fd_query", "loan_card_query"})
+_WANTS_TO_BUY: frozenset[Intent] = frozenset(
+    {"invest_surplus", "goal_set", "regulated_query", "fd_query", "loan_card_query", "rm_handoff"}
+)
 
 # The documented priority-score formula, deliberately not an undocumented
 # `*2` on the surplus term. Weights are named constants so retuning is a
@@ -44,7 +46,9 @@ def wants_to_buy(intent: Intent) -> bool:
     return intent in _WANTS_TO_BUY
 
 
-def decide(intent: Intent, behaviour_flags: list[str], product: Product | None) -> Route:
+def decide(
+    intent: Intent, behaviour_flags: list[str], product: Product | None, *, card_conversation_open: bool = False
+) -> Route:
     """The compliance decision tree. Order matters and is exhaustive:
 
     1. An explicit distress utterance suppresses selling outright — always,
@@ -53,10 +57,14 @@ def decide(intent: Intent, behaviour_flags: list[str], product: Product | None) 
        in the turn is itself a sales opportunity) also suppresses. A distressed
        customer asking a non-buy question with no product attached still gets
        served (info_only) — suppression targets selling, not conversation.
-    3. A regulated intent or a regulated-tagged product is never auto-executed
+    3. An explicit request to be connected to a human RM always becomes an RM
+       lead (still gated by the distress checks above) — the family is
+       `loans_cards` if a credit-card conversation is currently open on this
+       session, `investment_insurance` otherwise.
+    4. A regulated intent or a regulated-tagged product is never auto-executed
        — it always becomes an RM lead.
-    4. A vanilla-tagged product with none of the above auto-executes.
-    5. Anything else is informational only.
+    5. A vanilla-tagged product with none of the above auto-executes.
+    6. Anything else is informational only.
     """
     if intent == "distress_signal":
         return Route(path="distress_suppress", reasons=["distress_signal_intent"])
@@ -68,6 +76,10 @@ def decide(intent: Intent, behaviour_flags: list[str], product: Product | None) 
         if product is not None:
             reasons.append(f"product_attached:{product.id}")
         return Route(path="distress_suppress", reasons=reasons)
+
+    if intent == "rm_handoff":
+        family: LeadFamily = "loans_cards" if card_conversation_open else "investment_insurance"
+        return Route(path="rm_lead", lead_family=family, reasons=["explicit_rm_handoff_request"])
 
     if intent == "loan_card_query":
         return Route(

@@ -99,7 +99,7 @@ def evaluate_eligibility(profile: PersonaProfile, metrics: dict[str, object], of
             checked,
         )
 
-    reasons.append("Your known profile passes the published demo pre-eligibility checks.")
+    reasons.append("Based on your profile, you meet the basic eligibility criteria for this card (subject to final verification).")
     return _result("eligible", reasons, checked)
 
 

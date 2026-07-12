@@ -58,6 +58,11 @@ class ToolContext:
     # branch delegates the actual packet construction here so lead-building
     # (metrics, consent snapshot, audit, event publish) stays in one place.
     card_lead_builder: Callable[[str, str, dict], LeadPacket] | None = field(default=None, repr=False)
+    # Set by the orchestrator when this turn is a bare decline of an open card
+    # conversation ("no thanks"). A compliance invariant, not a prompt request:
+    # create_rm_lead must refuse deterministically no matter what the model
+    # attempts on a decline turn.
+    lead_blocked: bool = False
     _metrics: dict[str, Metric] | None = field(default=None, repr=False)
 
     def metrics(self) -> dict[str, Metric]:
@@ -308,6 +313,8 @@ def create_rm_lead(ctx: ToolContext, trigger_utterance: str, card_id: str | None
     """
     if ctx.mode != "rm_lead":
         raise ComplianceError("create_rm_lead is only reachable when routing put the turn in rm_lead mode")
+    if ctx.lead_blocked:
+        raise ComplianceError("create_rm_lead is blocked this turn — the customer just declined")
     if ctx.lead_family == "loans_cards":
         return _create_card_lead(ctx, trigger_utterance, card_id)
     if ctx.built_lead is None:

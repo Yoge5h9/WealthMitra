@@ -54,6 +54,15 @@ def routing_entries(space, session_id):
     return [e for e in audit.for_session(space, session_id) if e.kind == "routing"]
 
 
+def routing_decisions(space, session_id):
+    """Only the `decide()` routing entries — excludes the `lead_created`
+    audit entry that `kind == "routing"` also covers, so a test can safely
+    look at "the routing decision for the most recent turn" across a
+    multi-turn conversation.
+    """
+    return [e for e in routing_entries(space, session_id) if "path" in e.outputs_summary]
+
+
 # --- mode: info_only --------------------------------------------------------
 
 
@@ -373,6 +382,181 @@ def test_distress_tool_call_attempt_is_refused_not_crashed(space):
                 if e.kind == "guardrail" and e.name.startswith("tool_refused")]
     assert refusals
     assert frames[-1]["type"] == "done"
+
+
+# --- BUG1: no internal jargon leaks into customer-facing output -------------
+
+_JARGON_TERMS = ("suitability matrix", "eligible shelf", "'hni'", "pre-eligibility", "mass_retail", "demo")
+
+
+def test_recommendation_card_and_reply_are_jargon_free(space):
+    sid = make_session(space, "ravi")
+    frames, _ = run(space, sid, "how is my spending?", [
+        resp(tool_calls=[call("get_eligible_products")]),
+        resp(text="Based on your surplus, a fixed deposit ladder could work well for you."),
+    ])
+    rec = next(c for c in cards(frames) if c["card_type"] == "recommendation")
+    blob = (reply_text(frames) + " " + " ".join(rec["why"])).lower()
+    for term in _JARGON_TERMS:
+        assert term not in blob, f"jargon leaked: {term!r}"
+
+
+def test_factual_card_question_reply_is_jargon_free(space):
+    sid = make_session(space, "ravi")
+    frames, fake = run(space, sid, "tell me about the Aspire card", [])
+    assert fake.requests == []  # static path, no LLM involved
+    card = next(c for c in cards(frames) if c["card_type"] == "credit_product_detail")
+    assert card["product"]["eligibility"]["status"] == "eligible"
+    blob = (reply_text(frames) + " " + " ".join(card["product"]["reasons"])).lower()
+    for term in _JARGON_TERMS:
+        assert term not in blob, f"jargon leaked: {term!r}"
+
+
+def test_system_prompt_forbids_internal_jargon_for_every_customer_mode():
+    from app.agent import prompts
+    from app.domain.models import PersonaProfile
+
+    profile = PersonaProfile(
+        id="ravi", name="Ravi Kumar", age=28, city="Mumbai", segment="mass_retail_salaried",
+        language="en", risk_tolerance="moderate", dependents=0, occupation="Software Engineer",
+        avatar="", story="x",
+    )
+    for mode in ("info_only", "auto_execute", "rm_lead", "distress_suppress"):
+        text = prompts.system_prompt(profile, "mass_retail_salaried", "en", mode).lower()
+        assert "never expose internal terms" in text
+        assert "suitability matrix" in text
+    card_prompt = prompts.system_prompt(
+        profile, "mass_retail_salaried", "en", "rm_lead", lead_family="loans_cards", card_context={},
+    ).lower()
+    assert "never expose internal terms" in card_prompt
+
+
+# --- BUG2: a card conversation survives a non-affirmative follow-up ---------
+
+
+def test_card_followup_stating_use_case_stays_in_card_mode(space):
+    sid = make_session(space, "ravi")
+    run(space, sid, "I want a credit card", [
+        resp(text="Happy to help — what matters most to you: everyday rewards, travel, or a big purchase?"),
+    ])
+    assert space.sessions[sid]["card_mode_open"] is True
+
+    frames, fake = run(space, sid, "for everyday spend", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text="Based on your profile, the IDBI Aspire Platinum fits everyday spend well. This is not an "
+                  "approval. Would you like an RM to review it?"),
+    ])
+    names = {t.name for t in fake.requests[0].tools}
+    assert "evaluate_card_eligibility" in names
+    assert "get_eligible_products" not in names
+    text = reply_text(frames).lower()
+    assert "no card" not in text and "no eligible" not in text
+    assert space.leads == []
+    assert space.sessions[sid]["card_mode_open"] is True
+
+
+def test_card_followup_pick_for_me_stays_in_card_mode(space):
+    sid = make_session(space, "ravi")
+    run(space, sid, "I want a credit card", [
+        resp(text="Happy to help — what matters most to you: everyday rewards, travel, or a big purchase?"),
+    ])
+    frames, fake = run(space, sid, "go ahead pick one for me", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text="Based on your profile, the IDBI Aspire Platinum is a preliminary match. Would you like an RM "
+                  "to review it?"),
+    ])
+    names = {t.name for t in fake.requests[0].tools}
+    assert "evaluate_card_eligibility" in names
+    assert "get_eligible_products" not in names
+    assert space.leads == []
+    assert space.sessions[sid]["card_mode_open"] is True
+
+
+def test_card_followup_switching_to_a_different_topic_leaves_card_mode(space):
+    sid = make_session(space, "ravi")
+    run(space, sid, "I want a credit card", [
+        resp(text="Happy to help — what matters most to you: everyday rewards, travel, or a big purchase?"),
+    ])
+    frames, fake = run(space, sid, "actually tell me about mutual funds", [
+        resp(text="A specialist Relationship Manager will follow up with you about mutual funds."),
+    ])
+    last_decision = routing_decisions(space, sid)[-1]
+    assert last_decision.outputs_summary["path"] == "rm_lead"
+    assert last_decision.outputs_summary["lead_family"] == "investment_insurance"
+    names = {t.name for t in fake.requests[0].tools}
+    assert "evaluate_card_eligibility" not in names
+    assert space.sessions[sid].get("card_mode_open") is not True
+
+
+# --- BUG3: an explicit RM-handoff request creates + persists a lead ---------
+
+
+def test_explicit_rm_handoff_creates_investment_lead(space):
+    sid = make_session(space, "devika")
+    run(space, sid, "how is my spending?", [
+        resp(tool_calls=[call("get_spend_summary")]),
+        resp(text="Your biggest spend category is business supplies."),
+    ])
+    assert space.leads == []
+
+    frames, fake = run(space, sid, "go ahead with rm", [
+        resp(text="A specialist Relationship Manager will follow up with you shortly."),
+    ])
+    assert routing_decisions(space, sid)[-1].outputs_summary["path"] == "rm_lead"
+    assert len(space.leads) == 1
+    lead = space.leads[0]
+    assert lead.family == "investment_insurance"
+    assert fake.requests[0].task_class == "lead_narrative"  # lead built before any LLM call
+    text = reply_text(frames).lower()
+    assert "can't" not in text and "cannot" not in text
+    assert "approv" not in text  # never implies approval
+    card = next(c for c in cards(frames) if c["card_type"] == "routed_to_rm")
+    assert card["lead_id"] == lead.lead_id
+
+
+def test_explicit_rm_handoff_during_open_card_conversation_uses_loans_cards_family(space):
+    sid = make_session(space, "ravi")
+    run(space, sid, "I want a credit card", [
+        resp(text="Happy to help — what matters most to you: everyday rewards, travel, or a big purchase?"),
+    ])
+    assert space.sessions[sid]["card_mode_open"] is True
+
+    frames, _ = run(space, sid, "connect me to an rm", [
+        resp(tool_calls=[call("create_rm_lead", {"trigger_utterance": "connect me to an rm", "card_id": "idbi_aspire_platinum"})]),
+        resp(text="Done — an RM will review the Aspire Platinum application with you. This is not an approval."),
+    ])
+    assert len(space.leads) == 1
+    assert space.leads[0].family == "loans_cards"
+
+
+def test_distress_persona_explicit_rm_handoff_creates_no_lead(space):
+    sid = make_session(space, "vikram")
+    frames, _ = run(space, sid, "go ahead with rm", [
+        resp(text="Let's first get your cash-flow steady before anything else."),
+    ])
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "distress_suppress"
+    assert space.leads == []
+
+
+# --- BUG4: a decline deterministically blocks lead creation -----------------
+
+
+def test_decline_blocks_lead_even_if_model_calls_create_rm_lead_anyway(space):
+    sid = make_session(space, "ravi")
+    run(space, sid, "I want a credit card", [
+        resp(text="Happy to help — what matters most to you: everyday rewards, travel, or a big purchase?"),
+    ])
+    assert space.sessions[sid]["card_mode_open"] is True
+
+    frames, fake = run(space, sid, "No thanks", [
+        resp(tool_calls=[call("create_rm_lead", {"trigger_utterance": "no thanks", "card_id": "idbi_aspire_platinum"})]),
+        resp(text="No problem — happy to help with anything else."),
+    ])
+    assert space.leads == []
+    tool_msg = fake.requests[1].messages[-1]
+    assert tool_msg.role == "tool"
+    assert "error" in (tool_msg.content or "")
+    assert space.sessions[sid].get("card_mode_open") is not True
 
 
 # --- guardrail: regenerate then fall back -----------------------------------

@@ -20,6 +20,7 @@ Intent = Literal[
     "regulated_query",
     "credit_product_info",
     "loan_card_query",
+    "rm_handoff",
     "distress_signal",
     "literacy",
     "aa_connect",
@@ -55,6 +56,26 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
             "housing loan", "mortgage", "loan for home", "loan chahiye", "home loan chahiye", "credit card chahiye",
             "क्रेडिट कार्ड", "कार्ड", "पर्सनल लोन", "होम लोन", "घर के लिए लोन", "लोन चाहिए",
             "ક્રેડિટ કાર્ડ", "કાર્ડ", "પર્સનલ લોન", "હોમ લોન", "લોન જોઈએ",
+        ),
+    ),
+    (
+        # An explicit request to be handed off to a human RM — the demo's
+        # "money shot": checked ahead of regulated_query so a handoff request
+        # that happens to name a regulated product ("connect me to an rm about
+        # insurance") still reads as the handoff request it is, not a fresh
+        # regulated query.
+        "rm_handoff",
+        (
+            "go ahead with rm", "go ahead with the rm", "go ahead with an rm",
+            "connect me to an rm", "connect me to a rm", "connect me to the rm",
+            "connect me with an rm", "connect me to relationship manager",
+            "connect me to a relationship manager", "connect me with a relationship manager",
+            "talk to an advisor", "talk to a relationship manager", "talk to an rm",
+            "speak to an rm", "speak with an rm", "speak to a relationship manager",
+            "proceed with the rm", "proceed with an rm", "proceed with rm",
+            "connect to rm", "connect with rm", "connect me to a specialist",
+            "connect me with a specialist", "loop in an rm", "get me an rm",
+            "रिलेशनशिप मैनेजर से जोड़", "आरएम से बात कराओ", "એડવાઈઝર સાથે વાત કરાવો",
         ),
     ),
     (
