@@ -15,6 +15,12 @@
 #     route to the rolling aliases instead. gemini-flash-latest currently
 #     resolves to gemini-3.5-flash ($1.50/$9.00); gemini-flash-lite-latest to
 #     gemini-3.1-flash-lite ($0.25/$1.50).
+#   openai_compatible: model ids and pricing below are PLACEHOLDERS — verify
+#     the live OpenAI (or Groq, if base_url is repointed) price sheet before
+#     any production traffic. Settings.llm_model_complex/llm_model_simple
+#     (env LLM_MODEL_COMPLEX/LLM_MODEL_SIMPLE) override the model id at
+#     runtime; the routing table below only fixes which task_classes get the
+#     complex vs. simple tier.
 
 active_provider: claude_cli
 
@@ -51,3 +57,14 @@ providers:
     pricing:
       claude-haiku-4-5: {input_per_mtok: 1.00, output_per_mtok: 5.00}
       claude-sonnet-5: {input_per_mtok: 3.00, output_per_mtok: 15.00}
+
+  openai_compatible:
+    routing:
+      intent_assist: gpt-5.4-nano
+      nudge_copy: gpt-5.4-nano
+      conversational: gpt-5.4-mini
+      lead_narrative: gpt-5.4-mini
+      literacy: gpt-5.4-mini
+    pricing:
+      gpt-5.4-mini: {input_per_mtok: 0.25, output_per_mtok: 2.00}
+      gpt-5.4-nano: {input_per_mtok: 0.05, output_per_mtok: 0.40}
