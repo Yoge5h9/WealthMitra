@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
 import { ChannelFitNote } from "@/components/showcase/channels/ChannelFitNote";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
-import { speakWithNaturalVoice } from "@/components/chat/useVoice";
+import { pickNaturalVoice } from "@/components/chat/useVoice";
 import type { LanguageCode } from "@/components/shared/LangToggle";
 
 const SPEECH_LANG: Record<string, string> = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
@@ -25,7 +25,6 @@ function supportsSpeech(): boolean {
 export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery }) {
   const message = delivery.messages.voice;
   const [isPlaying, setIsPlaying] = useState(false);
-  const [starting, setStarting] = useState(false);
   const [supported] = useState(supportsSpeech);
   const reduceMotion = Boolean(useReducedMotion());
   const barHeights = useMemo(
@@ -48,24 +47,23 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
     // reading copy that's no longer on screen.
   }, [message.title, message.body, supported]);
 
-  async function toggle() {
+  function toggle() {
     if (!supported) return;
     if (isPlaying) {
       window.speechSynthesis.cancel();
       setIsPlaying(false);
       return;
     }
-    if (starting) return;
-    setStarting(true);
     const utterance = new SpeechSynthesisUtterance(`${message.title}. ${message.body}`);
     utterance.lang = SPEECH_LANG[delivery.language] ?? "en-IN";
     utterance.rate = 0.97;
     utterance.pitch = 1.0;
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);
-    const started = await speakWithNaturalVoice(utterance, toLanguageCode(delivery.language));
-    setStarting(false);
-    setIsPlaying(started);
+    const voice = pickNaturalVoice(toLanguageCode(delivery.language));
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.speak(utterance);
+    setIsPlaying(true);
   }
 
   return (
@@ -105,9 +103,8 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
           {supported ? (
             <Button
               size="icon-touch"
-              onClick={() => void toggle()}
+              onClick={toggle}
               aria-label={isPlaying ? "Pause voice playback" : "Play voice playback"}
-              disabled={starting}
               className="size-14 rounded-full bg-brand-500 text-neutral-950 hover:bg-brand-400"
             >
               {isPlaying ? (
