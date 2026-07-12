@@ -1,12 +1,48 @@
 [
   {
-    "id": "fd_ladder",
-    "name": "IDBI FD Ladder",
+    "id": "fd_regular",
+    "name": "IDBI Regular Fixed Deposit",
     "tag": "vanilla",
     "category": "deposit",
     "min_amount": 10000,
-    "expected_return": "6.8-7.4% p.a.",
-    "description": "Laddered fixed deposits across tenors for steady, guaranteed returns and liquidity."
+    "expected_return": "3.00-6.50% p.a. (tenure-based, as of 23 Feb 2026)",
+    "description": "Bank fixed deposit across regular tenors; capital-safe with a rate that varies by how long you lock it in."
+  },
+  {
+    "id": "fd_senior_citizen",
+    "name": "IDBI Senior Citizen FD",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "up to 7.10% p.a. (general rate +0.50%, as of 23 Feb 2026)",
+    "description": "Fixed deposit with an additional interest premium for senior citizens."
+  },
+  {
+    "id": "fd_chiranjeevi",
+    "name": "IDBI Chiranjeevi FD",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "7.05-7.10% p.a. (as of 23 Feb 2026)",
+    "description": "Special fixed deposit for super-senior citizens aged 80 and above."
+  },
+  {
+    "id": "fd_suvidha_tax_saver",
+    "name": "IDBI Suvidha Tax-Saving FD",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "6.25% p.a. general / 6.75% senior, 5-year lock-in (as of 23 Feb 2026)",
+    "description": "Tax-saving fixed deposit (Section 80C) with a mandatory 5-year lock-in, capped at Rs 1.5 lakh a year."
+  },
+  {
+    "id": "fd_utsav",
+    "name": "IDBI Utsav FD (555/700 days)",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "6.40-6.45% p.a. general / 6.90-6.95% senior (limited period, through 30 Sep 2026)",
+    "description": "Special-tenor, limited-period fixed deposit offered at a premium over the regular FD rate."
   },
   {
     "id": "recurring_deposit",
@@ -14,89 +50,26 @@
     "tag": "vanilla",
     "category": "deposit",
     "min_amount": 500,
-    "expected_return": "6.5% p.a.",
-    "description": "Fixed monthly savings that build a corpus with assured interest."
+    "expected_return": "FD-slab linked, ~6.3-6.5% p.a. (as of 23 Feb 2026)",
+    "description": "Fixed monthly instalment savings that builds a corpus with assured interest, from a low Rs 500/month entry."
   },
   {
-    "id": "index_fund_sip",
-    "name": "Nifty 50 Index Fund SIP",
+    "id": "ppf",
+    "name": "Public Provident Fund (PPF)",
     "tag": "vanilla",
-    "category": "mutual_fund",
+    "category": "govt_scheme",
     "min_amount": 500,
-    "expected_return": "~11% p.a. (market-linked, historical)",
-    "description": "Low-cost passive SIP tracking the Nifty 50 for disciplined long-term wealth building."
+    "expected_return": "7.10% p.a. (govt-notified, as of 23 Feb 2026)",
+    "description": "Government-backed long-term savings scheme; annual contributions of Rs 500 to Rs 1.5 lakh, fully tax-exempt (EEE)."
   },
   {
-    "id": "liquid_fund_sweep",
-    "name": "Liquid Fund Sweep",
+    "id": "ssy",
+    "name": "Sukanya Samriddhi Yojana",
     "tag": "vanilla",
-    "category": "mutual_fund",
-    "min_amount": 1000,
-    "expected_return": "~6% p.a.",
-    "description": "Auto-sweep of idle balance into a liquid fund for better-than-savings returns with same-day access."
-  },
-  {
-    "id": "short_duration_debt",
-    "name": "Short Duration Debt Fund",
-    "tag": "vanilla",
-    "category": "mutual_fund",
-    "min_amount": 1000,
-    "expected_return": "~7% p.a.",
-    "description": "Debt fund holding short-maturity bonds; low volatility, suited to irregular cash flows."
-  },
-  {
-    "id": "corporate_fd",
-    "name": "AAA Corporate FD",
-    "tag": "vanilla",
-    "category": "deposit",
-    "min_amount": 25000,
-    "expected_return": "7.8% p.a.",
-    "description": "Highest-rated corporate fixed deposit offering a premium over bank FD rates."
-  },
-  {
-    "id": "rbi_floating_bonds",
-    "name": "RBI Floating Rate Savings Bonds",
-    "tag": "vanilla",
-    "category": "bond",
-    "min_amount": 1000,
-    "expected_return": "8.05% p.a.",
-    "description": "Sovereign-backed floating-rate bonds; capital-safe with periodic interest payout."
-  },
-  {
-    "id": "debt_index_core",
-    "name": "Debt + Index Core Portfolio",
-    "tag": "vanilla",
-    "category": "portfolio",
-    "min_amount": 50000,
-    "expected_return": "~8.5% p.a.",
-    "description": "A rule-based core allocation blending debt funds and an index fund for balanced growth."
-  },
-  {
-    "id": "gsec_ladder",
-    "name": "G-Sec Ladder",
-    "tag": "vanilla",
-    "category": "bond",
-    "min_amount": 100000,
-    "expected_return": "7.2% p.a.",
-    "description": "Ladder of government securities for sovereign safety and predictable long-tenor income."
-  },
-  {
-    "id": "nre_deposit",
-    "name": "NRE Fixed Deposit",
-    "tag": "vanilla",
-    "category": "deposit",
-    "min_amount": 10000,
-    "expected_return": "7.0% p.a. (tax-free, repatriable)",
-    "description": "Rupee deposit for NRIs; interest tax-free in India and fully repatriable."
-  },
-  {
-    "id": "fcnr_deposit",
-    "name": "FCNR(B) Deposit",
-    "tag": "vanilla",
-    "category": "deposit",
-    "min_amount": 100000,
-    "expected_return": "5.5% p.a.",
-    "description": "Foreign-currency deposit for NRIs with no exchange-rate risk on principal."
+    "category": "govt_scheme",
+    "min_amount": 250,
+    "expected_return": "8.20% p.a. (govt-notified, as of 23 Feb 2026)",
+    "description": "Government savings scheme for a girl child's education or marriage, opened any time before she turns 10."
   },
   {
     "id": "scss",
@@ -104,151 +77,169 @@
     "tag": "vanilla",
     "category": "govt_scheme",
     "min_amount": 1000,
-    "expected_return": "8.2% p.a.",
-    "description": "Government scheme for 60+ investors with quarterly payout and Section 80C benefit."
+    "expected_return": "8.20% p.a., quarterly payout (as of 23 Feb 2026)",
+    "description": "Government scheme for 60+ investors with a quarterly interest payout and Section 80C benefit."
   },
   {
-    "id": "senior_citizen_fd",
-    "name": "IDBI Senior Citizen FD",
+    "id": "nps",
+    "name": "National Pension System (NPS)",
     "tag": "vanilla",
-    "category": "deposit",
-    "min_amount": 10000,
-    "expected_return": "7.75% p.a.",
-    "description": "Fixed deposit with an additional interest premium for senior citizens."
-  },
-  {
-    "id": "elss_fund",
-    "name": "ELSS Tax-Saver Fund",
-    "tag": "regulated",
-    "category": "mutual_fund",
+    "category": "nps",
     "min_amount": 500,
-    "expected_return": "~12% p.a. (market-linked)",
-    "description": "Equity-linked savings scheme with a 3-year lock-in and Section 80C tax benefit."
+    "expected_return": "market-linked, ~8-11% p.a. blended historical (not guaranteed)",
+    "description": "Government retirement scheme via IDBI Bank as a PFRDA point of presence; contributions grow until 60, then pay out as a lump sum plus pension."
   },
   {
-    "id": "flexicap_mf",
-    "name": "Flexi-Cap Equity Fund",
-    "tag": "regulated",
-    "category": "mutual_fund",
-    "min_amount": 500,
-    "expected_return": "~13% p.a. (market-linked)",
-    "description": "Actively managed equity fund investing across large, mid and small caps."
-  },
-  {
-    "id": "balanced_advantage",
-    "name": "Balanced Advantage Fund",
-    "tag": "regulated",
-    "category": "mutual_fund",
+    "id": "rbi_floating_bond",
+    "name": "RBI Floating Rate Savings Bond 2020",
+    "tag": "vanilla",
+    "category": "bond",
     "min_amount": 1000,
-    "expected_return": "~10% p.a. (market-linked)",
-    "description": "Dynamic equity-debt fund that shifts allocation with market valuations."
+    "expected_return": "~8.05% p.a., floating, reset half-yearly (2026 quote)",
+    "description": "Sovereign-backed bond with a floating coupon; capital-safe with periodic interest payout. Not available to NRIs."
   },
   {
-    "id": "equity_satellite",
-    "name": "Equity Satellite Fund",
+    "id": "rbi_retail_direct_gsec",
+    "name": "RBI Retail Direct G-Secs / T-Bills",
+    "tag": "vanilla",
+    "category": "bond",
+    "min_amount": 10000,
+    "expected_return": "market yield at issue (varies by tenor)",
+    "description": "Direct sovereign-security investing via the RBI Retail Direct scheme, subscribed through IDBI Bank."
+  },
+  {
+    "id": "mf_index_sip",
+    "name": "Index Fund SIP (Direct Plan)",
+    "tag": "vanilla",
+    "category": "mutual_fund",
+    "min_amount": 500,
+    "expected_return": "~11% p.a. (illustrative, historical Nifty 50 index return; market-linked, not guaranteed)",
+    "description": "Low-cost passive SIP tracking a broad market index, held via a direct plan (execution-only, no advisory push)."
+  },
+  {
+    "id": "mf_elss_direct",
+    "name": "ELSS Tax-Saver Fund (Direct Plan)",
+    "tag": "vanilla",
+    "category": "mutual_fund",
+    "min_amount": 500,
+    "expected_return": "~12% p.a. (illustrative historical; market-linked, not guaranteed)",
+    "description": "Equity-linked tax-saving fund with a 3-year lock-in and Section 80C benefit, held via a direct plan."
+  },
+  {
+    "id": "mf_liquid",
+    "name": "Liquid Fund (Direct Plan)",
+    "tag": "vanilla",
+    "category": "mutual_fund",
+    "min_amount": 500,
+    "expected_return": "~6-7% p.a. (illustrative; market-linked, not guaranteed)",
+    "description": "Very short-duration debt fund for parking idle cash with near-instant access, held via a direct plan."
+  },
+  {
+    "id": "mf_active_equity",
+    "name": "Actively Managed Equity Fund",
     "tag": "regulated",
     "category": "mutual_fund",
     "min_amount": 5000,
-    "expected_return": "~13% p.a. (market-linked)",
-    "description": "A satellite equity allocation layered on a debt-index core for extra growth."
+    "expected_return": "~13% p.a. (illustrative historical category average; market-linked, not guaranteed)",
+    "description": "Actively managed equity mutual fund suited to a personalised push — reviewed and placed by your Relationship Manager, never auto-executed."
   },
   {
-    "id": "pms_lite",
-    "name": "Managed Equity (PMS-lite)",
+    "id": "insurance_term",
+    "name": "Term Life Insurance (Ageas Federal Life)",
+    "tag": "regulated",
+    "category": "insurance",
+    "min_amount": 5000,
+    "expected_return": "protection cover; premium varies by age and sum assured",
+    "description": "Pure protection term cover distributed by IDBI Bank as a corporate agent for Ageas Federal Life; reviewed by an RM before purchase."
+  },
+  {
+    "id": "insurance_ulip",
+    "name": "ULIP (Ageas Federal Life)",
+    "tag": "regulated",
+    "category": "insurance",
+    "min_amount": 25000,
+    "expected_return": "market-linked, charges vary by plan",
+    "description": "Unit-linked insurance plan combining market-linked investment with life cover; always RM-reviewed, never auto-executed."
+  },
+  {
+    "id": "insurance_health",
+    "name": "Health Insurance (Niva Bupa / Tata AIG)",
+    "tag": "regulated",
+    "category": "insurance",
+    "min_amount": 5000,
+    "expected_return": "protection cover; premium varies by age, sum insured and plan",
+    "description": "Health cover distributed through IDBI Bank's insurance partners; reviewed by an RM before purchase."
+  },
+  {
+    "id": "insurance_general",
+    "name": "General Insurance (Tata AIG / New India Assurance)",
+    "tag": "regulated",
+    "category": "insurance",
+    "min_amount": 2000,
+    "expected_return": "protection cover; premium varies by asset and plan",
+    "description": "Motor, home and travel cover distributed through IDBI Bank's general-insurance partners; reviewed by an RM before purchase."
+  },
+  {
+    "id": "pms",
+    "name": "Portfolio Management Services (IDBI Capital)",
     "tag": "regulated",
     "category": "pms",
-    "min_amount": 500000,
-    "expected_return": "market-linked",
-    "description": "Professionally managed concentrated equity portfolio for affluent investors."
+    "min_amount": 5000000,
+    "expected_return": "market-linked (SEBI-mandated Rs 50 lakh minimum)",
+    "description": "Discretionary portfolio management via IDBI Capital Markets & Securities — routed to the wealth desk, never auto-executed."
   },
   {
-    "id": "rm_allocation",
-    "name": "RM-led Asset Allocation",
+    "id": "aif",
+    "name": "Alternative Investment Fund (IDBI Capital)",
+    "tag": "regulated",
+    "category": "aif",
+    "min_amount": 10000000,
+    "expected_return": "market-linked (SEBI-mandated Rs 1 crore minimum)",
+    "description": "SEBI-registered alternative investment fund via IDBI Capital Markets & Securities — wealth-desk only."
+  },
+  {
+    "id": "wealth_advisory",
+    "name": "IDBI Capital Wealth Management (Advisory-Led)",
     "tag": "regulated",
     "category": "advisory",
     "min_amount": 1000000,
     "expected_return": "portfolio-level, goal-based",
-    "description": "Bespoke multi-asset allocation designed and rebalanced by a relationship manager."
+    "description": "Bespoke, advisory-led wealth management for affluent and HNI customers via IDBI Capital — RM/wealth-desk only."
   },
   {
-    "id": "structured_note",
-    "name": "Structured Market-Linked Note",
-    "tag": "regulated",
-    "category": "structured",
-    "min_amount": 2500000,
-    "expected_return": "capital-protected + market upside",
-    "description": "Principal-protected note with returns linked to an equity index for HNI investors."
-  },
-  {
-    "id": "aif",
-    "name": "Alternative Investment Fund (Cat III)",
-    "tag": "regulated",
-    "category": "aif",
-    "min_amount": 10000000,
-    "expected_return": "market-linked",
-    "description": "SEBI-registered alternative fund pursuing long-short and derivative strategies."
-  },
-  {
-    "id": "repatriable_index",
-    "name": "Repatriable Index Fund",
-    "tag": "regulated",
-    "category": "mutual_fund",
-    "min_amount": 5000,
-    "expected_return": "~11% p.a. (market-linked)",
-    "description": "Index fund routed through NRE so gains stay repatriable for NRI investors."
-  },
-  {
-    "id": "nri_equity",
-    "name": "NRI Equity Portfolio (PIS)",
-    "tag": "regulated",
-    "category": "portfolio",
-    "min_amount": 500000,
-    "expected_return": "market-linked",
-    "description": "Direct Indian equity portfolio for NRIs under the Portfolio Investment Scheme."
-  },
-  {
-    "id": "monthly_income_plan",
-    "name": "Monthly Income Plan",
-    "tag": "regulated",
-    "category": "mutual_fund",
-    "min_amount": 25000,
-    "expected_return": "~9% p.a. (market-linked)",
-    "description": "Debt-oriented hybrid fund paying a monthly dividend for regular-income seekers."
-  },
-  {
-    "id": "treasury_bill_ladder",
-    "name": "Treasury Bill Ladder",
+    "id": "demat_trading",
+    "name": "IDBI Direct - Demat & Trading",
     "tag": "vanilla",
-    "category": "bond",
-    "min_amount": 500000,
-    "expected_return": "6.9-7.3% p.a.",
-    "description": "Ladder of short-tenor sovereign Treasury Bills for HNI cash management with capital safety and staggered liquidity."
+    "category": "equity_demat",
+    "min_amount": 0,
+    "expected_return": "execution-only; no advice given",
+    "description": "Digital-KYC demat and trading account via IDBI Capital for self-directed equity execution."
   },
   {
-    "id": "multi_asset_pms",
-    "name": "Multi-Asset PMS",
-    "tag": "regulated",
-    "category": "pms",
-    "min_amount": 750000,
-    "expected_return": "~13-15% p.a. (market-linked, historical)",
-    "description": "Discretionary multi-asset portfolio management blending equity, debt and gold for HNI diversification."
-  },
-  {
-    "id": "cat2_aif_credit",
-    "name": "Category II AIF - Structured Credit",
-    "tag": "regulated",
-    "category": "aif",
-    "min_amount": 5000000,
-    "expected_return": "~12-14% p.a. (market-linked)",
-    "description": "Category II alternative investment fund deploying into structured credit opportunities for sophisticated HNI investors."
-  },
-  {
-    "id": "flexi_micro_rd",
-    "name": "Flexi Micro Recurring Deposit",
+    "id": "nre_deposit",
+    "name": "NRE Savings / Term Deposit",
     "tag": "vanilla",
     "category": "deposit",
-    "min_amount": 500,
-    "expected_return": "6.3% p.a.",
-    "description": "Flexible-installment recurring deposit built for irregular gig income; skip a month without penalty."
+    "min_amount": 10000,
+    "expected_return": "~6.20% p.a. (1-year FD, tax-free in India, fully repatriable)",
+    "description": "Rupee deposit for NRIs; interest is tax-free in India, and both principal and interest are fully repatriable."
+  },
+  {
+    "id": "nro_deposit",
+    "name": "NRO Savings / Term Deposit",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 10000,
+    "expected_return": "FD-slab rate; interest taxable in India",
+    "description": "Rupee account/deposit for an NRI's India-sourced income (rent, dividends); repatriation is capped and interest is taxable."
+  },
+  {
+    "id": "fcnr_deposit",
+    "name": "FCNR(B) Deposit (USD)",
+    "tag": "vanilla",
+    "category": "deposit",
+    "min_amount": 100000,
+    "expected_return": "USD 4.55% p.a. (1-2yr) sliding to USD 3.15% p.a. (5yr), as of 1 Jul 2026",
+    "description": "Foreign-currency deposit for NRIs, USD 1,000 minimum equivalent; no exchange-rate risk on principal, tax-free interest, fully repatriable."
   }
 ]

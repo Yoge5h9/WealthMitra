@@ -56,9 +56,9 @@ def test_every_tool_returns_json_safe_dict_and_audits(space, name):
         ctx.built_lead = _fake_lead()
         args = {"trigger_utterance": "I want equity"}
     elif name == "request_execution":
-        args = {"product_id": "index_fund_sip", "amount": 5000}
+        args = {"product_id": "mf_index_sip", "amount": 5000}
     elif name == "compare_products":
-        args = {"product_ids": ["fd_ladder", "index_fund_sip"]}
+        args = {"product_ids": ["fd_regular", "mf_index_sip"]}
     elif name == "get_literacy":
         args = {"term": "sip", "language": "en"}
 
@@ -145,7 +145,7 @@ def test_create_rm_lead_requires_orchestrator_built_lead(space):
         tools.create_rm_lead(ctx, trigger_utterance="x")
 
 
-@pytest.mark.parametrize("regulated_id", ["flexicap_mf", "pms_lite", "aif", "structured_note"])
+@pytest.mark.parametrize("regulated_id", ["mf_active_equity", "insurance_ulip", "pms", "aif"])
 def test_request_execution_refuses_regulated_products(space, regulated_id):
     ctx = ctx_for(space, mode="auto_execute")
     with pytest.raises(ComplianceError, match="not vanilla|tagged"):
@@ -156,12 +156,12 @@ def test_request_execution_refuses_regulated_products(space, regulated_id):
 def test_request_execution_raises_outside_auto_execute(space, mode):
     ctx = ctx_for(space, mode=mode)
     with pytest.raises(ComplianceError):
-        tools.request_execution(ctx, product_id="index_fund_sip", amount=5000)
+        tools.request_execution(ctx, product_id="mf_index_sip", amount=5000)
 
 
 def test_request_execution_never_executes(space):
     ctx = ctx_for(space, mode="auto_execute")
-    result = tools.dispatch(ctx, "request_execution", {"product_id": "fd_ladder", "amount": 25000})
+    result = tools.dispatch(ctx, "request_execution", {"product_id": "fd_regular", "amount": 25000})
     assert result["prepared"] is True
     assert result["confirm_token"].startswith("cfm_")
     assert ctx.confirm is not None

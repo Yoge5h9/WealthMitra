@@ -48,7 +48,7 @@ def test_hni_cells_are_non_empty() -> None:
 
 
 def test_reasons_are_human_readable_and_mention_the_product() -> None:
-    product = CATALOGUE.products["fd_ladder"]
+    product = CATALOGUE.products["fd_regular"]
     out = reasons("mass_retail_salaried", "conservative", product)
 
     assert isinstance(out, list) and out
