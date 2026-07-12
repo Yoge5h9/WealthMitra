@@ -2,7 +2,7 @@
 #
 # Usage: https://dashboard.render.com/blueprints -> "New Blueprint Instance"
 # -> point at this repo. Render reads this file and provisions the service
-# below; you'll be prompted for GEMINI_API_KEY during setup (sync: false).
+# below; you'll be prompted for OPENAI_API_KEY during setup (sync: false).
 #
 # See README.md "One-click deploy" for the full walkthrough.
 
@@ -24,10 +24,20 @@ services:
       # deploy-time choice. See backend/app/core/config.py: an unset key for
       # the active provider fails app startup loudly, by design.
       - key: LLM_PROVIDER
-        value: gemini
+        value: openai_compatible
+      - key: OPENAI_API_KEY
+        sync: false
+      # Overridable: repoint at any OpenAI-wire-compatible endpoint (e.g. Groq,
+      # a self-hosted vLLM) without a code change.
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: LLM_MODEL_COMPLEX
+        value: gpt-5.4-mini
+      - key: LLM_MODEL_SIMPLE
+        value: gpt-5.4-nano
+      # Documented free fallback provider — not active unless LLM_PROVIDER is
+      # switched to "gemini". Second key fails over automatically on 429/revoke.
       - key: GEMINI_API_KEY
         sync: false
-      # Optional second key: the gateway fails over to it automatically when
-      # the primary key's quota is exhausted (429) or the key is revoked.
       - key: GEMINI_API_KEY_2
         sync: false
