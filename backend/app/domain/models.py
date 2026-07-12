@@ -41,6 +41,11 @@ class LeadPacket(BaseModel):
     consent: dict  # {aa_consent_id | None, advice_consent: bool}
     priority_score: int  # 5..99
     created_at: datetime
+    # A card lead built for a not-yet-eligible product (e.g. an NRI's secured-card
+    # path before the qualifying deposit is AA-visible) is tagged so the RM never
+    # mistakes it for an approval-ready application.
+    tag: Literal["standard", "exploratory_not_yet_eligible"] = "standard"
+    eligibility_context: dict | None = None
 
 
 class Product(BaseModel):

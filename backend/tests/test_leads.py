@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import pytest
 
 from app.domain.models import PersonaProfile, Product
-from app.routing.leads import age_band, build_lead_packet, city_tier
+from app.routing.leads import age_band, build_lead_packet, city_tier, tag_for_card_verdict
 
 RAVI = PersonaProfile(
     id="ravi", name="Ravi Kumar", age=28, city="Mumbai", segment="mass_retail_salaried",
@@ -183,6 +183,38 @@ def test_build_lead_packet_defaults_missing_optional_metrics_to_empty():
     assert packet.financial_snapshot["liabilities"] == []
     assert packet.goals == []
     assert packet.priority_score == 5
+
+
+# --- card-lead exploratory tagging -------------------------------------------
+
+
+def test_tag_for_card_verdict_eligible_is_standard():
+    assert tag_for_card_verdict("eligible") == "standard"
+
+
+@pytest.mark.parametrize("status", ["ineligible", "needs_more_data"])
+def test_tag_for_card_verdict_not_eligible_is_exploratory(status):
+    assert tag_for_card_verdict(status) == "exploratory_not_yet_eligible"
+
+
+def test_build_lead_packet_defaults_to_standard_tag_with_no_context():
+    packet = build_lead_packet(
+        profile=RAVI, metrics=FULL_METRICS, shelf=[], trigger_utterance="apply for Aspire",
+        family="loans_cards", seq=1, now=FIXED_NOW,
+    )
+    assert packet.tag == "standard"
+    assert packet.eligibility_context is None
+
+
+def test_build_lead_packet_carries_exploratory_tag_and_eligibility_context():
+    context = {"card_id": "idbi_imperium_platinum", "status": "needs_more_data", "reason": "Please confirm an eligible IDBI Fixed Deposit."}
+    packet = build_lead_packet(
+        profile=RAVI, metrics=FULL_METRICS, shelf=[], trigger_utterance="which card should I get",
+        family="loans_cards", seq=1, now=FIXED_NOW,
+        tag="exploratory_not_yet_eligible", eligibility_context=context,
+    )
+    assert packet.tag == "exploratory_not_yet_eligible"
+    assert packet.eligibility_context == context
 
 
 def test_build_lead_packet_goals_absent_means_has_goals_false_in_priority():

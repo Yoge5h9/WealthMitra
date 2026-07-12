@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from app.domain.models import PersonaProfile
+from app.domain.models import PersonaExternal, PersonaProfile
 
 OfferSource = Literal["idbi", "partner"]
 OfferFamily = Literal["loans_cards", "investment_insurance"]
@@ -101,6 +101,16 @@ def evaluate_eligibility(profile: PersonaProfile, metrics: dict[str, object], of
 
     reasons.append("Your known profile passes the published demo pre-eligibility checks.")
     return _result("eligible", reasons, checked)
+
+
+def card_metrics_from_external(external: PersonaExternal) -> dict[str, object]:
+    """The only path a holding can reach card eligibility: AA-connected and
+    consented. Mirrors `tools.get_holdings`' own `connected` gate so a deposit
+    the customer has not yet linked can never silently qualify a secured card.
+    """
+    if not external.connected:
+        return {}
+    return {"external_holdings": [h.model_dump(mode="json") for h in external.holdings]}
 
 
 def evaluate_card_eligibility(profile: PersonaProfile, metrics: dict[str, object] | None = None) -> list[dict]:

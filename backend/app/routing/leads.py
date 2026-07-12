@@ -57,6 +57,16 @@ def _next_best_action(family: LeadFamily, shelf: list[Product], customer_name: s
     return _NEXT_BEST_ACTION_NO_SHELF[family].format(name=customer_name)
 
 
+def tag_for_card_verdict(status: str) -> str:
+    """Map a card-eligibility verdict status to the lead's compliance tag.
+
+    Only a genuinely `eligible` verdict is a "standard" lead; `ineligible` and
+    `needs_more_data` both mean the RM must treat this as exploratory, not an
+    approval-ready application.
+    """
+    return "standard" if status == "eligible" else "exploratory_not_yet_eligible"
+
+
 def build_lead_packet(
     profile: PersonaProfile,
     metrics: dict[str, object],
@@ -66,6 +76,8 @@ def build_lead_packet(
     *,
     seq: int,
     now: datetime,
+    tag: str = "standard",
+    eligibility_context: dict | None = None,
 ) -> LeadPacket:
     """Assemble a `LeadPacket` for RM handoff.
 
@@ -117,6 +129,8 @@ def build_lead_packet(
         },
         next_best_action=_next_best_action(family, shelf, profile.name),
         consent={"aa_consent_id": None, "advice_consent": False},
+        tag=tag,
+        eligibility_context=eligibility_context,
         priority_score=priority_score(
             monthly_surplus=float(metrics.get("monthly_surplus", 0)),  # type: ignore[arg-type]
             idle_balance=float(metrics.get("idle_balance", 0)),  # type: ignore[arg-type]
