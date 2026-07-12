@@ -211,6 +211,9 @@ class Orchestrator:
         toolspecs = tools.literacy_toolspecs() if is_literacy else tools.tools_for_mode(mode, family=route.lead_family)
         final_text = self._tool_loop(space, session_id, ctx, messages, toolspecs, task_class)
 
+        if mode == "auto_execute" and product_ctx is not None:
+            final_text = self._ensure_auto_execute_offer(ctx, product_ctx, surplus, lang, final_text)
+
         final_text, audit_ref = self._guard(
             space, session_id, ctx, messages, task_class, final_text, metrics, lang, message, shelf=prompt_shelf
         )
@@ -385,10 +388,54 @@ class Orchestrator:
                                   guardrails.Verdict(ok=False), regenerated=False, fell_back=False, note=str(e))
             return json.dumps({"error": str(e), "note": "This action is not permitted here."}, ensure_ascii=False)
 
+    def _ensure_auto_execute_offer(
+        self, ctx: ToolContext, product: Product, surplus: float, lang: str, model_text: str
+    ) -> str:
+        """Guarantee the auto_execute reply always names the deterministically
+        routed vanilla product with a real rate/minimum and a confirm
+        affordance — regardless of whether the model's own narration this turn
+        is clean, harmony-garbled, or a soft dead-end ("I'm not seeing that
+        load"). `product` was already resolved deterministically before any
+        LLM call (see `_representative_product`), so this never depends on the
+        model correctly calling `request_execution` itself.
+
+        If the model DID call `request_execution` (the normal, working path),
+        its chosen amount/confirm card is left untouched — this only fills the
+        gap when that call never happened.
+        """
+        if ctx.confirm is None:
+            amount = int(round(surplus)) if surplus >= product.min_amount else product.min_amount
+            tools.request_execution(ctx, product_id=product.id, amount=amount)
+        offer = prompts.auto_execute_offer_line(product, ctx.confirm["amount"], lang)
+        lead_in = guardrails.sanitize_output(model_text, lang) or ""
+        if lead_in and len(lead_in) <= 240:
+            return f"{lead_in} {offer}"
+        return offer
+
     def _guard(
         self, space, session_id, ctx, messages, task_class, final_text, metrics, lang, message,
         *, shelf: list[Product] | None = None,
     ) -> tuple[str, str]:
+        # Universal safety net (every mode): strip any harmony-format tool-call
+        # leakage or foreign-script spam BEFORE the number audit even looks at
+        # the text — a broken/garbled reply must never reach the customer, see
+        # guardrails.sanitize_output. `_ensure_auto_execute_offer` already
+        # anchors auto_execute in a clean, deterministic line, so this is a
+        # defense-in-depth pass there, not the primary fix.
+        sanitized = guardrails.sanitize_output(final_text, lang)
+        if sanitized is None:
+            figures = {
+                "monthly_surplus": float(metrics["monthly_surplus"].value),
+                "idle_balance": float(metrics["idle_balance"].value),
+            }
+            safe = guardrails.safe_template(figures, lang)
+            ref = self._audit_guardrail(
+                space, session_id, "output_sanitizer", guardrails.Verdict(ok=False),
+                regenerated=False, fell_back=True, note="reply discarded: unrecoverable after sanitization",
+            )
+            return safe, ref
+        final_text = sanitized
+
         # The eligible shelf is deterministic, catalogue-sourced data we already
         # put in the system prompt (see `_shelf_for_prompt`) so the model can
         # name a real product's min/return without first calling
@@ -411,10 +458,10 @@ class Orchestrator:
                          task_class=task_class, temperature=0.0, max_tokens=1024)
         resp = self.gateway.complete(req)
         self._audit_llm(space, session_id, resp, task_class)
-        regen_text = resp.text or ""
+        regen_text = guardrails.sanitize_output(resp.text, lang) or ""
         verdict2 = guardrails.audit_numbers(regen_text, amounts, percents)
         ref = self._audit_guardrail(space, session_id, "number_audit", verdict2, regenerated=True, fell_back=False)
-        if verdict2.ok:
+        if regen_text and verdict2.ok:
             return regen_text, ref
 
         figures = {

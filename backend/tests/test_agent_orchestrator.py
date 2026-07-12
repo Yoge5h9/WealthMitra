@@ -152,6 +152,69 @@ def test_auto_execute_tools_exclude_create_rm_lead(space):
     assert "request_execution" in names
 
 
+# --- BUG: gpt-5.x harmony tool-call leakage in the vanilla auto_execute path -
+#
+# Observed live on gpt-5.4 (~1 in 3 runs): the model either (a) leaks its tool
+# call in OpenAI "harmony" text format into assistant content, interleaved
+# with hallucinated CJK/Malayalam filler tokens, or (b) never calls
+# request_execution at all and soft-dead-ends ("I'm not seeing the deposit
+# options load right now"). Both must reliably still yield a clean FD offer +
+# confirm card: `product_ctx` (the vanilla product) is resolved
+# deterministically before any LLM call (`_representative_product`), so
+# neither the reply text nor the execution_confirm card may depend on the
+# model narrating or calling the tool correctly.
+
+
+def test_fd_query_reliably_offers_a_real_fd_even_when_the_model_soft_dead_ends(space):
+    sid = make_session(space, "ravi")
+    frames, fake = run(space, sid, "I want to open a fixed deposit", [
+        resp(text="I'm not seeing the deposit options load right now."),
+    ])
+    text = reply_text(frames)
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "auto_execute"
+    assert "IDBI Regular Fixed Deposit" in text
+    assert "to=functions" not in text
+    confirm = next(c for c in cards(frames) if c["card_type"] == "execution_confirm")
+    assert confirm["confirm_token"].startswith("cfm_")
+    assert confirm["product_id"] == "fd_regular"
+    assert space.leads == []
+
+
+def test_fd_query_sanitizes_harmony_leakage_and_still_offers_the_real_fd(space):
+    sid = make_session(space, "ravi")
+    garbage = (
+        'request_execution to=functions.request_execution  彩神争霸官方to=functions.request_execution  '
+        'ചികിത്സ … ={"product":"IDBI Regular Fixed Deposit"}'
+    )
+    frames, fake = run(space, sid, "I want to open a fixed deposit", [resp(text=garbage)])
+    text = reply_text(frames)
+    assert "IDBI Regular Fixed Deposit" in text
+    assert "to=functions" not in text
+    assert not any(0x4E00 <= ord(c) <= 0x9FFF for c in text)  # CJK
+    assert not any(0x0D00 <= ord(c) <= 0x0D7F for c in text)  # Malayalam
+    confirm = next(c for c in cards(frames) if c["card_type"] == "execution_confirm")
+    assert confirm["confirm_token"].startswith("cfm_")
+    assert confirm["product_id"] == "fd_regular"
+    assert space.leads == []
+
+
+def test_fd_query_keeps_the_models_own_clean_lead_in_and_request_execution_call(space):
+    # The normal, working path (model correctly narrates AND calls the tool)
+    # is left untouched by the new deterministic guarantee — the model's own
+    # chosen amount still wins.
+    sid = make_session(space, "ravi")
+    frames, fake = run(space, sid, "I want to open a fixed deposit", [
+        resp(tool_calls=[call("get_eligible_products", {"category": "deposit"})]),
+        resp(tool_calls=[call("request_execution", {"product_id": "fd_regular", "amount": 15000})]),
+        resp(text="Happy to help with that."),
+    ])
+    text = reply_text(frames)
+    assert "Happy to help with that." in text
+    assert "IDBI Regular Fixed Deposit" in text
+    confirm = next(c for c in cards(frames) if c["card_type"] == "execution_confirm")
+    assert confirm["amount"] == 15000
+
+
 # --- mode: rm_lead ----------------------------------------------------------
 
 

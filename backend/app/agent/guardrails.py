@@ -372,3 +372,104 @@ def allowed_debug(tool_results: list[dict]) -> str:
     """Small helper for audit payloads / diagnostics."""
     amounts, percents = build_allowed(tool_results)
     return json.dumps({"amounts": sorted(amounts), "percents": sorted(percents)}, ensure_ascii=False)
+
+
+# --- output sanitizer: harmony tool-call leakage + foreign-script spam ------
+#
+# Some providers (observed on gpt-5.x) intermittently emit their tool call in
+# OpenAI's internal "harmony" wire text — `request_execution to=functions.
+# request_execution ={"product": ...}` — as plain assistant `content` instead
+# of a structured `tool_calls` entry, sometimes interleaved with hallucinated
+# CJK/other-script filler tokens. The gateway's tool-call parser only reads
+# `message.tool_calls` (see openai_compatible._parse_tool_calls), so this
+# fragment has nowhere to go but straight into the customer-facing reply.
+# This is the last line of defense, applied to every reply of every mode
+# right before it leaves the orchestrator — see Orchestrator._guard.
+
+# An optional "assistant"/"commentary" role word glued directly onto a harmony
+# channel marker, plus the marker itself, e.g. `assistant<|channel|>` or
+# `<|end|>`.
+_CHANNEL_MARKER_RE = re.compile(r"(?:\b(?:assistant|commentary)\s*)?<\|[^|>]{0,40}\|>", re.IGNORECASE)
+# A bare "commentary" token left over once its channel marker is gone.
+_BARE_HARMONY_WORD_RE = re.compile(r"\bcommentary\b", re.IGNORECASE)
+# "request_execution to=functions.request_execution" — the tool name repeated
+# bare, then again inside the harmony call token. Stripped as one unit so
+# neither the internal tool name nor the wire-format marker ever surfaces.
+_REPEATED_TOOL_TOKEN_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]{2,60})\s+to=functions\.\1\b")
+# Any remaining bare `to=functions.<name>` token (no repeated prefix to eat).
+# No leading `\b`: Python's `\w` (and therefore `\b`) treats CJK ideographs as
+# word characters, so a token glued directly onto foreign-script spam with no
+# separating whitespace (e.g. "彩神争霸官方to=functions...") would otherwise
+# never see a boundary before "to" and slip through unstripped.
+_TO_FUNCTIONS_RE = re.compile(r"to=functions\.[A-Za-z_][A-Za-z0-9_]*")
+# A leaked tool-arguments JSON blob, e.g. `={"product":"IDBI Regular Fixed Deposit"}`.
+_TRAILING_ARGS_RE = re.compile(r"=\s*\{[^{}]*\}")
+
+# Scripts a genuine en/hi/gu reply may legitimately contain: ASCII + Latin
+# extensions (brand names, English), Devanagari (Hindi), Gujarati. A run of
+# letters entirely outside these is a model glitch (CJK/Malayalam/etc. spam),
+# never real content — see the gpt-5.x leakage bug this guards against. Kept
+# as one fixed union regardless of the turn's own language: code-switched
+# English words show up in Hindi/Gujarati replies too, so the allowed set is
+# never narrowed to "only this turn's script".
+_ALLOWED_LETTER_RANGES: tuple[tuple[int, int], ...] = (
+    (0x0000, 0x02AF),  # ASCII + Latin-1 Supplement + Latin Extended A/B
+    (0x0900, 0x097F),  # Devanagari
+    (0x0A80, 0x0AFF),  # Gujarati
+)
+
+
+def _is_allowed_letter(ch: str) -> bool:
+    cp = ord(ch)
+    return any(lo <= cp <= hi for lo, hi in _ALLOWED_LETTER_RANGES)
+
+
+def _strip_harmony_leakage(text: str) -> str:
+    text = _CHANNEL_MARKER_RE.sub(" ", text)
+    text = _BARE_HARMONY_WORD_RE.sub(" ", text)
+    text = _REPEATED_TOOL_TOKEN_RE.sub(" ", text)
+    text = _TO_FUNCTIONS_RE.sub(" ", text)
+    text = _TRAILING_ARGS_RE.sub(" ", text)
+    return text
+
+
+def _strip_foreign_script_spam(text: str) -> str:
+    """Drop whole whitespace-delimited tokens whose letters are majority
+    outside the allowed en/hi/gu script ranges. Conservative on purpose:
+    punctuation-only tokens and tokens with no letters at all are left alone.
+    """
+    kept: list[str] = []
+    for token in text.split():
+        letters = [c for c in token if c.isalpha()]
+        if letters and sum(1 for c in letters if not _is_allowed_letter(c)) / len(letters) > 0.5:
+            continue
+        kept.append(token)
+    return " ".join(kept)
+
+
+def sanitize_output(text: str | None, language: str = "en") -> str | None:
+    """Strip harmony tool-call leakage and out-of-language script spam from a
+    reply before it ever reaches the customer.
+
+    Returns the cleaned text, or `None` when nothing coherent survives (empty,
+    or a fragment of the wire format is still detectably present) — callers
+    must fall back to a deterministic message in that case, never emit an
+    empty or broken reply. `language` is accepted for API clarity even though
+    the allowed-script union is currently fixed across all three demo
+    languages (see `_ALLOWED_LETTER_RANGES`).
+    """
+    del language
+    if not text:
+        return None
+    cleaned = _strip_harmony_leakage(text)
+    cleaned = _strip_foreign_script_spam(cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    if not cleaned:
+        return None
+    if "to=functions" in cleaned or "<|" in cleaned or re.search(r"=\s*\{", cleaned):
+        return None
+    if not any(c.isalnum() for c in cleaned):
+        # Nothing but stray punctuation (e.g. a lone "…" left behind by
+        # stripped-out garbage) survived — that is not a coherent reply.
+        return None
+    return cleaned

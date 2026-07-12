@@ -211,3 +211,75 @@ def test_guarantee_refusal_template_always_passes_guardrail_and_refuses(lang):
 def test_guarantee_regen_addendum_asks_the_model_to_refuse_not_repeat_the_number():
     assert "guarantee" in g.GUARANTEE_REGEN_ADDENDUM.lower()
     assert "unverified figure" in g.GUARANTEE_REGEN_ADDENDUM.lower()
+
+
+# --- output sanitizer: gpt-5.x harmony tool-call leakage + script spam ------
+
+# The exact garbage observed live (~1 in 3 runs on gpt-5.4): a harmony-format
+# tool call leaked into assistant content, interleaved with hallucinated
+# CJK/Malayalam filler tokens.
+_HARMONY_GARBAGE = (
+    'request_execution to=functions.request_execution  彩神争霸官方to=functions.request_execution  '
+    'ചികിത്സ … ={"product":"IDBI Regular Fixed Deposit"}'
+)
+
+
+def test_sanitize_output_returns_none_when_nothing_coherent_survives_pure_garbage():
+    # No real customer-facing content anywhere in this string — after
+    # stripping the harmony leakage and the foreign-script spam there is
+    # nothing left, so the caller must fall back rather than emit this.
+    assert g.sanitize_output(_HARMONY_GARBAGE, "en") is None
+
+
+def test_sanitize_output_strips_garbage_but_keeps_real_content():
+    mixed = (
+        "I can set up an IDBI Regular Fixed Deposit for you. "
+        + _HARMONY_GARBAGE
+        + " Tap Confirm below to proceed."
+    )
+    cleaned = g.sanitize_output(mixed, "en")
+    assert cleaned is not None
+    assert "IDBI Regular Fixed Deposit" in cleaned
+    assert "Tap Confirm below to proceed." in cleaned
+    # every harmony/script artifact is gone
+    assert "to=functions" not in cleaned
+    assert "request_execution" not in cleaned
+    assert "={" not in cleaned
+    assert "<|" not in cleaned
+    assert not any(0x4E00 <= ord(c) <= 0x9FFF for c in cleaned)  # CJK
+    assert not any(0x0D00 <= ord(c) <= 0x0D7F for c in cleaned)  # Malayalam
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    [
+        "<|channel|>commentary<|message|>",
+        "assistant<|channel|>",
+        "commentary",
+    ],
+)
+def test_sanitize_output_strips_harmony_channel_markers(fragment):
+    text = f"Here is your update. {fragment} Everything looks good."
+    cleaned = g.sanitize_output(text, "en")
+    assert cleaned is not None
+    assert "<|" not in cleaned
+    assert "commentary" not in cleaned.lower()
+    assert "Here is your update." in cleaned
+    assert "Everything looks good." in cleaned
+
+
+def test_sanitize_output_keeps_normal_hindi_gujarati_and_currency_text():
+    hi_text = "आपकी मासिक बचत ₹20,862 है और आपका खर्च संतुलित है।"
+    gu_text = "તમારી માસિક બચત ₹20,862 છે અને તમારો ખર્ચ સંતુલિત છે."
+    assert g.sanitize_output(hi_text, "hi") == hi_text
+    assert g.sanitize_output(gu_text, "gu") == gu_text
+
+
+def test_sanitize_output_passes_through_clean_english_text():
+    text = "Your monthly surplus is ₹20,862. Would you like to review your spending?"
+    assert g.sanitize_output(text, "en") == text
+
+
+def test_sanitize_output_handles_empty_and_none():
+    assert g.sanitize_output("", "en") is None
+    assert g.sanitize_output(None, "en") is None

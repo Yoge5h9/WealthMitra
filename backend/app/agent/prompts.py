@@ -203,6 +203,33 @@ def requested_category_note(category_label: str) -> str:
     )
 
 
+def auto_execute_offer_line(product: Product, amount: int, language: str) -> str:
+    """Deterministic confirmation line for a vanilla auto_execute product.
+
+    This is the one piece of the auto_execute reply that must never depend on
+    the model correctly narrating (or even calling) `request_execution` — see
+    Orchestrator._ensure_auto_execute_offer, which always attaches this line
+    (product name, tool-sourced rate/minimum, and the confirm affordance)
+    regardless of what the model itself produced this turn.
+    """
+    amt = format_inr(amount)
+    minimum = format_inr(product.min_amount)
+    if language == "hi":
+        return (
+            f"मैं आपके लिए {product.name} तैयार कर सकता हूँ — {product.expected_return}, न्यूनतम ₹{minimum}। "
+            f"₹{amt} के लिए तैयार कर दिया है — नीचे 'Confirm' दबाकर आगे बढ़ें; आपकी पुष्टि तक कुछ भी नहीं होगा।"
+        )
+    if language == "gu":
+        return (
+            f"હું તમારા માટે {product.name} તૈયાર કરી શકું છું — {product.expected_return}, ન્યૂનતમ ₹{minimum}. "
+            f"₹{amt} માટે તૈયાર કરેલ છે — નીચે 'Confirm' દબાવી આગળ વધો; તમારી પુષ્ટિ સુધી કંઈ થશે નહીં."
+        )
+    return (
+        f"Here's {product.name} — {product.expected_return}, minimum ₹{minimum}. "
+        f"I've prepared it for ₹{amt} — tap Confirm below to proceed; nothing happens until you do."
+    )
+
+
 def net_worth_context_line(net_worth: dict, *, aa_available: bool) -> str:
     """One grounded line the model can always fall back on for a "what do I
     have" / net-worth question — never a dictionary definition, never a flat
