@@ -9,6 +9,7 @@ still classifies as `regulated_query` rather than the softer `literacy`.
 
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 Intent = Literal[
@@ -123,6 +124,22 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
 
 _CARD_ALIASES = ("aspire", "euphoria", "imperium", "royale")
 _CARD_APPLICATION_TERMS = ("apply", "want", "need", "get", "check my eligibility", "eligible for")
+_GENERIC_CARD_REQUEST = re.compile(
+    r"\b(?:want|need|get|apply(?:\s+for)?|which|best|eligible(?:\s+for)?|recommend(?:\s+me)?)\b.*?\bcards?\b"
+    r"|\bcards?\b.*?\b(?:want|need|get|apply|eligible|recommend)\b"
+)
+_NON_CREDIT_CARD_TERMS = ("debit card", "prepaid card")
+
+
+def _keyword_matches(normalized: str, keyword: str) -> bool:
+    """Match product abbreviations as words, not arbitrary substrings.
+
+    In particular, the recurring-deposit shorthand ``rd`` must not turn
+    ``card`` into an FD/recurring-deposit query.
+    """
+    if keyword in {"fd", "rd"}:
+        return re.search(rf"\b{re.escape(keyword)}\b", normalized) is not None
+    return keyword in normalized
 
 
 def classify_intent(text: str, lang: str) -> Intent:
@@ -146,9 +163,14 @@ def classify_intent(text: str, lang: str) -> Intent:
         if any(term in normalized for term in _CARD_APPLICATION_TERMS):
             return "loan_card_query"
         return "credit_product_info"
+    # A customer often says "I need a card" rather than the full phrase
+    # "credit card". Treat an action-oriented request as a credit journey,
+    # but do not misroute debit/prepaid servicing questions to an RM.
+    if not any(term in normalized for term in _NON_CREDIT_CARD_TERMS) and _GENERIC_CARD_REQUEST.search(normalized):
+        return "loan_card_query"
     for intent, keywords in _KEYWORD_TABLE:
         if intent == "distress_signal":
             continue
-        if any(keyword in normalized for keyword in keywords):
+        if any(_keyword_matches(normalized, keyword) for keyword in keywords):
             return intent
     return "other"

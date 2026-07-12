@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 import type { LanguageCode } from "@/components/shared/LangToggle";
 import type { PersonaExperience } from "@/lib/personaExperience";
+import { ResetDemoButton } from "@/components/showcase/ResetDemoButton";
 
 export interface JudgePanelProps {
   spaceId: string | null;
@@ -21,9 +22,10 @@ export interface JudgePanelProps {
   language: LanguageCode;
   experience: PersonaExperience;
   onOpenAudit: () => void;
+  onReset: () => void;
 }
 
-export function JudgePanel({ spaceId, sessionId, hasLeads, leadCount, language, experience, onOpenAudit }: JudgePanelProps) {
+export function JudgePanel({ spaceId, sessionId, hasLeads, leadCount, language, experience, onOpenAudit, onReset }: JudgePanelProps) {
   const auditReady = Boolean(sessionId);
   const rmHref = spaceId ? `/rm?space=${encodeURIComponent(spaceId)}` : "/rm";
 
@@ -121,6 +123,11 @@ export function JudgePanel({ spaceId, sessionId, hasLeads, leadCount, language, 
           <p className="mt-2 text-caption text-neutral-600">
             {hasLeads ? t(language, "judgePanel.rmDescActive") : t(language, "judgePanel.rmDescCalm")}
           </p>
+        </div>
+
+        <div className="border-t border-neutral-100 pt-3">
+          <p className="mb-2 text-caption text-neutral-600">Reset every demo conversation and start this phone from a fresh seeded session.</p>
+          <ResetDemoButton spaceId={spaceId} onReset={onReset} />
         </div>
       </div>
 

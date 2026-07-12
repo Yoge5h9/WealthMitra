@@ -129,6 +129,7 @@ export interface UseChatSessionResult {
   sendMessage: (text: string) => void;
   provisionError: string | null;
   retryProvision: () => void;
+  resetDemoChat: () => void;
   lastAuditRef: string | null;
 }
 
@@ -352,6 +353,30 @@ export function useChatSession(): UseChatSessionResult {
     setProvisionAttempt((n) => n + 1);
   }, []);
 
+  const resetDemoChat = useCallback(() => {
+    if (spaceId) {
+      try {
+        // A server reset invalidates every session. Remove all persona threads
+        // for this demo space, not only the currently visible phone.
+        const prefix = `wm_chat_${spaceId}_`;
+        for (let index = window.sessionStorage.length - 1; index >= 0; index -= 1) {
+          const key = window.sessionStorage.key(index);
+          if (key?.startsWith(prefix)) window.sessionStorage.removeItem(key);
+        }
+      } catch {
+        // Session storage is a convenience cache; the server reset remains authoritative.
+      }
+    }
+    pendingUserTextRef.current = null;
+    setSessionId(null);
+    setMessages([]);
+    setLastAuditRef(null);
+    setAvatarState("idle");
+    setSending(false);
+    provisionKeyRef.current = null;
+    setProvisionAttempt((attempt) => attempt + 1);
+  }, [spaceId]);
+
   const retryRoster = useCallback(() => {
     void rosterQuery.refetch();
   }, [rosterQuery]);
@@ -417,6 +442,7 @@ export function useChatSession(): UseChatSessionResult {
     sendMessage,
     provisionError,
     retryProvision,
+    resetDemoChat,
     lastAuditRef,
   };
 }

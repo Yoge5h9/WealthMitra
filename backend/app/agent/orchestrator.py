@@ -55,6 +55,9 @@ _AVATAR_END = {
     "auto_execute": "celebrating",
     "info_only": "speaking",
 }
+_AFFIRMATIVE = re.compile(r"^\s*(?:yes|yes please|please do|go ahead|sure|haan|ha|हाँ|હા)\s*[.!]*\s*$", re.IGNORECASE)
+_NEGATIVE = re.compile(r"^\s*(?:no|not now|no thanks|nah|nahi|नहीं|ना|ના)\s*[.!]*\s*$", re.IGNORECASE)
+_GENERIC_ENGLISH_CARD = re.compile(r"\bcards?\b", re.IGNORECASE)
 
 
 def _default_now() -> datetime:
@@ -107,10 +110,37 @@ class Orchestrator:
         band = str(metrics["risk_band"].value)
         surplus = float(metrics["monthly_surplus"].value)
 
+        # Credit-card discovery is a deliberately small state machine. A
+        # generic "I want a card" must not manufacture an RM lead from an
+        # LLM sentence: first understand the use case, run the catalogued
+        # pre-eligibility check, then accept an explicit RM hand-off.
+        pending_credit = state.get("pending_credit")
+        if pending_credit:
+            stage = pending_credit.get("stage")
+            if stage == "need":
+                if _NEGATIVE.match(message):
+                    yield from self._credit_cancelled_turn(space, session_id, state, message)
+                else:
+                    yield from self._credit_shortlist_turn(space, session_id, state, profile, message, metrics)
+                return
+            if stage == "rm_confirmation":
+                if _AFFIRMATIVE.match(message) or "apply" in message.lower():
+                    yield from self._credit_rm_confirmation_turn(
+                        space, session_id, state, persona_id, profile, message, metrics, segment, band, surplus
+                    )
+                elif _NEGATIVE.match(message):
+                    yield from self._credit_cancelled_turn(space, session_id, state, message)
+                else:
+                    yield from self._credit_rm_clarify_turn(space, session_id, state, message)
+                return
+
         intent = classify_intent(message, lang)
         named_offer = resolve_offer(message)
         if named_offer is not None and intent == "credit_product_info":
             yield from self._credit_product_turn(space, session_id, state, profile, message, named_offer, metrics)
+            return
+        if intent == "loan_card_query" and named_offer is None and _GENERIC_ENGLISH_CARD.search(message):
+            yield from self._credit_need_turn(space, session_id, state, message)
             return
 
         product_ctx = self._representative_product(intent, segment, band, surplus)
@@ -339,6 +369,92 @@ class Orchestrator:
         yield {"type": "card", "card": card}
         yield {"type": "done", "audit_ref": ref}
 
+    def _credit_need_turn(self, space, session_id, state, message):
+        state["pending_credit"] = {"stage": "need", "initial_message": message}
+        text = (
+            "I can shortlist an IDBI credit card for you. What matters most: everyday rewards, travel, "
+            "or a large purchase? I’ll use your recorded profile for a preliminary eligibility check before "
+            "asking an RM to review anything."
+        )
+        ref = self._audit_static_credit(space, session_id, "credit_need_discovery", None, {})
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "done", "audit_ref": ref}
+
+    def _credit_shortlist_turn(self, space, session_id, state, profile, message, metrics):
+        pending = state.get("pending_credit", {})
+        initial_message = str(pending.get("initial_message", "credit card"))
+        offer_recommendations = recommendations_for(
+            profile,
+            {key: metric.value for key, metric in metrics.items()},
+            family="loans_cards",
+            message=f"{initial_message} {message}",
+        )
+        if not offer_recommendations:
+            state.pop("pending_credit", None)
+            yield from self._credit_not_eligible_turn(space, session_id, state, profile, message, None, metrics)
+            return
+
+        product = offer_recommendations[0]
+        state["pending_credit"] = {
+            "stage": "rm_confirmation",
+            "initial_message": initial_message,
+            "need": message,
+            "recommendations": offer_recommendations,
+        }
+        text = (
+            f"Based on your recorded profile and your focus on {message}, {product['name']} is a preliminary match. "
+            f"{product['eligibility']['reasons'][0]} This is not an approval. Would you like me to send this "
+            "shortlist to an IDBI RM for a document and final eligibility review?"
+        )
+        ref = self._audit_static_credit(space, session_id, "credit_preeligibility_shortlist", None, product["eligibility"])
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "card", "card": {"card_type": "credit_product_detail", "product": product}}
+        yield {"type": "done", "audit_ref": ref}
+
+    def _credit_rm_confirmation_turn(self, space, session_id, state, persona_id, profile, message, metrics, segment, band, surplus):
+        pending = state.pop("pending_credit", {})
+        offer_recommendations = list(pending.get("recommendations", []))
+        trigger = f"{pending.get('initial_message', 'Credit card request')} — need: {pending.get('need', 'not stated')}"
+        lead = self._build_lead(
+            space, session_id, persona_id, trigger, "loans_cards", metrics, segment, band, surplus, offer_recommendations
+        )
+        text = (
+            "Done — your preliminary shortlist and recorded profile details are now in an RM lead packet. "
+            "An IDBI Relationship Manager will review documents, final eligibility, and the card terms with you."
+        )
+        ref = self._audit_static_credit(space, session_id, "credit_rm_handoff_confirmed", None, {"status": "preeligible"})
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "card", "card": self._rm_lead_card(lead)}
+        yield {"type": "done", "audit_ref": ref}
+
+    def _credit_rm_clarify_turn(self, space, session_id, state, message):
+        text = "I have the preliminary shortlist ready. Reply Yes to ask an IDBI RM to review it, or No to keep exploring on your own."
+        ref = self._audit_static_credit(space, session_id, "credit_rm_confirmation_clarified", None, {})
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "done", "audit_ref": ref}
+
+    def _credit_cancelled_turn(self, space, session_id, state, message):
+        state.pop("pending_credit", None)
+        text = "No problem — I have not sent an RM lead. You can ask about a card whenever you are ready."
+        ref = self._audit_static_credit(space, session_id, "credit_rm_handoff_declined", None, {})
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "done", "audit_ref": ref}
+
     @staticmethod
     def _consent_snapshot(space: Space, session_id: str) -> dict:
         """Read the AA-consent state `app.api.aa` maintains on this session
@@ -358,17 +474,7 @@ class Orchestrator:
 
     def _cards(self, ctx, mode, metrics, segment, band, surplus) -> list[dict]:
         if mode == "rm_lead" and ctx.built_lead is not None:
-            lead = ctx.built_lead
-            return [{
-                "card_type": "routed_to_rm",
-                "lead_id": lead.lead_id,
-                "family": lead.family,
-                "priority_score": lead.priority_score,
-                "next_best_action": lead.next_best_action,
-                "recommendations": lead.suitability.get("offer_recommendations", []),
-                "what_happens_next": "A qualified IDBI Relationship Manager has been briefed and will reach out. "
-                                     "Your details were shared securely, only with your consent.",
-            }]
+            return [self._rm_lead_card(ctx.built_lead)]
         if mode == "distress_suppress":
             return [{
                 "card_type": "distress_support",
@@ -391,6 +497,19 @@ class Orchestrator:
             rec = self._recommendation_card(metrics, segment, band, surplus)
             return [rec] if rec else []
         return []
+
+    @staticmethod
+    def _rm_lead_card(lead: LeadPacket) -> dict:
+        return {
+            "card_type": "routed_to_rm",
+            "lead_id": lead.lead_id,
+            "family": lead.family,
+            "priority_score": lead.priority_score,
+            "next_best_action": lead.next_best_action,
+            "recommendations": lead.suitability.get("offer_recommendations", []),
+            "what_happens_next": "A qualified IDBI Relationship Manager has been briefed and will reach out. "
+                                 "Your details were shared securely, only with your consent.",
+        }
 
     def _recommendation_card(self, metrics, segment, band, surplus) -> dict | None:
         try:

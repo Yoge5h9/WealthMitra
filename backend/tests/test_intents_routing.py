@@ -104,6 +104,16 @@ def test_pension_and_nps_hit_literacy_not_regulated():
 
 def test_fd_intent():
     assert classify_intent("open a fixed deposit", "en") == "fd_query"
+    assert classify_intent("open an RD", "en") == "fd_query"
+
+
+@pytest.mark.parametrize("text", ["I want a card", "I want to apply for a card", "Which card should I get?"])
+def test_generic_credit_card_requests_do_not_fall_into_rd_matching(text):
+    assert classify_intent(text, "en") == "loan_card_query"
+
+
+def test_debit_card_question_is_not_a_credit_rm_lead():
+    assert classify_intent("I need a debit card", "en") != "loan_card_query"
 
 
 def test_aa_connect_intent():

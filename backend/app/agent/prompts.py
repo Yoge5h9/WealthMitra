@@ -67,7 +67,9 @@ _BASE = (
 _MODE_GUIDANCE = {
     "info_only": (
         "MODE: Answer the customer's question, grounded in their data. Call the tools you "
-        "need. Do not push any product unless they explicitly asked about investing."
+        "need. Do not push any product unless they explicitly asked about investing. Never claim "
+        "that an RM is being contacted, a lead was created, or details were shared: only rm_lead "
+        "mode performs that hand-off. If more context is needed, ask one short clarifying question."
     ),
     "auto_execute": (
         "MODE: The customer is interested in a simple, vanilla product you may help with. "

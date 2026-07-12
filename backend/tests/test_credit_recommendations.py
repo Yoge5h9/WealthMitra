@@ -37,6 +37,12 @@ def test_card_query_creates_rm_only_first_party_options() -> None:
     assert all(offer["source"] == "idbi" and offer["journey"] == "rm_only" for offer in offers)
 
 
+def test_generic_card_request_routes_to_the_credit_rm_journey() -> None:
+    intent = classify_intent("Which card should I get?", "en")
+    assert intent == "loan_card_query"
+    assert decide(intent, [], None).path == "rm_lead"
+
+
 def test_named_aspire_question_is_factual_information_not_an_investment_intent() -> None:
     assert classify_intent("tell me about the Aspire card", "en") == "credit_product_info"
     offer = resolve_offer("tell me about the Aspire card")

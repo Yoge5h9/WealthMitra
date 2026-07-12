@@ -187,6 +187,7 @@ export default function CustomerChat() {
           language={session.language}
           experience={experience}
           onOpenAudit={() => setAuditOpen(true)}
+          onReset={session.resetDemoChat}
         />
       )}
 

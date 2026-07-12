@@ -198,6 +198,40 @@ def test_preeligible_card_application_creates_exactly_one_rm_lead(space):
     assert [offer["id"] for offer in routed["recommendations"]] == ["idbi_aspire_platinum"]
 
 
+def test_generic_card_journey_discovers_need_prechecks_then_hands_off_after_yes(space):
+    sid = make_session(space, "priya")
+
+    discovery, discovery_gateway = run(space, sid, "I want a card", [])
+    assert discovery_gateway.requests == []
+    assert space.leads == []
+    assert "What matters most" in reply_text(discovery)
+    assert space.sessions[sid]["pending_credit"]["stage"] == "need"
+
+    shortlist, shortlist_gateway = run(space, sid, "Everyday rewards", [])
+    assert shortlist_gateway.requests == []
+    assert space.leads == []
+    product = next(card for card in cards(shortlist) if card["card_type"] == "credit_product_detail")
+    assert product["product"]["eligibility"]["status"] == "eligible"
+    assert space.sessions[sid]["pending_credit"]["stage"] == "rm_confirmation"
+
+    handoff, handoff_gateway = run(space, sid, "Yes", [])
+    assert handoff_gateway.requests == []
+    assert len(space.leads) == 1
+    assert space.leads[0].family == "loans_cards"
+    assert next(card for card in cards(handoff) if card["card_type"] == "routed_to_rm")["lead_id"] == space.leads[0].lead_id
+
+
+def test_generic_card_journey_never_creates_a_lead_when_customer_declines(space):
+    sid = make_session(space, "priya")
+    run(space, sid, "I want a card", [])
+    run(space, sid, "Travel", [])
+    declined, _ = run(space, sid, "No", [])
+
+    assert space.leads == []
+    assert "have not sent an RM lead" in reply_text(declined)
+    assert "pending_credit" not in space.sessions[sid]
+
+
 # --- mode: distress_suppress ------------------------------------------------
 
 

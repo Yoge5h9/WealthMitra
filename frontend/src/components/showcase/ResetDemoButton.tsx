@@ -8,10 +8,13 @@ import { cn } from "@/lib/utils";
 export interface ResetDemoButtonProps {
   spaceId: string | null;
   className?: string;
+  /** Lets a live surface discard stale sessions/persisted UI once the server
+   * has restored the seeded space. */
+  onReset?: () => void;
 }
 
 /** Resets the current demo space back to its seeded state, behind a confirm dialog. */
-export function ResetDemoButton({ spaceId, className }: ResetDemoButtonProps) {
+export function ResetDemoButton({ spaceId, className, onReset }: ResetDemoButtonProps) {
   const [open, setOpen] = useState(false);
   const [justReset, setJustReset] = useState(false);
   const resetSpace = useResetSpace();
@@ -26,6 +29,7 @@ export function ResetDemoButton({ spaceId, className }: ResetDemoButtonProps) {
       onSuccess: () => {
         setOpen(false);
         setJustReset(true);
+        onReset?.();
         window.setTimeout(() => setJustReset(false), 4000);
       },
     });

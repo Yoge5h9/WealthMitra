@@ -118,14 +118,12 @@ const VOICE_PREFERENCE_KEYWORDS: Record<LanguageCode, string[]> = {
 
 const VOICE_AVOID_KEYWORDS = ["espeak", "compact"];
 
-/** Fixed demo voice identity. These are Chrome's voiceURI values on the
- * demo machine: Hindi is the approved Priya voice, while English uses the
- * matching Google English voice. Gujarati uses the Hindi voice when a
- * dedicated Gujarati Google voice is not installed. */
-const PINNED_VOICE_URI: Record<LanguageCode, string> = {
-  en: "Google US English",
-  hi: "Google हिन्दी",
-  gu: "Google हिन्दी",
+/** Fixed demo voice identity. These are Chrome's Google voiceURI values.
+ * A fallback stays browser-only when a judge's Chrome lacks Google Gujarati. */
+const PINNED_VOICE_URIS: Record<LanguageCode, string[]> = {
+  en: ["Google US English"],
+  hi: ["Google हिन्दी"],
+  gu: ["Google ગુજરાતી", "Google हिन्दी"],
 };
 
 function scoreVoiceName(name: string, language: LanguageCode): number {
@@ -170,7 +168,9 @@ export function pickNaturalVoice(language: LanguageCode): SpeechSynthesisVoice |
   const voices = window.speechSynthesis.getVoices();
   if (voices.length === 0) return null;
 
-  const pinned = voices.find((voice) => voice.voiceURI === PINNED_VOICE_URI[language]);
+  const pinned = PINNED_VOICE_URIS[language]
+    .map((voiceURI) => voices.find((voice) => voice.voiceURI === voiceURI))
+    .find((voice): voice is SpeechSynthesisVoice => Boolean(voice));
   if (pinned) {
     naturalVoiceCache.set(language, pinned);
     return pinned;
