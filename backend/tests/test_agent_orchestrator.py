@@ -76,6 +76,18 @@ def test_info_only_grounded_turn(space):
     }
 
 
+def test_factual_aspire_question_returns_stored_card_facts_without_mf_or_rm(space):
+    sid = make_session(space, "arjun")
+    frames, fake = run(space, sid, "tell me about the Aspire card", [])
+
+    assert fake.requests == []
+    assert space.leads == []
+    card = next(card for card in cards(frames) if card["card_type"] == "credit_product_detail")
+    assert card["product"]["id"] == "idbi_aspire_platinum"
+    assert card["product"]["eligibility"]["status"] == "ineligible"
+    assert all(card["card_type"] != "recommendation" for card in cards(frames))
+
+
 def test_sse_frame_ordering(space):
     sid = make_session(space, "ravi")
     frames, _ = run(space, sid, "how is my spending?", [
@@ -163,6 +175,27 @@ def test_rm_lead_tools_exclude_request_execution(space):
     names = {t.name for t in fake.requests[0].tools}
     assert "request_execution" not in names
     assert "create_rm_lead" in names
+
+
+def test_ineligible_card_application_never_creates_an_rm_lead(space):
+    sid = make_session(space, "arjun")
+    frames, fake = run(space, sid, "I want to apply for Aspire card", [])
+
+    assert fake.requests == []
+    assert space.leads == []
+    card = next(card for card in cards(frames) if card["card_type"] == "credit_product_detail")
+    assert card["product"]["eligibility"]["status"] == "ineligible"
+
+
+def test_preeligible_card_application_creates_exactly_one_rm_lead(space):
+    sid = make_session(space, "ravi")
+    frames, _ = run(space, sid, "I want to apply for Aspire card", [resp(text="An RM will review your application.")])
+
+    assert len(space.leads) == 1
+    assert space.leads[0].family == "loans_cards"
+    assert space.leads[0].suitability["recommended_shelf"] == ["IDBI Aspire Platinum Credit Card"]
+    routed = next(card for card in cards(frames) if card["card_type"] == "routed_to_rm")
+    assert [offer["id"] for offer in routed["recommendations"]] == ["idbi_aspire_platinum"]
 
 
 # --- mode: distress_suppress ------------------------------------------------

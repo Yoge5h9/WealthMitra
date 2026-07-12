@@ -63,6 +63,9 @@ class Space:
     leads: list[LeadPacket] = field(default_factory=list)
     nudges: list[Nudge] = field(default_factory=list)
     sessions: dict = field(default_factory=dict)
+    # The demo's only cold-start profile. It is deliberately small and
+    # self-declared, but survives new chat sessions within the same demo space.
+    new_customer_profile: dict = field(default_factory=dict)
     # Executed-purchase receipts keyed by confirm token (idempotent replay);
     # living on the space means a reset discards them with everything else.
     receipts: dict = field(default_factory=dict)

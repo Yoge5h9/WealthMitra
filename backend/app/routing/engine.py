@@ -76,6 +76,9 @@ def decide(intent: Intent, behaviour_flags: list[str], product: Product | None) 
             reasons=["credit_product_requires_rm_eligibility_review"],
         )
 
+    if intent == "credit_product_info":
+        return Route(path="info_only", reasons=["factual_credit_product_information"])
+
     product_tag = product.tag if product is not None else None
     if intent == "regulated_query" or product_tag == "regulated":
         reasons = [f"regulated_intent:{intent}"]

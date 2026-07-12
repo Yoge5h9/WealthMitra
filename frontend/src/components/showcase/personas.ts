@@ -37,6 +37,17 @@ export interface PersonaHint {
   badge?: { label: string; tone: BadgeTone };
 }
 
+export const NEW_TO_IDBI_SHOWCASE_PERSONA: PersonaRosterEntry = {
+  id: "new_to_idbi",
+  name: "New to IDBI",
+  age: 0,
+  city: "No history yet",
+  segment: "cold_start",
+  language: "en",
+  avatar: "",
+  story: "Start with four conversational questions. WealthMitra remembers the self-declared profile and uses it in later turns.",
+};
+
 /**
  * Demo-curation copy layered on top of the API persona roster
  * (`GET /api/personas`). Not served by the backend — this is what a judge
@@ -44,15 +55,14 @@ export interface PersonaHint {
  * lists personas (Command Center, Omni-channel) shares the same hints.
  */
 export const PERSONA_HINTS: Record<string, PersonaHint> = {
+  new_to_idbi: {
+    whatToTry: "Build a profile in four quick questions, then reload or return to see WealthMitra remember it.",
+    badge: { label: "Start here · new customer", tone: "brand" },
+  },
   ravi: {
     whatToTry:
       "Ask about growing your salary surplus — watch a Nifty index SIP get recommended and auto-executed live.",
     badge: { label: "Start here · SIP auto-execute", tone: "brand" },
-  },
-  vikram: {
-    whatToTry:
-      "Tell the companion your EMIs feel heavy — see the distress-aware response that suppresses selling and offers refinance.",
-    badge: { label: "Protective path · no selling", tone: "warning" },
   },
   meera: {
     whatToTry:

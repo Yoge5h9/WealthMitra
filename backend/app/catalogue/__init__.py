@@ -1,6 +1,6 @@
 from .shelf import compare, eligible_shelf, narrow
 from .suitability import CATALOGUE, RISK_BANDS, SUPPRESSED, Catalogue, is_suppressed, load_catalogue, reasons
-from .recommendations import recommendations_for
+from .recommendations import evaluate_eligibility, offer_payload, recommendations_for, resolve_offer
 
 __all__ = [
     "CATALOGUE",
@@ -14,4 +14,7 @@ __all__ = [
     "narrow",
     "reasons",
     "recommendations_for",
+    "resolve_offer",
+    "evaluate_eligibility",
+    "offer_payload",
 ]

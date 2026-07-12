@@ -8,8 +8,8 @@ const TOUR_SEEN_KEY = "wm_tour_seen_v1";
 
 const STEPS = [
   {
-    title: "1. Pick a person",
-    body: "Choose one of the seven personas below — each carries its own real bank and Account Aggregator data.",
+    title: "1. Start fresh or pick a person",
+    body: "Begin with the new-customer conversation to see profile memory, or choose a seeded customer with bank and Account Aggregator data.",
   },
   {
     title: "2. Chat with their companion",

@@ -12,6 +12,8 @@ import { AaConnectCard } from "@/components/chat/cards/AaConnectCard";
 import { GenericCard } from "@/components/chat/cards/GenericCard";
 import { ProfileQuestionCard } from "@/components/chat/cards/ProfileQuestionCard";
 import { ProfileSummaryCard } from "@/components/chat/cards/ProfileSummaryCard";
+import { CreditProductDetailCard } from "@/components/chat/cards/CreditProductDetailCard";
+import { CreditEligibilityResultCard } from "@/components/chat/cards/CreditEligibilityResultCard";
 import type {
   AaConnectCard as AaConnectCardData,
   DistressSupportCard as DistressSupportCardData,
@@ -25,6 +27,8 @@ import type {
   SpendSummaryCard as SpendSummaryCardData,
   ProfileQuestionCard as ProfileQuestionCardData,
   ProfileSummaryCard as ProfileSummaryCardData,
+  CreditProductDetailCard as CreditProductDetailCardData,
+  CreditEligibilityResultCard as CreditEligibilityResultCardData,
 } from "@/components/chat/cards/types";
 
 export interface CardRouterProps {
@@ -79,13 +83,19 @@ export function CardRouter({ card, sessionId, onSendMessage, onOpenAudit, sendin
       return <NudgeCard card={card as NudgeCardData} />;
 
     case "aa_connect":
-      return <AaConnectCard card={card as AaConnectCardData} />;
+      return <AaConnectCard card={card as AaConnectCardData} sessionId={sessionId ?? null} />;
 
     case "profile_question":
       return <ProfileQuestionCard card={card as ProfileQuestionCardData} disabled={sending} onPick={(answer) => onSendMessage?.(answer)} />;
 
     case "profile_summary":
       return <ProfileSummaryCard card={card as ProfileSummaryCardData} />;
+
+    case "credit_product_detail":
+      return <CreditProductDetailCard card={card as CreditProductDetailCardData} disabled={sending} onApply={(name) => onSendMessage?.(`I want to apply for ${name}.`)} />;
+
+    case "credit_eligibility_result":
+      return <CreditEligibilityResultCard card={card as CreditEligibilityResultCardData} />;
 
     default:
       return <GenericCard card={card} />;

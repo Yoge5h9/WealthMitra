@@ -1,7 +1,7 @@
-import { Bar, BarChart, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { MoneyText } from "@/components/shared/MoneyText";
-import { ChartContainer, ChartTick, chartColor } from "@/components/shared/ChartTheme";
+import { ChartContainer, ChartTick, ChartTooltip, chartColor } from "@/components/shared/ChartTheme";
 import { formatINR } from "@/lib/format";
 import { t, type LanguageCode } from "@/lib/i18n";
 import { humanize } from "./format";
@@ -21,9 +21,18 @@ export interface SpendBreakdownProps {
  * than a fabricated multi-month trend (never invent a figure client-side).
  */
 export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus, language }: SpendBreakdownProps) {
-  const categories = Object.entries(spendByCategory)
+  const rawCategories = Object.entries(spendByCategory)
     .filter(([, amount]) => amount > 0)
-    .map(([category, amount]) => ({ category: humanize(category), amount }));
+    .map(([category, amount]) => ({ category: humanize(category), amount }))
+    .sort((a, b) => b.amount - a.amount);
+  // The legend and donut must always describe exactly the same series. Keep
+  // the five biggest categories legible, then combine the remainder rather
+  // than drawing unlabeled, repeated-colour slivers.
+  const remainder = rawCategories.slice(5).reduce((total, entry) => total + entry.amount, 0);
+  const categories = [
+    ...rawCategories.slice(0, 5),
+    ...(remainder > 0 ? [{ category: t(language, "dashboard.spend.other"), amount: remainder }] : []),
+  ];
 
   const monthlySpend = Math.max(monthlyIncome - monthlySurplus, 0);
   // `key` stays a stable, language-independent id for color lookup; `label`
@@ -49,6 +58,7 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus,
           <div className="mt-2 flex items-center gap-4">
             <ChartContainer height={160} className="max-w-40">
               <PieChart>
+                <Tooltip content={<ChartTooltip valueFormatter={(value) => formatINR(value, { compact: true })} />} />
                 <Pie
                   data={categories}
                   dataKey="amount"
@@ -65,7 +75,7 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus,
               </PieChart>
             </ChartContainer>
             <ul className="min-w-0 flex-1 space-y-1.5">
-              {categories.slice(0, 6).map((entry, index) => (
+              {categories.map((entry, index) => (
                 <li key={entry.category} className="flex items-center gap-2 text-body-sm">
                   <span
                     className="size-2.5 shrink-0 rounded-full"
@@ -85,6 +95,7 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus,
             <p className="text-caption font-medium text-neutral-600">{t(language, "dashboard.spend.cashflowTitle")}</p>
             <ChartContainer height={140} className="mt-2">
               <BarChart data={cashflow} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                <Tooltip content={<ChartTooltip valueFormatter={(value) => formatINR(value, { compact: true })} />} />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tick={<ChartTick />} />
                 <YAxis hide />
                 <Bar dataKey="amount" radius={[6, 6, 0, 0]} maxBarSize={48}>
@@ -103,6 +114,30 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus,
                 </Bar>
               </BarChart>
             </ChartContainer>
+            <ul className="mt-3 grid grid-cols-3 gap-2" aria-label={t(language, "dashboard.spend.cashflowTitle")}>
+              {cashflow.map((entry) => (
+                <li key={entry.key} className="min-w-0 rounded-sm bg-neutral-50 px-2 py-1.5">
+                  <span className="flex items-center gap-1.5 text-caption text-neutral-600">
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{
+                        background:
+                          entry.key === "surplus"
+                            ? "var(--color-success-500)"
+                            : entry.key === "income"
+                              ? "var(--color-structural-500)"
+                              : "var(--color-structural-300)",
+                      }}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">{entry.label}</span>
+                  </span>
+                  <span className="mt-0.5 block text-body-sm font-semibold tabular-nums text-neutral-900">
+                    {formatINR(entry.amount, { compact: true })}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </>
       )}

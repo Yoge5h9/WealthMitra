@@ -118,3 +118,25 @@ export interface ProfileSummaryCard extends ChatCard {
   missing_data: string[];
   next_step: string;
 }
+
+export interface CreditProductDetailCard extends ChatCard {
+  card_type: "credit_product_detail";
+  product: {
+    id: string;
+    name: string;
+    provider_name: string;
+    source: "idbi" | "partner";
+    features: string[];
+    fees: string[];
+    eligibility: { status: "eligible" | "ineligible" | "needs_more_data"; reasons: string[]; checked_criteria: string[] };
+    display_disclaimer: string;
+    source_url: string;
+    source_checked_at: string;
+  };
+}
+
+export interface CreditEligibilityResultCard extends ChatCard {
+  card_type: "credit_eligibility_result";
+  status: "ineligible" | "needs_more_data";
+  message: string;
+}

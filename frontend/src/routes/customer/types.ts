@@ -64,4 +64,6 @@ export const CARD_TYPES: readonly CardType[] = [
   "distress_support",
   "profile_question",
   "profile_summary",
+  "credit_product_detail",
+  "credit_eligibility_result",
 ] as const;

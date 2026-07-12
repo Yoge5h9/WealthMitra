@@ -7,7 +7,45 @@
     "provider_name": "IDBI Bank",
     "source": "idbi",
     "journey": "rm_only",
-    "display_disclaimer": "Eligibility, credit limit and final terms are decided by IDBI Bank after assessment."
+    "aliases": ["aspire", "aspire platinum", "aspire card"],
+    "features": ["2 Delight Points on every ₹150 of eligible spend", "Up to 48 days of interest-free credit", "1% fuel-surcharge waiver on ₹400–₹4,000 fuel transactions, capped at ₹300 per month"],
+    "fees": ["Joining fee: Nil", "Annual fee: Nil", "Revolving credit interest: 2.9% per month"],
+    "eligibility": {"resident_india": true, "min_age": 21, "max_age_salaried": 60, "max_age_self_employed": 65},
+    "display_disclaimer": "This is a preliminary eligibility check, not an approval. IDBI Bank makes the final credit decision.",
+    "source_url": "https://www.idbi.bank.in/aspire-credit-card.aspx",
+    "source_checked_at": "2026-07-12"
+  },
+  {
+    "id": "idbi_euphoria_world",
+    "name": "IDBI Euphoria World Credit Card",
+    "family": "loans_cards",
+    "product_type": "credit_card",
+    "provider_name": "IDBI Bank",
+    "source": "idbi",
+    "journey": "rm_only",
+    "aliases": ["euphoria", "euphoria world", "euphoria card"],
+    "features": ["6 Delight Points on every ₹100 of eligible travel spend", "3 Delight Points on every ₹100 of other eligible spend", "Unlimited complimentary visits at participating domestic airport lounges"],
+    "fees": ["Joining fee: Nil", "Annual fee: ₹1,499 from the second year", "Annual-fee waiver above ₹1,50,000 annual spend"],
+    "eligibility": {"resident_india": true, "min_age": 21, "max_age_salaried": 60, "max_age_self_employed": 65},
+    "display_disclaimer": "This is a preliminary eligibility check, not an approval. IDBI Bank makes the final credit decision.",
+    "source_url": "https://www.idbi.bank.in/Euphoria-credit-card.aspx",
+    "source_checked_at": "2026-07-12"
+  },
+  {
+    "id": "idbi_imperium_platinum",
+    "name": "IDBI Imperium Platinum Secured Credit Card",
+    "family": "loans_cards",
+    "product_type": "credit_card",
+    "provider_name": "IDBI Bank",
+    "source": "idbi",
+    "journey": "rm_only",
+    "aliases": ["imperium", "imperium platinum", "imperium card"],
+    "features": ["Secured card against eligible IDBI Fixed Deposit(s)", "Credit limit up to 85% of eligible Fixed Deposit(s)", "2 Delight Points on every ₹150 of eligible spend"],
+    "fees": ["Joining fee: ₹499", "Annual fee: ₹499", "Annual-fee waiver above ₹75,000 annual spend"],
+    "eligibility": {"min_age": 18, "requires_idbi_fd_min": 20000},
+    "display_disclaimer": "An eligible IDBI Fixed Deposit must be confirmed before this card can be considered. Final approval remains with IDBI Bank.",
+    "source_url": "https://www.idbi.bank.in/Imperium-credit-card.aspx",
+    "source_checked_at": "2026-07-12"
   },
   {
     "id": "idbi_personal_loan",
@@ -17,7 +55,13 @@
     "provider_name": "IDBI Bank",
     "source": "idbi",
     "journey": "rm_only",
-    "display_disclaimer": "Eligibility, amount and repayment terms are subject to IDBI Bank credit assessment."
+    "aliases": ["personal loan"],
+    "features": ["Digital journey for eligible existing salaried customers", "Loan amount and tenure are subject to credit assessment"],
+    "fees": [],
+    "eligibility": {"requires_salaried_profile": true, "requires_existing_relationship": true},
+    "display_disclaimer": "The demo does not hold the banking-relationship and underwriting data needed for a personal-loan pre-check.",
+    "source_url": "https://www.idbibank.in/personal-loan-digital-lending.aspx",
+    "source_checked_at": "2026-07-12"
   },
   {
     "id": "idbi_home_loan",
@@ -27,7 +71,13 @@
     "provider_name": "IDBI Bank",
     "source": "idbi",
     "journey": "rm_only",
-    "display_disclaimer": "Eligibility and final terms depend on repayment capacity and IDBI Bank assessment."
+    "aliases": ["home loan", "housing loan", "mortgage"],
+    "features": ["For purchase, construction, extension, improvement or balance transfer", "Repayment capacity and property details are assessed by IDBI Bank"],
+    "fees": [],
+    "eligibility": {"requires_property_and_repayment_review": true},
+    "display_disclaimer": "The demo does not hold property and repayment-capacity data needed for a home-loan pre-check.",
+    "source_url": "https://www.idbibank.in/home-loan.aspx",
+    "source_checked_at": "2026-07-12"
   },
   {
     "id": "tata_aig_medicare",
@@ -37,6 +87,12 @@
     "provider_name": "Tata AIG General Insurance",
     "source": "partner",
     "journey": "rm_only",
-    "display_disclaimer": "Insurance is distributed by IDBI Bank under non-risk participation; purchase is voluntary and subject to insurer terms."
+    "aliases": ["tata aig medicare"],
+    "features": [],
+    "fees": [],
+    "eligibility": {},
+    "display_disclaimer": "Insurance is distributed by IDBI Bank under non-risk participation; purchase is voluntary and subject to insurer terms.",
+    "source_url": "https://www.idbibank.in/pdf/Service-Charges.pdf",
+    "source_checked_at": "2026-07-12"
   }
 ]

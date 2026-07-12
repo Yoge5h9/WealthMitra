@@ -269,7 +269,9 @@ export type CardType =
   | "nudge"
   | "distress_support"
   | "profile_question"
-  | "profile_summary";
+  | "profile_summary"
+  | "credit_product_detail"
+  | "credit_eligibility_result";
 
 export interface ChatCard {
   card_type: CardType;

@@ -100,6 +100,18 @@ def test_new_to_idbi_profile_flow_is_deterministic_and_never_calls_the_llm(clien
     summary = next(frame["card"] for frame in frames if frame["type"] == "card")
     assert summary["card_type"] == "profile_summary"
     assert summary["answers"]["income"] == "Salaried"
+    assert any(frame.get("card", {}).get("card_type") == "aa_connect" for frame in frames)
+
+    consent = client.post("/api/aa/consent", json={"session_id": data["session_id"], "step": "transfer", "granted": True})
+    assert consent.status_code == 200 and consent.json()["connected"] is False
+    consent = client.post("/api/aa/consent", json={"session_id": data["session_id"], "step": "processing", "granted": True})
+    assert consent.status_code == 200 and consent.json()["connected"] is True
+    assert consent.json()["holdings"] == []
+
+    resumed = create_session(client, space_id, persona_id="new_to_idbi")
+    resumed_card = next(frame["card"] for frame in resumed["greeting"] if frame["type"] == "card")
+    assert resumed_card["card_type"] == "profile_summary"
+    assert resumed_card["answers"]["priority"] == "Save safely"
 
 
 def test_unknown_space_404(client):

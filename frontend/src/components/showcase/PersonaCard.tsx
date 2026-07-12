@@ -63,8 +63,7 @@ export function PersonaCard({ persona, selected, onSelect, className }: PersonaC
         <div className="min-w-0 flex-1">
           <p className="truncate text-body font-semibold text-neutral-900">{persona.name}</p>
           <p className="flex items-center gap-1 text-caption text-neutral-600">
-            <span className="tabular-nums">{persona.age}</span>
-            <span aria-hidden="true">&middot;</span>
+            {persona.age > 0 && <><span className="tabular-nums">{persona.age}</span><span aria-hidden="true">&middot;</span></>}
             <MapPin size={12} strokeWidth={1.75} aria-hidden="true" />
             {persona.city}
           </p>

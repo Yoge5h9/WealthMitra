@@ -17,6 +17,7 @@ Intent = Literal[
     "fd_query",
     "goal_set",
     "regulated_query",
+    "credit_product_info",
     "loan_card_query",
     "distress_signal",
     "literacy",
@@ -120,6 +121,9 @@ _KEYWORD_TABLE: tuple[tuple[Intent, tuple[str, ...]], ...] = (
     ),
 )
 
+_CARD_ALIASES = ("aspire", "euphoria", "imperium", "royale")
+_CARD_APPLICATION_TERMS = ("apply", "want", "need", "get", "check my eligibility", "eligible for")
+
 
 def classify_intent(text: str, lang: str) -> Intent:
     """Classify `text` into an `Intent`. `lang` is accepted for interface
@@ -130,7 +134,21 @@ def classify_intent(text: str, lang: str) -> Intent:
     """
     del lang
     normalized = f" {text.lower().strip()} "
+    # A named card needs special handling: factual detail must never fall
+    # through to the investment shelf, while an explicit application request
+    # still reaches the pre-eligibility gate. Distress remains first below.
+    named_card = any(alias in normalized for alias in _CARD_ALIASES)
+    # Preserve the safety override ahead of every product alias.
+    distress_keywords = _KEYWORD_TABLE[0][1]
+    if any(keyword in normalized for keyword in distress_keywords):
+        return "distress_signal"
+    if named_card:
+        if any(term in normalized for term in _CARD_APPLICATION_TERMS):
+            return "loan_card_query"
+        return "credit_product_info"
     for intent, keywords in _KEYWORD_TABLE:
+        if intent == "distress_signal":
+            continue
         if any(keyword in normalized for keyword in keywords):
             return intent
     return "other"

@@ -26,7 +26,19 @@ export interface CustomerDashboardProps {
 }
 
 export function CustomerDashboard({ sessionId, spaceId, personaId, language }: CustomerDashboardProps) {
-  const summary = useDashboardSummary(sessionId);
+  const isNewCustomer = personaId === "new_to_idbi";
+  const summary = useDashboardSummary(isNewCustomer ? null : sessionId);
+
+  if (isNewCustomer) {
+    return (
+      <div className="space-y-5 px-4 py-4">
+        <section className="rounded-lg border border-structural-200 bg-structural-50 p-5">
+          <SectionHeader eyebrow="Your WealthMitra" title="Your dashboard grows with you" description="Finish the four quick questions in Chat, then choose whether to connect external accounts through Account Aggregator. We never invent a balance, holding or recommendation before you share data." />
+        </section>
+        <TrustFooter className="rounded-lg border-t-0" language={language} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 px-4 py-4">

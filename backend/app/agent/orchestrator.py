@@ -23,7 +23,7 @@ from collections.abc import Callable, Iterator
 from datetime import datetime, timezone
 
 from app.analytics import AnalyticsEngine
-from app.catalogue import eligible_shelf, recommendations_for
+from app.catalogue import eligible_shelf, evaluate_eligibility, offer_payload, recommendations_for, resolve_offer
 from app.core import audit, events
 from app.core.spaces import Space
 from app.domain.models import AuditEntry, LeadPacket, Metric, PersonaProfile, Product
@@ -108,6 +108,11 @@ class Orchestrator:
         surplus = float(metrics["monthly_surplus"].value)
 
         intent = classify_intent(message, lang)
+        named_offer = resolve_offer(message)
+        if named_offer is not None and intent == "credit_product_info":
+            yield from self._credit_product_turn(space, session_id, state, profile, message, named_offer, metrics)
+            return
+
         product_ctx = self._representative_product(intent, segment, band, surplus)
         route = decide(intent, flags, product_ctx)
         mode = route.path
@@ -120,8 +125,14 @@ class Orchestrator:
 
         if mode == "rm_lead":
             family = route.lead_family or "investment_insurance"
+            offer_recommendations = recommendations_for(
+                profile, {key: metric.value for key, metric in metrics.items()}, family=family, message=message
+            ) if family == "loans_cards" or "insurance" in message.lower() else []
+            if family == "loans_cards" and not offer_recommendations:
+                yield from self._credit_not_eligible_turn(space, session_id, state, profile, message, named_offer, metrics)
+                return
             ctx.built_lead = self._build_lead(
-                space, session_id, persona_id, message, family, metrics, segment, band, surplus, intent
+                space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations
             )
 
         # classify_intent already ran deterministically above the routing gate;
@@ -244,7 +255,7 @@ class Orchestrator:
 
     # -- lead construction -------------------------------------------------
 
-    def _build_lead(self, space, session_id, persona_id, message, family, metrics, segment, band, surplus, intent) -> LeadPacket:
+    def _build_lead(self, space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations) -> LeadPacket:
         persona = space.personas[persona_id]
         profile: PersonaProfile = persona.profile
         ext = persona.external
@@ -260,9 +271,6 @@ class Orchestrator:
             "goals": metrics["goal_progress"].value.get("goals", []),
         }
         shelf = eligible_shelf(segment, band, monthly_surplus=surplus, is_affluent_or_hni=segment in _AFFLUENT_SEGMENTS)
-        offer_recommendations = recommendations_for(profile, lead_metrics, family=family, message=message) if (
-            family == "loans_cards" or (intent == "regulated_query" and "insurance" in message.lower())
-        ) else []
         lead = build_lead_packet(
             profile, lead_metrics, shelf, message, family, seq=len(space.leads) + 1, now=self.now()
         )
@@ -298,6 +306,38 @@ class Orchestrator:
         )
         events.publish(space.id, {"type": "lead.created", "payload": lead.model_dump(mode="json")})
         return lead
+
+    def _credit_product_turn(self, space, session_id, state, profile, message, offer, metrics):
+        eligibility = evaluate_eligibility(profile, {key: metric.value for key, metric in metrics.items()}, offer)
+        payload = offer_payload(offer, eligibility)
+        text = (
+            f"Here are the stored details for {offer.name}. "
+            f"{eligibility['reasons'][0]} {offer.display_disclaimer}"
+        )
+        ref = self._audit_static_credit(space, session_id, "credit_product_information", offer, eligibility)
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "card", "card": {"card_type": "credit_product_detail", "product": payload}}
+        yield {"type": "done", "audit_ref": ref}
+
+    def _credit_not_eligible_turn(self, space, session_id, state, profile, message, offer, metrics):
+        if offer is not None:
+            eligibility = evaluate_eligibility(profile, {key: metric.value for key, metric in metrics.items()}, offer)
+            payload = offer_payload(offer, eligibility)
+            text = f"I can explain {offer.name}, but I won't send it to an RM yet. {eligibility['reasons'][0]}"
+            card = {"card_type": "credit_product_detail", "product": payload}
+        else:
+            text = "I need a little more verified profile information before I can shortlist a credit product or involve an RM."
+            card = {"card_type": "credit_eligibility_result", "status": "needs_more_data", "message": text}
+        ref = self._audit_static_credit(space, session_id, "credit_preeligibility_stopped", offer, card.get("product", {}).get("eligibility", {}))
+        self._append_history(state, message, text)
+        yield {"type": "avatar", "state": "speaking"}
+        for chunk in _chunks(text):
+            yield {"type": "token", "text": chunk}
+        yield {"type": "card", "card": card}
+        yield {"type": "done", "audit_ref": ref}
 
     @staticmethod
     def _consent_snapshot(space: Space, session_id: str) -> dict:
@@ -382,6 +422,23 @@ class Orchestrator:
         return spend_card(metrics)
 
     # -- audit helpers -----------------------------------------------------
+
+    def _audit_static_credit(self, space, session_id, name, offer, eligibility) -> str:
+        entry_id = f"aud_{uuid.uuid4().hex[:12]}"
+        audit.record(
+            space,
+            AuditEntry(
+                id=entry_id,
+                session_id=session_id,
+                ts=self.now(),
+                kind="routing",
+                name=name,
+                inputs={"offer_id": offer.id if offer is not None else None},
+                outputs_summary={"eligibility": eligibility},
+                refs=[offer.source_url] if offer is not None else ["credit_catalogue:v1"],
+            ),
+        )
+        return entry_id
 
     def _audit_routing(self, space, session_id, intent, flags, route) -> None:
         audit.record(

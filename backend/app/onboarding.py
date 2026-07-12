@@ -41,6 +41,16 @@ def _audit(space: Space, session_id: str, name: str, inputs: dict, outputs: dict
 
 def greeting(space: Space, session_id: str) -> list[dict]:
     state = space.sessions[session_id]
+    if space.new_customer_profile:
+        state["onboarding"] = {"step": len(_QUESTIONS), "answers": dict(space.new_customer_profile), "completed": True}
+        ref = _audit(space, session_id, "onboarding_resumed", {}, {"profile_fields": sorted(space.new_customer_profile)})
+        return [
+            {"type": "avatar", "state": "speaking"},
+            {"type": "token", "text": "Welcome back. I remember the starting profile you shared, and I’ll keep using it in this conversation."},
+            {"type": "card", "card": _summary_card(space.new_customer_profile)},
+            {"type": "card", "card": _aa_connect_card()},
+            {"type": "done", "audit_ref": ref},
+        ]
     state["onboarding"] = {"step": 0, "answers": {}}
     question = _QUESTIONS[0]
     ref = _audit(space, session_id, "onboarding_started", {}, {"question": question[0]})
@@ -55,6 +65,16 @@ def greeting(space: Space, session_id: str) -> list[dict]:
 def advance(space: Space, session_id: str, answer: str) -> list[dict]:
     state = space.sessions[session_id]
     journey = state["onboarding"]
+    if journey.get("completed"):
+        remembered = ", ".join(f"{key.replace('_', ' ')}: {value}" for key, value in journey["answers"].items())
+        text = f"I remember your starting profile — {remembered}. Link an account when you’re ready so I can make future guidance more specific."
+        ref = _audit(space, session_id, "onboarding_memory_recalled", {}, {"profile_fields": sorted(journey["answers"])})
+        return [
+            {"type": "avatar", "state": "speaking"},
+            {"type": "token", "text": text},
+            {"type": "card", "card": _summary_card(journey["answers"])},
+            {"type": "done", "audit_ref": ref},
+        ]
     step = int(journey["step"])
     question_id, _question, options = _QUESTIONS[step]
     selected = next((option for option in options if option.lower() == answer.strip().lower()), answer.strip())
@@ -71,11 +91,14 @@ def advance(space: Space, session_id: str, answer: str) -> list[dict]:
             {"type": "done", "audit_ref": ref},
         ]
 
+    journey["completed"] = True
+    space.new_customer_profile = dict(journey["answers"])
     ref = _audit(space, session_id, "onboarding_completed", dict(journey["answers"]), {"personalised_offer": False})
     return [
         {"type": "avatar", "state": "speaking"},
-        {"type": "token", "text": "Your starter profile is ready. Link an account when you’re comfortable, and we can make future guidance more specific."},
-        {"type": "card", "card": {"card_type": "profile_summary", "answers": dict(journey["answers"]), "missing_data": ["Account history", "Goals and existing cover", "Eligibility checks"], "next_step": "Link an account for personalised insights, or ask an RM to discuss loans, cards or insurance."}},
+        {"type": "token", "text": "Your starter profile is ready. If you choose to connect external accounts, WealthMitra can bring your wider financial picture into one place."},
+        {"type": "card", "card": _summary_card(journey["answers"])},
+        {"type": "card", "card": _aa_connect_card()},
         {"type": "done", "audit_ref": ref},
     ]
 
@@ -83,3 +106,15 @@ def advance(space: Space, session_id: str, answer: str) -> list[dict]:
 def _question_card(step: int) -> dict:
     key, question, options = _QUESTIONS[step]
     return {"card_type": "profile_question", "step": step + 1, "total_steps": len(_QUESTIONS), "key": key, "question": question, "options": options}
+
+
+def _summary_card(answers: dict) -> dict:
+    return {"card_type": "profile_summary", "answers": dict(answers), "missing_data": ["Account history", "Goals and existing cover", "Eligibility checks"], "next_step": "Link an account for personalised insights, or ask an RM to discuss loans, cards or insurance."}
+
+
+def _aa_connect_card() -> dict:
+    return {
+        "card_type": "aa_connect",
+        "headline": "Bring your financial picture together",
+        "body": "With your permission, Account Aggregator can connect eligible external accounts so WealthMitra can help you view savings, investments and protection in one place. You control two separate, revocable permissions.",
+    }

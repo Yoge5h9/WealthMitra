@@ -236,6 +236,7 @@ const DICT = {
   "dashboard.spend.income": { en: "Income", hi: "आय", gu: "આવક" },
   "dashboard.spend.spend": { en: "Spend", hi: "खर्च", gu: "ખર્ચ" },
   "dashboard.spend.surplus": { en: "Surplus", hi: "बचत", gu: "બચત" },
+  "dashboard.spend.other": { en: "Other", hi: "अन्य", gu: "અન્ય" },
   "dashboard.spend.monthlySurplus": { en: "Monthly surplus", hi: "मासिक बचत", gu: "માસિક બચત" },
 
   // -- dashboard: holdings ----------------------------------------------------
