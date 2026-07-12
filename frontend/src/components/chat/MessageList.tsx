@@ -3,6 +3,7 @@ import { formatDate } from "@/lib/format";
 import { Avatar } from "@/components/shared/Avatar";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { makeT, type LanguageCode } from "@/lib/i18n";
 import type { AvatarState } from "@/lib/types";
 import type { ChatMessage } from "@/routes/customer/types";
 
@@ -14,13 +15,14 @@ export interface MessageListProps {
   sessionId: string | null;
   onSendMessage: (text: string) => void;
   onOpenAudit: () => void;
+  language?: LanguageCode;
 }
 
-function dayLabel(iso: string): string {
+function dayLabel(iso: string, t: ReturnType<typeof makeT>): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return "";
   const today = new Date();
-  if (parsed.toDateString() === today.toDateString()) return "Today";
+  if (parsed.toDateString() === today.toDateString()) return t("chat.today");
   return formatDate(iso);
 }
 
@@ -39,12 +41,23 @@ export function MessageList({
   sessionId,
   onSendMessage,
   onOpenAudit,
+  language = "en",
 }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
+  const t = makeT(language);
 
+  // Only chase the viewport down when the user just sent a turn — that's
+  // when they need to see their own message plus the typing indicator. A
+  // streaming companion reply (or a card/nudge landing after it) must NOT
+  // pull the viewport along, else the greeting/reply is never readable from
+  // its own top; the user scrolls at their own pace once it starts.
+  const lastMessage = messages[messages.length - 1];
+  const lastIsUserTurn = lastMessage?.role === "user";
   useEffect(() => {
+    if (!lastIsUserTurn) return;
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [messages.length, sending]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length, sending, lastIsUserTurn]);
 
   const showTyping = sending && !turnHasStarted(messages);
   let lastDay = "";
@@ -52,7 +65,7 @@ export function MessageList({
   return (
     <div className="space-y-4 px-4 py-4">
       {messages.map((message) => {
-        const label = dayLabel(message.ts);
+        const label = dayLabel(message.ts, t);
         const showDivider = label !== lastDay;
         lastDay = label;
         return (
@@ -71,6 +84,7 @@ export function MessageList({
               onSendMessage={onSendMessage}
               onOpenAudit={onOpenAudit}
               sending={sending}
+              language={language}
             />
           </div>
         );

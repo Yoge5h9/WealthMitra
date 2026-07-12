@@ -1,19 +1,21 @@
 import { Target } from "lucide-react";
 import { DataState } from "@/components/shared/DataState";
 import { formatINR } from "@/lib/format";
+import { t, type LanguageCode } from "@/lib/i18n";
 import type { GoalEntry } from "./types";
 
 export interface GoalsListProps {
   goals: GoalEntry[];
+  language: LanguageCode;
 }
 
-export function GoalsList({ goals }: GoalsListProps) {
+export function GoalsList({ goals, language }: GoalsListProps) {
   return (
     <DataState
       status={goals.length === 0 ? "empty" : "success"}
       emptyIcon={Target}
-      emptyTitle="No goals set yet"
-      emptyDescription="Goals you set in chat will show their progress here."
+      emptyTitle={t(language, "dashboard.goals.empty")}
+      emptyDescription={t(language, "dashboard.goals.emptyDesc")}
     >
       <ul className="space-y-3">
         {goals.map((goal) => {
@@ -27,7 +29,9 @@ export function GoalsList({ goals }: GoalsListProps) {
                   </span>
                   <div>
                     <p className="text-body-sm font-medium text-neutral-900">{goal.name}</p>
-                    <p className="text-caption text-neutral-500">{goal.horizon_years}-year horizon</p>
+                    <p className="text-caption text-neutral-500">
+                      {t(language, "dashboard.goals.horizon", { years: goal.horizon_years })}
+                    </p>
                   </div>
                 </div>
                 <span className="shrink-0 text-body-sm font-semibold tabular-nums text-neutral-900">{pct}%</span>
@@ -42,9 +46,14 @@ export function GoalsList({ goals }: GoalsListProps) {
 
               <div className="mt-2 flex items-center justify-between text-caption text-neutral-600">
                 <span className="tabular-nums">
-                  {formatINR(goal.saved_so_far, { compact: true })} of {formatINR(goal.target, { compact: true })}
+                  {t(language, "dashboard.goals.progress", {
+                    saved: formatINR(goal.saved_so_far, { compact: true }),
+                    target: formatINR(goal.target, { compact: true }),
+                  })}
                 </span>
-                <span className="tabular-nums">need {formatINR(goal.monthly_required_inr, { compact: true })}/mo</span>
+                <span className="tabular-nums">
+                  {t(language, "dashboard.goals.need", { amount: formatINR(goal.monthly_required_inr, { compact: true }) })}
+                </span>
               </div>
             </li>
           );

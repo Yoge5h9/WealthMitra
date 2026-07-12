@@ -88,6 +88,90 @@ export function useVoiceInput(language: LanguageCode, onResult: (text: string) =
 
 const SYNTH_LANG: Record<LanguageCode, string> = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
 
+/**
+ * Natural-voice selection for the Web Speech API. Browsers ship a mix of
+ * high-quality cloud/neural voices ("Google US English", "Google हिन्दी",
+ * platform "Natural"/"Enhanced"/"Siri" voices) alongside a low-quality local
+ * fallback (often an eSpeak-family "compact" voice) — the naive `getVoices()
+ * .find(lang match)` tends to land on whichever the browser lists first,
+ * which is frequently the robotic one. This ranks candidates by name against
+ * a per-language preference list and actively deprioritizes eSpeak/compact
+ * voices instead of picking them by accident.
+ */
+const VOICE_PREFERENCE_KEYWORDS: Record<LanguageCode, string[]> = {
+  en: [
+    "google us english",
+    "google uk english",
+    "google",
+    "natural",
+    "neural",
+    "premium",
+    "enhanced",
+    "siri",
+    "samantha",
+    "aaron",
+    "ava",
+  ],
+  hi: ["google", "natural", "neural", "premium", "enhanced", "siri"],
+  gu: ["google", "natural", "neural", "premium", "enhanced", "siri"],
+};
+
+const VOICE_AVOID_KEYWORDS = ["espeak", "compact"];
+
+function scoreVoiceName(name: string, language: LanguageCode): number {
+  const lower = name.toLowerCase();
+  if (VOICE_AVOID_KEYWORDS.some((bad) => lower.includes(bad))) return -100;
+  const keywords = VOICE_PREFERENCE_KEYWORDS[language];
+  for (let i = 0; i < keywords.length; i++) {
+    if (lower.includes(keywords[i])) return keywords.length - i;
+  }
+  return 0;
+}
+
+/** Voices rarely include `gu-IN`; Hindi is the closest phonetic fallback so
+ * Gujarati still gets a real voice instead of whatever locale-less default
+ * the browser would otherwise pick. */
+function candidateVoicesForLanguage(voices: SpeechSynthesisVoice[], language: LanguageCode): SpeechSynthesisVoice[] {
+  const prefix = SYNTH_LANG[language].split("-")[0];
+  const matches = voices.filter((v) => v.lang.toLowerCase().startsWith(prefix));
+  if (matches.length > 0 || language !== "gu") return matches;
+  return voices.filter((v) => v.lang.toLowerCase().startsWith("hi"));
+}
+
+const naturalVoiceCache = new Map<LanguageCode, SpeechSynthesisVoice>();
+let voiceschangedListenerBound = false;
+
+/** Picks the most natural available voice for `language`, caching the
+ * result. Returns `null` (never throws) if speechSynthesis is unavailable
+ * or the voice list hasn't populated yet — callers fall back to the
+ * browser's own `lang`-based default in that case. Exported so the Voice
+ * Call channel demo (VoiceCallPlayerCard) can reuse the same selection. */
+export function pickNaturalVoice(language: LanguageCode): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+
+  if (!voiceschangedListenerBound) {
+    voiceschangedListenerBound = true;
+    // getVoices() is frequently empty on first call and populates
+    // asynchronously; clearing the cache lets the next pickNaturalVoice()
+    // re-rank against the now-populated list instead of sticking with an
+    // early no-match.
+    window.speechSynthesis.addEventListener("voiceschanged", () => naturalVoiceCache.clear());
+  }
+
+  const cached = naturalVoiceCache.get(language);
+  if (cached) return cached;
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length === 0) return null;
+
+  const candidates = candidateVoicesForLanguage(voices, language);
+  if (candidates.length === 0) return null;
+
+  const best = candidates.reduce((a, b) => (scoreVoiceName(b.name, language) > scoreVoiceName(a.name, language) ? b : a));
+  naturalVoiceCache.set(language, best);
+  return best;
+}
+
 export interface UseSpeechOutputResult {
   supported: boolean;
   enabled: boolean;
@@ -95,21 +179,30 @@ export interface UseSpeechOutputResult {
   speak: (text: string, language: LanguageCode) => void;
 }
 
-/** Speech-synthesis toggle for companion replies. Best-effort hi-IN/gu-IN
- * voice match; falls back silently to whatever voice the browser defaults
- * to for that `lang` (never throws if a regional voice isn't installed). */
+/** Speech-synthesis toggle for companion replies. Selects the most natural
+ * available voice per language via `pickNaturalVoice` (falls back silently
+ * to the browser's own `lang`-based default if no ranked voice is found —
+ * never throws if a regional voice isn't installed). */
 export function useSpeechOutput(): UseSpeechOutputResult {
   const [supported] = useState(() => typeof window !== "undefined" && "speechSynthesis" in window);
   const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    // Nudges the browser to populate getVoices() early so the first real
+    // speak() call (which happens after the user taps to enable) is more
+    // likely to already have the natural voice ranked and cached.
+    if (supported) window.speechSynthesis.getVoices();
+  }, [supported]);
 
   const speak = useCallback(
     (text: string, language: LanguageCode) => {
       if (!supported || !enabled || !text.trim()) return;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = SYNTH_LANG[language];
-      const voices = window.speechSynthesis.getVoices();
-      const match = voices.find((v) => v.lang === utterance.lang) ?? voices.find((v) => v.lang.startsWith(language));
-      if (match) utterance.voice = match;
+      utterance.rate = 0.97;
+      utterance.pitch = 1.0;
+      const voice = pickNaturalVoice(language);
+      if (voice) utterance.voice = voice;
       window.speechSynthesis.speak(utterance);
     },
     [supported, enabled]

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Switch } from "radix-ui";
 import { Fingerprint, Inbox, Link2, Loader2, ScanSearch, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { t, type LanguageCode } from "@/lib/i18n";
 import { HoldingsList } from "./HoldingsList";
 import { useAaConsentAction } from "./useDashboardData";
 import type { DashboardHolding, DashboardLiability } from "./types";
@@ -15,6 +16,7 @@ export interface AaConnectFlowProps {
   connected: boolean;
   holdings: DashboardHolding[];
   liabilities: DashboardLiability[];
+  language: LanguageCode;
 }
 
 type Phase = "idle" | "requesting_transfer" | "requesting_processing" | "discovering" | "done";
@@ -72,7 +74,7 @@ function ConsentSwitch({
  * re-hides external data (the summary refetch this triggers is what makes
  * net worth visibly recompute).
  */
-export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings, liabilities }: AaConnectFlowProps) {
+export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings, liabilities, language }: AaConnectFlowProps) {
   const { setConsent, pendingStep } = useAaConsentAction(sessionId);
 
   const [aaAvailable, setAaAvailable] = useState(aaAvailableHint);
@@ -125,11 +127,8 @@ export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings,
           <Inbox size={20} strokeWidth={1.75} />
         </span>
         <div className="space-y-1">
-          <p className="text-body-sm font-medium text-neutral-700">No external accounts detected</p>
-          <p className="max-w-xs text-caption text-neutral-600">
-            We haven't found any Account Aggregator-linkable investments, insurance, or pension accounts for this
-            profile yet. Once you open one elsewhere, it'll show up here to link.
-          </p>
+          <p className="text-body-sm font-medium text-neutral-700">{t(language, "dashboard.aa.noneTitle")}</p>
+          <p className="max-w-xs text-caption text-neutral-600">{t(language, "dashboard.aa.noneDescription")}</p>
         </div>
       </div>
     );
@@ -143,23 +142,19 @@ export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings,
         <div className="rounded-lg border border-structural-200 bg-structural-50 p-4">
           <div className="flex items-center gap-2 text-structural-700">
             <Link2 size={18} strokeWidth={1.75} aria-hidden="true" />
-            <p className="font-display text-h4 font-semibold">Link your other accounts</p>
+            <p className="font-display text-h4 font-semibold">{t(language, "dashboard.aa.linkTitle")}</p>
           </div>
-          <p className="mt-2 text-body-sm text-neutral-700">
-            See mutual funds, insurance, and pension held outside IDBI, right alongside your bank balance — pulled
-            safely via the RBI Account Aggregator framework. Nothing is shared until you say so, and you can switch
-            it off again at any time.
-          </p>
+          <p className="mt-2 text-body-sm text-neutral-700">{t(language, "dashboard.aa.linkDescription")}</p>
           <Button size="touch" className="mt-3 gap-2" onClick={() => void handleLinkAccounts()} disabled={linking}>
             {linking ? (
               <>
                 <Loader2 size={18} strokeWidth={1.75} className="animate-spin" aria-hidden="true" />
-                {phase === "requesting_transfer" ? "Requesting transfer consent…" : "Requesting processing consent…"}
+                {t(language, phase === "requesting_transfer" ? "dashboard.aa.requestingTransfer" : "dashboard.aa.requestingProcessing")}
               </>
             ) : (
               <>
                 <ShieldCheck size={18} strokeWidth={1.75} aria-hidden="true" />
-                Link external accounts
+                {t(language, "dashboard.aa.linkButton")}
               </>
             )}
           </Button>
@@ -168,8 +163,8 @@ export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings,
 
       <ConsentSwitch
         id={`aa-transfer-${sessionId}`}
-        label="Data transfer (Account Aggregator)"
-        description="Authorises pulling your external holdings via the AA network. This alone does not let WealthMitra use the data."
+        label={t(language, "dashboard.aa.transferLabel")}
+        description={t(language, "dashboard.aa.transferDescription")}
         checked={transferGranted}
         disabled={pendingStep !== null}
         onChange={(granted) => {
@@ -179,8 +174,8 @@ export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings,
       />
       <ConsentSwitch
         id={`aa-processing-${sessionId}`}
-        label="Processing consent (DPDP)"
-        description="Separately authorises WealthMitra to use that transferred data for your advisory dashboard."
+        label={t(language, "dashboard.aa.processingLabel")}
+        description={t(language, "dashboard.aa.processingDescription")}
         checked={processingGranted}
         disabled={pendingStep !== null}
         onChange={(granted) => {
@@ -200,7 +195,7 @@ export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings,
             className="flex items-center gap-2 rounded-lg border border-structural-200 bg-structural-50 p-3 text-structural-700"
           >
             <ScanSearch size={18} strokeWidth={1.75} className="animate-pulse" aria-hidden="true" />
-            <p className="text-body-sm font-medium">Discovering your external accounts…</p>
+            <p className="text-body-sm font-medium">{t(language, "dashboard.aa.discovering")}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -209,9 +204,9 @@ export function AaConnectFlow({ sessionId, aaAvailableHint, connected, holdings,
         <div className="pt-1">
           <p className="mb-2 flex items-center gap-1.5 text-caption font-medium text-neutral-600">
             <Fingerprint size={14} strokeWidth={1.75} aria-hidden="true" />
-            Linked via Account Aggregator
+            {t(language, "dashboard.aa.linkedVia")}
           </p>
-          <HoldingsList holdings={holdings} liabilities={liabilities} animateIn />
+          <HoldingsList holdings={holdings} liabilities={liabilities} animateIn language={language} />
         </div>
       )}
     </div>

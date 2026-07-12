@@ -3,12 +3,14 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { MoneyText } from "@/components/shared/MoneyText";
 import { ChartContainer, ChartTick, chartColor } from "@/components/shared/ChartTheme";
 import { formatINR } from "@/lib/format";
+import { t, type LanguageCode } from "@/lib/i18n";
 import { humanize } from "./format";
 
 export interface SpendBreakdownProps {
   spendByCategory: Record<string, number>;
   monthlyIncome: number;
   monthlySurplus: number;
+  language: LanguageCode;
 }
 
 /**
@@ -18,28 +20,30 @@ export interface SpendBreakdownProps {
  * second chart shows this period's real income/spend/surplus split rather
  * than a fabricated multi-month trend (never invent a figure client-side).
  */
-export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus }: SpendBreakdownProps) {
+export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus, language }: SpendBreakdownProps) {
   const categories = Object.entries(spendByCategory)
     .filter(([, amount]) => amount > 0)
     .map(([category, amount]) => ({ category: humanize(category), amount }));
 
   const monthlySpend = Math.max(monthlyIncome - monthlySurplus, 0);
+  // `key` stays a stable, language-independent id for color lookup; `label`
+  // is the translated string shown on the chart's x-axis.
   const cashflow = [
-    { label: "Income", amount: monthlyIncome },
-    { label: "Spend", amount: monthlySpend },
-    { label: "Surplus", amount: Math.max(monthlySurplus, 0) },
+    { key: "income", label: t(language, "dashboard.spend.income"), amount: monthlyIncome },
+    { key: "spend", label: t(language, "dashboard.spend.spend"), amount: monthlySpend },
+    { key: "surplus", label: t(language, "dashboard.spend.surplus"), amount: Math.max(monthlySurplus, 0) },
   ];
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-neutral-0 p-4">
       <SectionHeader
-        eyebrow="Spend & cash flow"
-        title="Where your money moves"
-        description="Monthly average, computed from your transaction ledger."
+        eyebrow={t(language, "dashboard.spend.eyebrow")}
+        title={t(language, "dashboard.spend.title")}
+        description={t(language, "dashboard.spend.description")}
       />
 
       {categories.length === 0 ? (
-        <p className="mt-4 text-body-sm text-neutral-600">No categorized spend yet.</p>
+        <p className="mt-4 text-body-sm text-neutral-600">{t(language, "dashboard.spend.noSpend")}</p>
       ) : (
         <>
           <div className="mt-2 flex items-center gap-4">
@@ -78,7 +82,7 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus 
           </div>
 
           <div className="mt-6 border-t border-neutral-100 pt-4">
-            <p className="text-caption font-medium text-neutral-600">This month's cash flow</p>
+            <p className="text-caption font-medium text-neutral-600">{t(language, "dashboard.spend.cashflowTitle")}</p>
             <ChartContainer height={140} className="mt-2">
               <BarChart data={cashflow} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tick={<ChartTick />} />
@@ -86,11 +90,11 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus 
                 <Bar dataKey="amount" radius={[6, 6, 0, 0]} maxBarSize={48}>
                   {cashflow.map((entry) => (
                     <Cell
-                      key={entry.label}
+                      key={entry.key}
                       fill={
-                        entry.label === "Surplus"
+                        entry.key === "surplus"
                           ? "var(--color-success-500)"
-                          : entry.label === "Income"
+                          : entry.key === "income"
                             ? "var(--color-structural-500)"
                             : "var(--color-structural-300)"
                       }
@@ -104,8 +108,8 @@ export function SpendBreakdown({ spendByCategory, monthlyIncome, monthlySurplus 
       )}
 
       <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
-        <span className="text-caption text-neutral-600">Monthly surplus</span>
-        <MoneyText value={monthlySurplus} size="sm" whyThisNumber="monthly_surplus_v1 · income minus spend, averaged over your transaction history" />
+        <span className="text-caption text-neutral-600">{t(language, "dashboard.spend.monthlySurplus")}</span>
+        <MoneyText value={monthlySurplus} size="sm" whyThisNumber={t(language, "header.tooltip.audit")} />
       </div>
     </div>
   );

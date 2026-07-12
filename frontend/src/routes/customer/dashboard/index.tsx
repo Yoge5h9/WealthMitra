@@ -9,6 +9,7 @@ import { DataState } from "@/components/shared/DataState";
 import { MoneyText } from "@/components/shared/MoneyText";
 import { TrustFooter } from "@/components/shared/TrustFooter";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { t, type LanguageCode } from "@/lib/i18n";
 import { NetWorthHero } from "./NetWorthHero";
 import { SpendBreakdown } from "./SpendBreakdown";
 import { AaConnectFlow } from "./AaConnectFlow";
@@ -21,9 +22,10 @@ export interface CustomerDashboardProps {
   sessionId: string;
   spaceId: string | null;
   personaId: string;
+  language: LanguageCode;
 }
 
-export function CustomerDashboard({ sessionId, spaceId, personaId }: CustomerDashboardProps) {
+export function CustomerDashboard({ sessionId, spaceId, personaId, language }: CustomerDashboardProps) {
   const summary = useDashboardSummary(sessionId);
 
   return (
@@ -31,7 +33,7 @@ export function CustomerDashboard({ sessionId, spaceId, personaId }: CustomerDas
       <DataState
         status={summary.isLoading ? "loading" : summary.isError ? "error" : summary.data ? "success" : "empty"}
         onRetry={() => summary.refetch()}
-        errorDescription="Couldn't load your dashboard right now. Your data is safe — try again."
+        errorDescription={t(language, "dashboard.errorDesc")}
         skeleton={
           <div className="animate-pulse space-y-4" aria-hidden="true">
             <div className="h-40 rounded-xl bg-neutral-200" />
@@ -42,26 +44,27 @@ export function CustomerDashboard({ sessionId, spaceId, personaId }: CustomerDas
       >
         {summary.data && (
           <>
-            <NetWorthHero value={summary.data.metrics.net_worth} />
+            <NetWorthHero value={summary.data.metrics.net_worth} language={language} />
 
             <SpendBreakdown
               spendByCategory={summary.data.metrics.spend_by_category}
               monthlyIncome={summary.data.metrics.monthly_income}
               monthlySurplus={summary.data.metrics.monthly_surplus}
+              language={language}
             />
 
             <section className="rounded-lg border border-neutral-200 bg-neutral-0 p-4">
               <SectionHeader
-                eyebrow="Holdings"
-                title="Your accounts"
-                description="Bank balance plus anything you've linked from outside IDBI."
+                eyebrow={t(language, "dashboard.holdings.eyebrow")}
+                title={t(language, "dashboard.holdings.title")}
+                description={t(language, "dashboard.holdings.description")}
               />
               <div className="mt-3 flex items-center justify-between rounded-lg border border-neutral-200 p-3">
-                <span className="text-body-sm text-neutral-700">Bank balance (IDBI)</span>
+                <span className="text-body-sm text-neutral-700">{t(language, "dashboard.holdings.bankBalance")}</span>
                 <MoneyText
                   value={summary.data.holdings.internal_bank_balance}
                   size="sm"
-                  whyThisNumber="idle_balance_v1 · net of credits minus debits across your bank transaction ledger"
+                  whyThisNumber={t(language, "header.tooltip.audit")}
                 />
               </div>
               <div className="mt-3">
@@ -71,25 +74,32 @@ export function CustomerDashboard({ sessionId, spaceId, personaId }: CustomerDas
                   connected={summary.data.holdings.aa_connected}
                   holdings={summary.data.holdings.external}
                   liabilities={summary.data.holdings.external_liabilities}
+                  language={language}
                 />
               </div>
             </section>
 
             <section className="rounded-lg border border-neutral-200 bg-neutral-0 p-4">
-              <SectionHeader eyebrow="Goals" title="What you're saving for" />
+              <SectionHeader eyebrow={t(language, "dashboard.goals.eyebrow")} title={t(language, "dashboard.goals.title")} />
               <div className="mt-3">
-                <GoalsList goals={summary.data.goals} />
+                <GoalsList goals={summary.data.goals} language={language} />
               </div>
             </section>
 
             <section className="rounded-lg border border-neutral-200 bg-neutral-0 p-4">
-              <SectionHeader eyebrow="For you" title="Nudges" />
+              <SectionHeader eyebrow={t(language, "dashboard.nudges.eyebrow")} title={t(language, "dashboard.nudges.title")} />
               <div className="mt-3">
-                <NudgeFeed sessionId={sessionId} spaceId={spaceId} personaId={personaId} />
+                <NudgeFeed
+                  sessionId={sessionId}
+                  spaceId={spaceId}
+                  personaId={personaId}
+                  metrics={summary.data.metrics}
+                  language={language}
+                />
               </div>
             </section>
 
-            <TrustFooter className="rounded-lg border-t-0" />
+            <TrustFooter className="rounded-lg border-t-0" language={language} />
           </>
         )}
       </DataState>

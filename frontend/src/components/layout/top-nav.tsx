@@ -2,13 +2,15 @@ import { NavLink } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// /dev and /present are intentionally omitted from the nav — both stay
+// reachable by typing the URL, but are hidden by default: /dev is internal,
+// and the Customer cockpit now carries the chat→RM handoff the Presenter
+// stage used to demonstrate.
 const SURFACES = [
   { to: "/", label: "Command Center" },
   { to: "/app", label: "Customer" },
   { to: "/rm", label: "RM Desk" },
   { to: "/channels", label: "Channels" },
-  { to: "/present", label: "Present" },
-  { to: "/dev", label: "Dev" },
 ];
 
 export function TopNav() {

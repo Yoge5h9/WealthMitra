@@ -6,8 +6,14 @@ import { Avatar } from "@/components/shared/Avatar";
 import { Button } from "@/components/ui/button";
 import { SampleTag } from "@/components/showcase/channels/SampleTag";
 import type { ChannelDelivery } from "@/components/showcase/channels/types";
+import { pickNaturalVoice } from "@/components/chat/useVoice";
+import type { LanguageCode } from "@/components/shared/LangToggle";
 
 const SPEECH_LANG: Record<string, string> = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
+
+function toLanguageCode(language: string): LanguageCode {
+  return language === "hi" || language === "gu" ? language : "en";
+}
 const BAR_COUNT = 18;
 
 function supportsSpeech(): boolean {
@@ -48,6 +54,10 @@ export function VoiceCallPlayerCard({ delivery }: { delivery: ChannelDelivery })
     }
     const utterance = new SpeechSynthesisUtterance(`${delivery.title}. ${delivery.body}`);
     utterance.lang = SPEECH_LANG[delivery.language] ?? "en-IN";
+    utterance.rate = 0.97;
+    utterance.pitch = 1.0;
+    const voice = pickNaturalVoice(toLanguageCode(delivery.language));
+    if (voice) utterance.voice = voice;
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);
     window.speechSynthesis.speak(utterance);

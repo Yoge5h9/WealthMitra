@@ -6,55 +6,26 @@
  * optional voice in/out, and the "why this number" audit drawer.
  */
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, LayoutDashboard, MessageCircle, ShieldCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useSearchParams } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
 import { PhoneFrame } from "@/components/shared/PhoneFrame";
 import { Button } from "@/components/ui/button";
-import { ChatHeader } from "@/components/chat/ChatHeader";
+import { ChatHeader, type AppTab } from "@/components/chat/ChatHeader";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChipRow } from "@/components/chat/ChipRow";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { AuditDrawer } from "@/components/chat/AuditDrawer";
 import { useSpeechOutput } from "@/components/chat/useVoice";
+import { t } from "@/lib/i18n";
 import { PersonaPicker } from "./PersonaPicker";
+import { PersonaSwitcher } from "./PersonaSwitcher";
+import { JudgePanel } from "./JudgePanel";
 import { chipsFor } from "./chips";
 import { useChatSession } from "./useChatSession";
+import { useSpaceLeads } from "./useSpaceLeads";
 import { CustomerDashboard } from "./dashboard";
 
-type AppTab = "chat" | "dashboard";
-
-/** Segmented Chat/Dashboard switch (Task 16) — the Dashboard tab is a
- * sibling view inside the same `/app` shell, not a route change, so the
- * session/persona/space context never has to re-provision. */
-function AppTabBar({ tab, onChange }: { tab: AppTab; onChange: (tab: AppTab) => void }) {
-  const tabs: { id: AppTab; label: string; icon: typeof MessageCircle }[] = [
-    { id: "chat", label: "Chat", icon: MessageCircle },
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  ];
-  return (
-    <div className="flex shrink-0 gap-1 border-b border-neutral-200 bg-neutral-0 px-2 pt-2" role="tablist">
-      {tabs.map(({ id, label, icon: Icon }) => {
-        const active = tab === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(id)}
-            className={cn(
-              "flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-t-sm border-b-2 px-3 text-body-sm font-medium transition-colors duration-[var(--motion-micro)] ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]",
-              active ? "border-structural-600 text-structural-700" : "border-transparent text-neutral-500 hover:text-neutral-700"
-            )}
-          >
-            <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
-            {label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+export type { AppTab };
 
 function ChatSkeleton() {
   return (
@@ -73,10 +44,21 @@ function ChatSkeleton() {
 }
 
 export default function CustomerChat() {
+  const [searchParams] = useSearchParams();
+  // Inside the /present stage the phone is iframed with `?embedded=1`; there
+  // the auto coachmark would overlay the greeting and the stage already has
+  // its own guided walkthrough, so suppress the auto-tour there.
+  const embedded = searchParams.get("embedded") === "1";
   const session = useChatSession();
+  const { count: leadCount, hasLeads } = useSpaceLeads(session.spaceId);
   const speech = useSpeechOutput();
   const [auditOpen, setAuditOpen] = useState(false);
   const [tab, setTab] = useState<AppTab>("chat");
+  // The blocking first-run picker (session.status === "picking") stays
+  // driven entirely by session state — this only controls the voluntary,
+  // dismissible "switch customer" reopen (requirement 7: never re-force the
+  // full sheet once a persona is already active).
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   // Speak each companion reply once, only after its stream closes — reading
   // half a sentence aloud mid-stream sounds broken, not conversational.
@@ -94,9 +76,31 @@ export default function CustomerChat() {
 
   const chips = session.persona ? chipsFor(session.persona.id, session.language) : [];
   const showChat = session.status === "ready";
+  const isBlockingPicker =
+    session.status === "picking" || session.status === "loading_roster" || session.status === "roster_error";
 
   return (
-    <div className="flex justify-center px-6 py-8">
+    <div
+      className={
+        embedded
+          ? "flex justify-center px-6 py-8"
+          : "flex flex-col items-center gap-6 px-6 py-8 lg:flex-row lg:items-start lg:justify-center"
+      }
+    >
+      {/* The judge's "toggle between customers" control (Fix 2) — outside the
+          phone entirely, never shown in the /present iframe (one persona per
+          stage there). Renders before the phone so it lands as the left
+          column on desktop and a horizontal strip above the phone on
+          narrow viewports. */}
+      {!embedded && (
+        <PersonaSwitcher
+          roster={session.roster}
+          activePersonaId={session.persona?.id ?? null}
+          language={session.language}
+          onPick={session.pickPersona}
+        />
+      )}
+
       <PhoneFrame headerTitle="IDBI Bank · WealthMitra" activeNav="wealthmitra">
         <div className="flex h-full flex-col">
           {showChat && session.persona ? (
@@ -109,10 +113,11 @@ export default function CustomerChat() {
                 speechSupported={speech.supported}
                 speechEnabled={speech.enabled}
                 onToggleSpeech={speech.toggle}
-                onOpenAudit={() => setAuditOpen(true)}
+                onSwitchPersona={() => setSwitcherOpen(true)}
+                tab={tab}
+                onTabChange={setTab}
+                autoTour={false}
               />
-
-              <AppTabBar tab={tab} onChange={setTab} />
 
               {tab === "chat" ? (
                 <>
@@ -125,20 +130,13 @@ export default function CustomerChat() {
                       sessionId={session.sessionId}
                       onSendMessage={session.sendMessage}
                       onOpenAudit={() => setAuditOpen(true)}
+                      language={session.language}
                     />
                   </div>
 
                   <div className="shrink-0 border-t border-neutral-200 bg-neutral-0">
                     <ChipRow chips={chips} onPick={session.sendMessage} disabled={session.sending} />
                     <ChatInput language={session.language} disabled={session.sending} onSend={session.sendMessage} />
-                    <button
-                      type="button"
-                      onClick={() => setAuditOpen(true)}
-                      className="flex min-h-11 w-full items-center gap-2 border-t border-neutral-200 px-4 text-left text-caption text-neutral-600 transition-colors duration-[var(--motion-micro)] ease-out hover:text-structural-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus-ring)]"
-                    >
-                      <ShieldCheck size={16} strokeWidth={1.75} className="shrink-0 text-structural-600" aria-hidden="true" />
-                      Every figure computed from your data · tap to see why
-                    </button>
                   </div>
                 </>
               ) : (
@@ -148,6 +146,7 @@ export default function CustomerChat() {
                       sessionId={session.sessionId}
                       spaceId={session.spaceId}
                       personaId={session.persona.id}
+                      language={session.language}
                     />
                   )}
                 </div>
@@ -158,12 +157,10 @@ export default function CustomerChat() {
               <span className="flex size-11 items-center justify-center rounded-full bg-danger-50 text-danger-600">
                 <AlertTriangle size={20} strokeWidth={1.75} />
               </span>
-              <p className="text-body-sm font-medium text-neutral-700">Couldn't start your conversation</p>
-              <p className="max-w-xs text-caption text-neutral-600">
-                WealthMitra couldn't reach the bank right now. Nothing was changed — try again.
-              </p>
+              <p className="text-body-sm font-medium text-neutral-700">{t(session.language, "chat.couldNotStart")}</p>
+              <p className="max-w-xs text-caption text-neutral-600">{t(session.language, "chat.couldNotStartDesc")}</p>
               <Button size="touch" variant="outline" onClick={session.retryProvision}>
-                Try again
+                {t(session.language, "chat.tryAgain")}
               </Button>
             </div>
           ) : (
@@ -172,16 +169,50 @@ export default function CustomerChat() {
         </div>
       </PhoneFrame>
 
+      {/* Judge/evaluator cockpit — audit trail + RM-desk jump. Judge-only
+          demo affordances, never part of what a real customer would see, so
+          it lives beside the phone rather than inside it, and never renders
+          in the /present iframe (one persona per stage there). */}
+      {!embedded && (
+        <JudgePanel
+          spaceId={session.spaceId}
+          sessionId={session.sessionId}
+          hasLeads={hasLeads}
+          leadCount={leadCount}
+          language={session.language}
+          onOpenAudit={() => setAuditOpen(true)}
+        />
+      )}
+
       <PersonaPicker
-        open={session.status === "picking" || session.status === "loading_roster" || session.status === "roster_error"}
+        open={isBlockingPicker}
         loading={session.rosterLoading}
         error={session.status === "roster_error"}
         roster={session.roster}
         onRetry={session.retryRoster}
         onPick={session.pickPersona}
+        mode="initial"
+        language={session.language}
       />
 
-      <AuditDrawer sessionId={session.sessionId} open={auditOpen} onOpenChange={setAuditOpen} />
+      {/* Voluntary switch: same picker, dismissible, opened from the header
+       * avatar — never blocks once a persona is already active. */}
+      <PersonaPicker
+        open={switcherOpen}
+        loading={session.rosterLoading}
+        error={session.status === "roster_error"}
+        roster={session.roster}
+        onRetry={session.retryRoster}
+        onPick={(id, lang) => {
+          session.pickPersona(id, lang);
+          setSwitcherOpen(false);
+        }}
+        mode="switch"
+        onDismiss={() => setSwitcherOpen(false)}
+        language={session.language}
+      />
+
+      <AuditDrawer sessionId={session.sessionId} open={auditOpen} onOpenChange={setAuditOpen} language={session.language} />
     </div>
   );
 }

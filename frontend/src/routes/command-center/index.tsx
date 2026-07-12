@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Database, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataState } from "@/components/shared/DataState";
 import { SectionHeader } from "@/components/shared/SectionHeader";
@@ -8,7 +8,6 @@ import { useDemoSpace } from "@/components/showcase/useDemoSpace";
 import { usePersonaRoster } from "@/components/showcase/personas";
 import { PersonaCard } from "@/components/showcase/PersonaCard";
 import { SurfaceLinksGrid } from "@/components/showcase/SurfaceLinksGrid";
-import { DisclosureTable } from "@/components/showcase/DisclosureTable";
 import { GuidedTour } from "@/components/showcase/GuidedTour";
 import { ResetDemoButton } from "@/components/showcase/ResetDemoButton";
 
@@ -119,8 +118,37 @@ export default function CommandCenter() {
         <SurfaceLinksGrid spaceId={spaceId} defaultPersonaId={selectedPersonaId} />
       </section>
 
-      {/* Honest disclosure */}
-      <DisclosureTable />
+      {/* What's real vs. pre-loaded for this demo */}
+      <section className="space-y-6">
+        <SectionHeader
+          eyebrow="Before you dive in"
+          title="What's real, and what's ready-made"
+          description="Two honest facts about this prototype — no fine print."
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-lg border border-success-300 bg-success-50 p-6">
+            <span className="inline-flex items-center gap-2 text-caption font-semibold uppercase tracking-wide text-success-700">
+              <CheckCircle2 size={16} strokeWidth={1.75} aria-hidden="true" />
+              Live and working
+            </span>
+            <p className="mt-3 text-body text-neutral-800">
+              The advisory conversation, every number it shows you, and the handoff to a human relationship
+              manager for complex products are all real — computed and routed live, right in front of you.
+            </p>
+          </div>
+          <div className="rounded-lg border border-structural-300 bg-structural-50 p-6">
+            <span className="inline-flex items-center gap-2 text-caption font-semibold uppercase tracking-wide text-structural-700">
+              <Database size={16} strokeWidth={1.75} aria-hidden="true" />
+              Pre-loaded for this demo
+            </span>
+            <p className="mt-3 text-body text-neutral-800">
+              Each customer's transaction history and Account Aggregator holdings are realistic sample data,
+              loaded in advance so you can explore instantly — there's no live bank connection in this
+              prototype.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Space utilities */}
       <section className="flex flex-col gap-3 border-t border-neutral-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
