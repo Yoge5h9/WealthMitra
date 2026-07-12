@@ -27,3 +27,7 @@ services:
         value: gemini
       - key: GEMINI_API_KEY
         sync: false
+      # Optional second key: the gateway fails over to it automatically when
+      # the primary key's quota is exhausted (429) or the key is revoked.
+      - key: GEMINI_API_KEY_2
+        sync: false

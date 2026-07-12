@@ -90,7 +90,7 @@ A missing key for whichever provider is active fails app startup immediately, wi
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 1. Click the button (or go to the [Render Dashboard](https://dashboard.render.com/blueprints) → **New Blueprint Instance**) and point it at this repo.
-2. Render reads `render.yaml`, builds the Docker image, and prompts you for **`GEMINI_API_KEY`** during setup (the only value it can't infer).
+2. Render reads `render.yaml`, builds the Docker image, and prompts you for **`GEMINI_API_KEY`** and (optional) **`GEMINI_API_KEY_2`** during setup — the second key is a quota-exhaustion fallback: when the primary key returns 429/401/403, the gateway rotates to it automatically and stays there.
 3. Wait for the build — first deploy takes a few minutes (Node + Python multi-stage build). Health check is `/api/health`.
 
 The deployed default is **`LLM_PROVIDER=gemini`** — `claude_cli` is a dev-machine-only provider and is never valid in a container. See `render.yaml` and `.env.example` for the full contract.

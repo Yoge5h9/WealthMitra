@@ -16,6 +16,7 @@ from app.gateway import (
     LLMRequest,
     MalformedResponseError,
     Message,
+    RateLimitError,
     ToolSpec,
 )
 from app.gateway.providers.anthropic import AnthropicProvider
@@ -29,11 +30,11 @@ CLI_ROUTING = {"intent_assist": "haiku", "nudge_copy": "haiku", "conversational"
 CLI_PRICING = {"haiku": {"input_per_mtok": 0.0, "output_per_mtok": 0.0},
                "sonnet": {"input_per_mtok": 0.0, "output_per_mtok": 0.0}}
 
-GEM_ROUTING = {"intent_assist": "gemini-2.5-flash", "nudge_copy": "gemini-2.5-flash",
-               "conversational": "gemini-2.5-pro", "lead_narrative": "gemini-2.5-pro",
-               "literacy": "gemini-2.5-pro"}
-GEM_PRICING = {"gemini-2.5-flash": {"input_per_mtok": 0.30, "output_per_mtok": 2.50},
-               "gemini-2.5-pro": {"input_per_mtok": 1.25, "output_per_mtok": 10.00}}
+GEM_ROUTING = {"intent_assist": "gemini-flash-lite-latest", "nudge_copy": "gemini-flash-lite-latest",
+               "conversational": "gemini-flash-latest", "lead_narrative": "gemini-flash-latest",
+               "literacy": "gemini-flash-latest"}
+GEM_PRICING = {"gemini-flash-latest": {"input_per_mtok": 1.50, "output_per_mtok": 9.00},
+               "gemini-flash-lite-latest": {"input_per_mtok": 0.25, "output_per_mtok": 1.50}}
 
 ANTH_ROUTING = {"intent_assist": "claude-haiku-4-5", "nudge_copy": "claude-haiku-4-5",
                 "conversational": "claude-sonnet-5", "lead_narrative": "claude-sonnet-5",
@@ -444,3 +445,78 @@ def test_stream_deltas_concatenate_exactly_to_final_text(pid, text):
     assert final is not None
     assert deltas and all(d for d in deltas)  # no empty/None deltas
     assert "".join(deltas) == final.text == text
+
+
+# --- gemini multi-key failover ---------------------------------------------
+
+class _ExhaustedGemModels:
+    """A key whose quota is spent — every call raises 429."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def generate_content(self, model, contents, config):
+        self.calls += 1
+        raise FakeErr(429)
+
+    def generate_content_stream(self, model, contents, config):
+        self.calls += 1
+        raise FakeErr(429)
+        yield  # pragma: no cover — makes this a generator, like the real SDK
+
+
+def _failover_provider():
+    primary = SimpleNamespace(models=_ExhaustedGemModels())
+    fallback = SimpleNamespace(models=FakeGemModels("text"))
+    prov = GeminiProvider(client=primary, pricing=GEM_PRICING, fallback_clients=(fallback,))
+    return prov, primary, fallback
+
+
+def test_gemini_quota_failover_complete():
+    prov, primary, fallback = _failover_provider()
+    resp = prov.complete(_text_req(), "gemini-flash-latest")
+    assert resp.text == "Hello there. How are you?"
+    assert primary.models.calls == 1
+    assert fallback.models.calls == 1
+
+
+def test_gemini_failover_is_sticky():
+    prov, primary, fallback = _failover_provider()
+    prov.complete(_text_req(), "gemini-flash-latest")
+    prov.complete(_text_req(), "gemini-flash-latest")
+    assert primary.models.calls == 1
+    assert fallback.models.calls == 2
+
+
+def test_gemini_quota_failover_stream():
+    prov, primary, fallback = _failover_provider()
+    events = list(prov.stream(_text_req(), "gemini-flash-latest"))
+    deltas = [e.delta for e in events if e.type == "delta"]
+    assert "".join(deltas) == "Hello there. How are you?"
+    assert events[-1].type == "final"
+    assert events[-1].response.text == "Hello there. How are you?"
+    assert primary.models.calls == 1
+
+
+def test_gemini_all_keys_exhausted_raises_rate_limit():
+    primary = SimpleNamespace(models=_ExhaustedGemModels())
+    fallback = SimpleNamespace(models=_ExhaustedGemModels())
+    prov = GeminiProvider(client=primary, pricing=GEM_PRICING, fallback_clients=(fallback,))
+    with pytest.raises(RateLimitError):
+        prov.complete(_text_req(), "gemini-flash-latest")
+    assert primary.models.calls == 1
+    assert fallback.models.calls == 1
+
+
+def test_gemini_auth_failure_fails_over():
+    class _RevokedGemModels(_ExhaustedGemModels):
+        def generate_content(self, model, contents, config):
+            self.calls += 1
+            raise FakeErr(403)
+
+    primary = SimpleNamespace(models=_RevokedGemModels())
+    fallback = SimpleNamespace(models=FakeGemModels("text"))
+    prov = GeminiProvider(client=primary, pricing=GEM_PRICING, fallback_clients=(fallback,))
+    resp = prov.complete(_text_req(), "gemini-flash-latest")
+    assert resp.text == "Hello there. How are you?"
+    assert primary.models.calls == 1

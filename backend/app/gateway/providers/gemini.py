@@ -5,6 +5,7 @@ objects. The SDK client is injected, so tests exercise the full mapping
 against a fake transport with no key and no network.
 """
 
+import base64
 import time
 import uuid
 from collections.abc import Iterator
@@ -13,8 +14,10 @@ from typing import Any
 from google.genai import types
 
 from app.gateway.contract import (
+    AuthError,
     LLMRequest,
     LLMResponse,
+    RateLimitError,
     StreamEvent,
     ToolCall,
     classify,
@@ -31,9 +34,25 @@ _MODE = {
 class GeminiProvider:
     name = "gemini"
 
-    def __init__(self, client: Any, pricing: Pricing):
-        self._client = client
+    def __init__(self, client: Any, pricing: Pricing, fallback_clients: tuple[Any, ...] = ()):
+        self._clients = [client, *fallback_clients]
+        self._active = 0
         self._pricing = pricing
+
+    @property
+    def _client(self) -> Any:
+        return self._clients[self._active]
+
+    def _failover(self, err: Exception) -> bool:
+        """Rotate to the next API key on quota/auth exhaustion.
+
+        The switch is sticky: once a key is burned, every later request starts
+        from the surviving key. Returns False when no keys remain.
+        """
+        if not isinstance(err, (RateLimitError, AuthError)) or self._active + 1 >= len(self._clients):
+            return False
+        self._active += 1
+        return True
 
     # -- request mapping ---------------------------------------------------
 
@@ -78,7 +97,12 @@ class GeminiProvider:
                 if m.content:
                     parts.append(types.Part.from_text(text=m.content))
                 for c in m.tool_calls:
-                    parts.append(types.Part(function_call=types.FunctionCall(name=c.name, args=c.arguments)))
+                    parts.append(
+                        types.Part(
+                            function_call=types.FunctionCall(name=c.name, args=c.arguments),
+                            thought_signature=base64.b64decode(c.thought_signature) if c.thought_signature else None,
+                        )
+                    )
                 contents.append(types.Content(role="model", parts=parts))
             else:
                 role = "model" if m.role == "assistant" else "user"
@@ -88,11 +112,18 @@ class GeminiProvider:
     # -- response mapping --------------------------------------------------
 
     @staticmethod
-    def _tool_call(fc: Any) -> ToolCall:
+    def _tool_call(part: Any) -> ToolCall:
+        fc = part.function_call
         args = fc.args
         if args is not None and not isinstance(args, dict):
             args = dict(args)
-        return ToolCall(id=f"call_{uuid.uuid4().hex[:12]}", name=fc.name, arguments=args or {})
+        sig = getattr(part, "thought_signature", None)
+        return ToolCall(
+            id=f"call_{uuid.uuid4().hex[:12]}",
+            name=fc.name,
+            arguments=args or {},
+            thought_signature=base64.b64encode(sig).decode() if sig else None,
+        )
 
     def _response(self, raw: Any, model: str, latency_ms: int) -> LLMResponse:
         text_parts: list[str] = []
@@ -102,9 +133,8 @@ class GeminiProvider:
             for part in (getattr(content, "parts", None) or []):
                 if getattr(part, "text", None):
                     text_parts.append(part.text)
-                fc = getattr(part, "function_call", None)
-                if fc is not None:
-                    tool_calls.append(self._tool_call(fc))
+                if getattr(part, "function_call", None) is not None:
+                    tool_calls.append(self._tool_call(part))
         usage = getattr(raw, "usage_metadata", None)
         in_tok = int(getattr(usage, "prompt_token_count", 0) or 0)
         out_tok = int(getattr(usage, "candidates_token_count", 0) or 0)
@@ -123,47 +153,55 @@ class GeminiProvider:
 
     def complete(self, req: LLMRequest, model: str) -> LLMResponse:
         t0 = time.perf_counter()
-        try:
-            raw = self._client.models.generate_content(model=model, contents=self._contents(req), config=self._config(req))
-        except Exception as e:  # noqa: BLE001 — translated below, re-raised if unrecognised
-            ge = classify(self.name, e)
-            if ge:
-                raise ge from e
-            raise
+        while True:
+            try:
+                raw = self._client.models.generate_content(model=model, contents=self._contents(req), config=self._config(req))
+                break
+            except Exception as e:  # noqa: BLE001 — translated below, re-raised if unrecognised
+                ge = classify(self.name, e)
+                if ge and self._failover(ge):
+                    continue
+                if ge:
+                    raise ge from e
+                raise
         return self._response(raw, model, int((time.perf_counter() - t0) * 1000))
 
     def stream(self, req: LLMRequest, model: str) -> Iterator[StreamEvent]:
         t0 = time.perf_counter()
-        try:
-            chunks = self._client.models.generate_content_stream(
-                model=model, contents=self._contents(req), config=self._config(req)
-            )
-        except Exception as e:  # noqa: BLE001
-            ge = classify(self.name, e)
-            if ge:
-                raise ge from e
-            raise
-
-        text_parts: list[str] = []
-        tool_calls: list[ToolCall] = []
-        in_tok = out_tok = 0
-        model_used = model
-        for chunk in chunks:
-            delta = getattr(chunk, "text", None)
-            if delta:
-                text_parts.append(delta)
-                yield StreamEvent(type="delta", delta=delta)
-            for cand in getattr(chunk, "candidates", None) or []:
-                content = getattr(cand, "content", None)
-                for part in (getattr(content, "parts", None) or []):
-                    fc = getattr(part, "function_call", None)
-                    if fc is not None:
-                        tool_calls.append(self._tool_call(fc))
-            usage = getattr(chunk, "usage_metadata", None)
-            if usage is not None:
-                in_tok = int(getattr(usage, "prompt_token_count", 0) or 0)
-                out_tok = int(getattr(usage, "candidates_token_count", 0) or 0)
-            model_used = getattr(chunk, "model_version", None) or model_used
+        while True:
+            text_parts: list[str] = []
+            tool_calls: list[ToolCall] = []
+            in_tok = out_tok = 0
+            model_used = model
+            emitted = False
+            try:
+                chunks = self._client.models.generate_content_stream(
+                    model=model, contents=self._contents(req), config=self._config(req)
+                )
+                for chunk in chunks:
+                    delta = getattr(chunk, "text", None)
+                    if delta:
+                        text_parts.append(delta)
+                        emitted = True
+                        yield StreamEvent(type="delta", delta=delta)
+                    for cand in getattr(chunk, "candidates", None) or []:
+                        content = getattr(cand, "content", None)
+                        for part in (getattr(content, "parts", None) or []):
+                            if getattr(part, "function_call", None) is not None:
+                                tool_calls.append(self._tool_call(part))
+                    usage = getattr(chunk, "usage_metadata", None)
+                    if usage is not None:
+                        in_tok = int(getattr(usage, "prompt_token_count", 0) or 0)
+                        out_tok = int(getattr(usage, "candidates_token_count", 0) or 0)
+                    model_used = getattr(chunk, "model_version", None) or model_used
+                break
+            except Exception as e:  # noqa: BLE001
+                ge = classify(self.name, e)
+                if ge and not emitted and self._failover(ge):
+                    continue
+                if ge:
+                    raise ge from e
+                raise
 
         final = LLMResponse(
             text="".join(text_parts) or None,

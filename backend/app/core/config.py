@@ -7,8 +7,22 @@ class Settings(BaseSettings):
 
     llm_provider: str = "claude_cli"
     gemini_api_key: str | None = None
+    gemini_api_key_2: str | None = None
     anthropic_api_key: str | None = None
     port: int = 8000
+
+    @property
+    def gemini_api_keys(self) -> list[str]:
+        """All configured Gemini keys, primary first.
+
+        GEMINI_API_KEY also accepts a comma-separated list; GEMINI_API_KEY_2
+        is appended after. Extra keys are quota-exhaustion fallbacks.
+        """
+        keys: list[str] = []
+        for raw in (self.gemini_api_key, self.gemini_api_key_2):
+            if raw:
+                keys.extend(k.strip() for k in raw.split(",") if k.strip())
+        return keys
 
     @model_validator(mode="after")
     def _require_key_for_active_provider(self) -> "Settings":
