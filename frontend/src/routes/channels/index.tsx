@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Clapperboard, HeartHandshake, Megaphone, SlidersHorizontal } from "lucide-react";
+import { Clapperboard, HeartHandshake, Languages, Megaphone, SlidersHorizontal } from "lucide-react";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { DataState } from "@/components/shared/DataState";
 import { cn } from "@/lib/utils";
@@ -122,9 +122,12 @@ export default function Channels() {
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-structural-100 text-structural-700"><SlidersHorizontal size={17} strokeWidth={1.75} aria-hidden="true" /></span>
           <div>
             <p className="text-caption font-semibold uppercase tracking-wide text-structural-700">Personalised communication plan · {selectedPersona?.name ?? "Customer"}</p>
+            <div className="mt-2 flex items-center gap-2 rounded-sm border border-structural-200 bg-neutral-0 px-3 py-2 text-body-sm text-neutral-800">
+              <Languages size={16} strokeWidth={1.75} className="shrink-0 text-structural-700" aria-hidden="true" />
+              <span><strong>Preferred language first:</strong> {selectedPersona?.language === "hi" ? "Hindi" : selectedPersona?.language === "gu" ? "Gujarati" : "English"}. Every channel preview begins in this language.</span>
+            </div>
             <p className="mt-1 text-body-sm text-neutral-800">{experience.channels.rationale}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-caption">
-              <span className="rounded-full bg-neutral-0 px-2.5 py-1 text-neutral-700"><strong>Language:</strong> {selectedPersona?.language === "hi" ? "Hindi" : selectedPersona?.language === "gu" ? "Gujarati" : "English"}</span>
               <span className="rounded-full bg-neutral-0 px-2.5 py-1 text-neutral-700"><strong>Best fit:</strong> {experience.channels.preference}</span>
               <span className="rounded-full bg-neutral-0 px-2.5 py-1 text-neutral-700"><strong>Cadence:</strong> {experience.channels.cadence}</span>
             </div>
