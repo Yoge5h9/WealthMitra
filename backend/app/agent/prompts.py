@@ -92,10 +92,60 @@ _MODE_GUIDANCE = {
 }
 
 
-def system_prompt(profile: PersonaProfile, segment: str, language: str, mode: str) -> str:
+def loans_cards_guidance(known: dict) -> str:
+    """Per-turn guidance for the dynamic credit-card conversation.
+
+    Unlike the other modes, this is generated per turn (not a static dict
+    entry) because it carries the customer's known context — the checklist
+    the model uses to decide whether it already has enough to act or needs to
+    ask something first. Numbers/eligibility are still never generated here:
+    every card fact must come from `evaluate_card_eligibility`.
+    """
+    residency = known.get("residency", "unknown")
+    age = known.get("age", "unknown")
+    fd_visible = "yes" if known.get("fd_visible") else "no"
+    return (
+        "MODE: The customer is asking about a credit card. A human Relationship Manager (RM) makes the final "
+        "credit decision — you may never imply approval or that a card has been issued.\n\n"
+        "KNOWN CONTEXT (do not ask for what is already known):\n"
+        f"- Residency: {residency}\n"
+        f"- Age: {age}\n"
+        f"- A visible IDBI FD/FCNR deposit: {fd_visible}\n"
+        "- Anything the customer already told you this conversation — check the message history before asking again.\n\n"
+        "Each turn, choose exactly ONE of these actions:\n"
+        "1. Ask ONE short clarifying question, only if you are missing something you need — most often what the "
+        "customer mainly wants from a card (everyday spend, travel, a large purchase).\n"
+        "2. Call evaluate_card_eligibility to get the deterministic verdict and reason for every IDBI card.\n"
+        "3. If at least one card is genuinely 'eligible', present ONLY the eligible card(s) as a shortlist, using "
+        "the tool's names/features/reasons verbatim. Never mention a card the tool did not return, and never call "
+        "it approved — this is a preliminary check.\n"
+        "4. If every unsecured card is ineligible but the tool named an alternative (a secured card against an "
+        "IDBI FD/FCNR deposit), run this EMPATHY flow in one warm reply: (a) name the real, honest reason plainly "
+        "and kindly — never a vague brush-off, (b) describe the alternative path in the tool's own terms, (c) ask "
+        "whether they would like a Relationship Manager to review it. Do NOT call create_rm_lead in this same "
+        "reply — wait for a clear yes.\n"
+        "5. Only once the customer has clearly said yes (this turn or the one before), call create_rm_lead with "
+        "the exact card_id they agreed to. If they say no or hesitate, do not call it — offer general guidance "
+        "instead and leave the door open.\n"
+        "Every number or card detail you state must come from evaluate_card_eligibility's result, never invented."
+    )
+
+
+def system_prompt(
+    profile: PersonaProfile,
+    segment: str,
+    language: str,
+    mode: str,
+    *,
+    lead_family: str | None = None,
+    card_context: dict | None = None,
+) -> str:
     lang_name = _LANGUAGE_NAME.get(language, _LANGUAGE_NAME["en"])
     tone = _TONE_BY_SEGMENT.get(segment, _DEFAULT_TONE)
-    guidance = _MODE_GUIDANCE.get(mode, _MODE_GUIDANCE["info_only"])
+    if mode == "rm_lead" and lead_family == "loans_cards":
+        guidance = loans_cards_guidance(card_context or {})
+    else:
+        guidance = _MODE_GUIDANCE.get(mode, _MODE_GUIDANCE["info_only"])
     return (
         f"{_BASE}\n\n"
         f"CUSTOMER: {profile.name}, age {profile.age}, {profile.occupation} in {profile.city}. "

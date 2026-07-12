@@ -177,59 +177,161 @@ def test_rm_lead_tools_exclude_request_execution(space):
     assert "create_rm_lead" in names
 
 
-def test_ineligible_card_application_never_creates_an_rm_lead(space):
+def test_ineligible_card_application_reaches_dynamic_loop_and_creates_no_lead(space):
+    # Named-card "apply" phrasing still routes to rm_lead/loans_cards, but now
+    # runs through the same dynamic loop as any other card query: the model
+    # must call evaluate_card_eligibility itself rather than the turn being
+    # short-circuited before any LLM call.
     sid = make_session(space, "arjun")
-    frames, fake = run(space, sid, "I want to apply for Aspire card", [])
-
-    assert fake.requests == []
+    frames, fake = run(space, sid, "I want to apply for Aspire card", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text=(
+            "The Aspire Platinum is set up for India-resident profiles, so as an NRI it wouldn't fit you — I "
+            "don't want to set the wrong expectation. The Imperium Platinum, secured against an IDBI FD/FCNR "
+            "deposit, is a real alternative. Would you like a Relationship Manager to review that path?"
+        )),
+    ])
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "rm_lead"
     assert space.leads == []
-    card = next(card for card in cards(frames) if card["card_type"] == "credit_product_detail")
-    assert card["product"]["eligibility"]["status"] == "ineligible"
+    names = {t.name for t in fake.requests[0].tools}
+    assert "evaluate_card_eligibility" in names
+    assert "get_eligible_products" not in names
+    text = reply_text(frames)
+    assert "imperium" in text.lower()
 
 
 def test_preeligible_card_application_creates_exactly_one_rm_lead(space):
     sid = make_session(space, "ravi")
-    frames, _ = run(space, sid, "I want to apply for Aspire card", [resp(text="An RM will review your application.")])
+    frames, _ = run(space, sid, "I want to apply for Aspire card", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(tool_calls=[call("create_rm_lead", {"trigger_utterance": "apply for Aspire card", "card_id": "idbi_aspire_platinum"})]),
+        resp(text="Done — an RM will review your Aspire Platinum application. This is not an approval."),
+    ])
 
     assert len(space.leads) == 1
     assert space.leads[0].family == "loans_cards"
-    assert space.leads[0].suitability["recommended_shelf"] == ["IDBI Aspire Platinum Credit Card"]
+    assert space.leads[0].tag == "standard"
     routed = next(card for card in cards(frames) if card["card_type"] == "routed_to_rm")
-    assert [offer["id"] for offer in routed["recommendations"]] == ["idbi_aspire_platinum"]
+    assert routed["lead_id"] == space.leads[0].lead_id
 
 
-def test_generic_card_journey_discovers_need_prechecks_then_hands_off_after_yes(space):
-    sid = make_session(space, "priya")
+# --- mode: rm_lead / loans_cards family (the dynamic card conversation) -----
 
-    discovery, discovery_gateway = run(space, sid, "I want a card", [])
-    assert discovery_gateway.requests == []
+
+def test_card_query_with_unknown_need_asks_one_clarifying_question(space):
+    sid = make_session(space, "ravi")
+    frames, fake = run(space, sid, "I want a credit card", [
+        resp(text="Happy to help — what matters most to you: everyday rewards, travel, or a big purchase?"),
+    ])
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "rm_lead"
     assert space.leads == []
-    assert "What matters most" in reply_text(discovery)
-    assert space.sessions[sid]["pending_credit"]["stage"] == "need"
-
-    shortlist, shortlist_gateway = run(space, sid, "Everyday rewards", [])
-    assert shortlist_gateway.requests == []
-    assert space.leads == []
-    product = next(card for card in cards(shortlist) if card["card_type"] == "credit_product_detail")
-    assert product["product"]["eligibility"]["status"] == "eligible"
-    assert space.sessions[sid]["pending_credit"]["stage"] == "rm_confirmation"
-
-    handoff, handoff_gateway = run(space, sid, "Yes", [])
-    assert handoff_gateway.requests == []
-    assert len(space.leads) == 1
-    assert space.leads[0].family == "loans_cards"
-    assert next(card for card in cards(handoff) if card["card_type"] == "routed_to_rm")["lead_id"] == space.leads[0].lead_id
-
-
-def test_generic_card_journey_never_creates_a_lead_when_customer_declines(space):
-    sid = make_session(space, "priya")
-    run(space, sid, "I want a card", [])
-    run(space, sid, "Travel", [])
-    declined, _ = run(space, sid, "No", [])
-
-    assert space.leads == []
-    assert "have not sent an RM lead" in reply_text(declined)
     assert "pending_credit" not in space.sessions[sid]
+    assert reply_text(frames).strip().endswith("?")
+    names = {t.name for t in fake.requests[0].tools}
+    assert "evaluate_card_eligibility" in names
+    assert "get_eligible_products" not in names
+
+
+def test_nri_card_query_runs_empathy_flow_with_alternative_and_creates_no_lead(space):
+    sid = make_session(space, "arjun")
+    frames, fake = run(space, sid, "which credit card should I get", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text=(
+            "Those cards are set up for India-resident profiles, so as an NRI they wouldn't fit you — I don't "
+            "want to set the wrong expectation. There is a real alternative: the IDBI Imperium Platinum secured "
+            "against an IDBI FD/FCNR deposit. Would you like a Relationship Manager to review that path for you?"
+        )),
+    ])
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "rm_lead"
+    assert space.leads == []
+    text = reply_text(frames).lower()
+    assert "resident" in text or "nri" in text
+    assert "imperium" in text
+    assert "relationship manager" in text or " rm " in f" {text} "
+    assert space.sessions[sid]["card_mode_open"] is True
+    verdicts = fake.requests[0]
+    assert {t.name for t in verdicts.tools} == {t.name for t in
+        __import__("app.agent.tools", fromlist=["tools_for_mode"]).tools_for_mode("rm_lead", family="loans_cards")}
+
+
+def test_nri_card_consent_on_the_next_turn_creates_exactly_one_exploratory_lead(space):
+    sid = make_session(space, "arjun")
+    run(space, sid, "which credit card should I get", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text="Those unsecured cards need India residency, so they wouldn't fit you. The Imperium Platinum, "
+                  "secured against an IDBI FD/FCNR deposit, is a real alternative — want an RM to review it?"),
+    ])
+    assert space.sessions[sid]["card_mode_open"] is True
+
+    frames, fake = run(space, sid, "Yes please", [
+        resp(tool_calls=[call("create_rm_lead", {"trigger_utterance": "Imperium secured card, NRI", "card_id": "idbi_imperium_platinum"})]),
+        resp(text="Done — an RM will review the Imperium Platinum secured-card path with you. This is not an approval."),
+    ])
+
+    assert len(space.leads) == 1
+    lead = space.leads[0]
+    assert lead.family == "loans_cards"
+    assert lead.tag == "exploratory_not_yet_eligible"
+    assert lead.eligibility_context["card_id"] == "idbi_imperium_platinum"
+    assert "not an approval" in reply_text(frames).lower()
+    # a single continuation turn is consumed; the flag never lingers open
+    assert space.sessions[sid].get("card_mode_open") is not True
+    # the "yes" follow-up reused the SAME card toolset, not the info_only default
+    names = {t.name for t in fake.requests[0].tools}
+    assert "create_rm_lead" in names and "evaluate_card_eligibility" in names
+
+
+def test_nri_card_decline_on_the_next_turn_creates_no_lead(space):
+    sid = make_session(space, "arjun")
+    run(space, sid, "which credit card should I get", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text="Those unsecured cards need India residency, so they wouldn't fit you. The Imperium Platinum, "
+                  "secured against an IDBI FD/FCNR deposit, is a real alternative — want an RM to review it?"),
+    ])
+
+    frames, fake = run(space, sid, "No thanks", [
+        resp(text="No problem — happy to help with anything else about your accounts whenever you're ready."),
+    ])
+
+    assert space.leads == []
+    assert space.sessions[sid].get("card_mode_open") is not True
+
+
+def test_resident_eligible_card_query_shortlist_then_consent_creates_one_standard_lead(space):
+    sid = make_session(space, "priya")
+    _, fake1 = run(space, sid, "I want a credit card, mainly for everyday rewards", [
+        resp(tool_calls=[call("evaluate_card_eligibility")]),
+        resp(text="Based on your profile, the IDBI Aspire Platinum is a preliminary match for everyday rewards. "
+                  "This is not an approval. Would you like an RM to review it?"),
+    ])
+    assert space.leads == []
+    assert space.sessions[sid]["card_mode_open"] is True
+    names = {t.name for t in fake1.requests[0].tools}
+    assert "get_eligible_products" not in names  # never the investment shelf in card mode
+
+    frames2, _ = run(space, sid, "Yes", [
+        resp(tool_calls=[call("create_rm_lead", {"trigger_utterance": "Aspire, everyday rewards", "card_id": "idbi_aspire_platinum"})]),
+        resp(text="Done — an RM will review the Aspire Platinum application with you."),
+    ])
+    assert len(space.leads) == 1
+    lead = space.leads[0]
+    assert lead.tag == "standard"
+    assert lead.family == "loans_cards"
+    routed = next(c for c in cards(frames2) if c["card_type"] == "routed_to_rm")
+    assert routed["lead_id"] == lead.lead_id
+
+
+def test_distress_persona_card_query_suppresses_selling_no_shortlist_no_lead(space):
+    sid = make_session(space, "vikram")
+    frames, fake = run(space, sid, "which credit card should I get", [
+        resp(text="Let's first get your cash-flow steady before we talk about a new card."),
+    ])
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "distress_suppress"
+    assert space.leads == []
+    names = {t.name for t in fake.requests[0].tools}
+    assert names.isdisjoint({"evaluate_card_eligibility", "create_rm_lead"})
+    assert [c["card_type"] for c in cards(frames)] == ["distress_support"]
+    assert "card_mode_open" not in space.sessions[sid]
 
 
 # --- mode: distress_suppress ------------------------------------------------

@@ -23,12 +23,21 @@ from collections.abc import Callable, Iterator
 from datetime import datetime, timezone
 
 from app.analytics import AnalyticsEngine
-from app.catalogue import eligible_shelf, evaluate_eligibility, offer_payload, recommendations_for, resolve_offer
+from app.catalogue import (
+    card_metrics_from_external,
+    eligible_shelf,
+    evaluate_card_eligibility,
+    evaluate_eligibility,
+    offer_payload,
+    recommendations_for,
+    resolve_offer,
+)
 from app.core import audit, events
 from app.core.spaces import Space
-from app.domain.models import AuditEntry, LeadPacket, Metric, PersonaProfile, Product
+from app.domain.models import AuditEntry, LeadPacket, Metric, PersonaExternal, PersonaProfile, Product
 from app.gateway.contract import LLMRequest, LLMResponse, Message, TaskClass
-from app.routing import build_lead_packet, classify_intent, decide, is_generic_card_phrase
+from app.routing import Route, build_lead_packet, classify_intent, decide
+from app.routing.leads import tag_for_card_verdict
 
 from . import guardrails, prompts, tools
 from .tools import ComplianceError, ToolContext
@@ -109,41 +118,31 @@ class Orchestrator:
         band = str(metrics["risk_band"].value)
         surplus = float(metrics["monthly_surplus"].value)
 
-        # Credit-card discovery is a deliberately small state machine. A
-        # generic "I want a card" must not manufacture an RM lead from an
-        # LLM sentence: first understand the use case, run the catalogued
-        # pre-eligibility check, then accept an explicit RM hand-off.
-        pending_credit = state.get("pending_credit")
-        if pending_credit:
-            stage = pending_credit.get("stage")
-            if stage == "need":
-                if _NEGATIVE.match(message):
-                    yield from self._credit_cancelled_turn(space, session_id, state, message)
-                else:
-                    yield from self._credit_shortlist_turn(space, session_id, state, profile, message, metrics)
-                return
-            if stage == "rm_confirmation":
-                if _AFFIRMATIVE.match(message) or "apply" in message.lower():
-                    yield from self._credit_rm_confirmation_turn(
-                        space, session_id, state, persona_id, profile, message, metrics, segment, band, surplus
-                    )
-                elif _NEGATIVE.match(message):
-                    yield from self._credit_cancelled_turn(space, session_id, state, message)
-                else:
-                    yield from self._credit_rm_clarify_turn(space, session_id, state, message)
-                return
-
         intent = classify_intent(message, lang)
         named_offer = resolve_offer(message)
         if named_offer is not None and intent == "credit_product_info":
             yield from self._credit_product_turn(space, session_id, state, profile, message, named_offer, metrics)
             return
-        if intent == "loan_card_query" and named_offer is None and is_generic_card_phrase(message):
-            yield from self._credit_need_turn(space, session_id, state, message)
-            return
 
         product_ctx = self._representative_product(intent, segment, band, surplus)
         route = decide(intent, flags, product_ctx)
+
+        # A "yes"/"no" reply to a card conversation that ended last turn
+        # without a lead (a clarifying question still open, or the empathy
+        # flow awaiting consent) is not something `classify_intent` can see —
+        # "yes" alone classifies as `other`. This is a narrow, one-turn-only
+        # continuation of the SAME deterministic gate result, never a second
+        # scripted flow: distress always still wins, and the flag is consumed
+        # (popped) whether or not it ends up being used this turn.
+        continuing_card = state.pop("card_mode_open", False) and bool(
+            _AFFIRMATIVE.match(message.strip()) or _NEGATIVE.match(message.strip())
+        )
+        if continuing_card and route.path != "distress_suppress":
+            route = Route(
+                path="rm_lead", lead_family="loans_cards",
+                reasons=["card_conversation_continuation", f"original_intent:{intent}"],
+            )
+
         mode = route.path
         self._audit_routing(space, session_id, intent, flags, route)
 
@@ -152,17 +151,24 @@ class Orchestrator:
         ctx = ToolContext(space, persona_id, session_id, mode, engine=self.engine, now=self.now)
         ctx._metrics = metrics
 
+        card_context = None
         if mode == "rm_lead":
             family = route.lead_family or "investment_insurance"
-            offer_recommendations = recommendations_for(
-                profile, {key: metric.value for key, metric in metrics.items()}, family=family, message=message
-            ) if family == "loans_cards" or "insurance" in message.lower() else []
-            if family == "loans_cards" and not offer_recommendations:
-                yield from self._credit_not_eligible_turn(space, session_id, state, profile, message, named_offer, metrics)
-                return
-            ctx.built_lead = self._build_lead(
-                space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations
-            )
+            ctx.lead_family = family
+            if family == "loans_cards":
+                card_context = self._card_context(profile, persona.external)
+                ctx.card_lead_builder = self._make_card_lead_builder(
+                    space, session_id, persona_id, metrics, segment, band, surplus
+                )
+            else:
+                offer_recommendations = (
+                    recommendations_for(profile, {key: metric.value for key, metric in metrics.items()},
+                                        family=family, message=message)
+                    if "insurance" in message.lower() else []
+                )
+                ctx.built_lead = self._build_lead(
+                    space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations
+                )
 
         # classify_intent already ran deterministically above the routing gate;
         # a literacy/definition question always lands in info_only (it is
@@ -170,8 +176,11 @@ class Orchestrator:
         # routing.engine.decide) so this never touches the compliance modes.
         is_literacy = intent == "literacy" and mode == "info_only"
         task_class = "literacy" if is_literacy else _TASK_CLASS[mode]
-        messages = self._build_messages(profile, segment, lang, mode, state, message, literacy=is_literacy)
-        toolspecs = tools.literacy_toolspecs() if is_literacy else tools.tools_for_mode(mode)
+        messages = self._build_messages(
+            profile, segment, lang, mode, state, message, literacy=is_literacy,
+            lead_family=route.lead_family, card_context=card_context,
+        )
+        toolspecs = tools.literacy_toolspecs() if is_literacy else tools.tools_for_mode(mode, family=route.lead_family)
         final_text = self._tool_loop(space, session_id, ctx, messages, toolspecs, task_class)
 
         final_text, audit_ref = self._guard(
@@ -179,6 +188,10 @@ class Orchestrator:
         )
 
         self._append_history(state, message, final_text)
+
+        if mode == "rm_lead" and route.lead_family == "loans_cards":
+            declined = continuing_card and _NEGATIVE.match(message.strip())
+            state["card_mode_open"] = ctx.built_lead is None and not declined
 
         yield {"type": "avatar", "state": _AVATAR_END[mode]}
         for chunk in _chunks(final_text):
@@ -209,12 +222,49 @@ class Orchestrator:
             return None
         return next((p for p in shelf if p.tag == "vanilla"), None)
 
-    def _build_messages(self, profile, segment, lang, mode, state, message, *, literacy: bool) -> list[Message]:
+    def _card_context(self, profile: PersonaProfile, external: PersonaExternal) -> dict:
+        """The known-facts checklist handed to the loans_cards prompt each
+        turn. `fd_visible` mirrors the SAME connected-holdings gate as
+        `evaluate_card_eligibility` itself — it only ever reflects a
+        currently-visible/consented deposit, never an un-connected one.
+        """
+        card_metrics = card_metrics_from_external(external)
+        verdicts = evaluate_card_eligibility(profile, card_metrics)
+        imperium = next((v for v in verdicts if v["card_id"] == "idbi_imperium_platinum"), None)
+        return {
+            "residency": "NRI" if profile.segment == "nri" else "India resident",
+            "age": profile.age,
+            "fd_visible": bool(imperium and imperium["status"] == "eligible"),
+        }
+
+    def _make_card_lead_builder(self, space, session_id, persona_id, metrics, segment, band, surplus):
+        """A closure bound for exactly this turn's loans_cards conversation;
+        `create_rm_lead`'s card branch calls it with the customer's chosen
+        card_id, a trigger utterance, and the verdict it already looked up —
+        this is where the exploratory tag gets decided, deterministically,
+        from that verdict's status alone.
+        """
+        def build(card_id: str, trigger_utterance: str, verdict: dict) -> LeadPacket:
+            tag = tag_for_card_verdict(verdict["status"])
+            return self._build_lead(
+                space, session_id, persona_id, trigger_utterance, "loans_cards",
+                metrics, segment, band, surplus, offer_recommendations=[verdict],
+                tag=tag,
+                eligibility_context={"card_id": card_id, "status": verdict["status"], "reason": verdict.get("reason")},
+            )
+        return build
+
+    def _build_messages(
+        self, profile, segment, lang, mode, state, message, *, literacy: bool,
+        lead_family: str | None = None, card_context: dict | None = None,
+    ) -> list[Message]:
         if literacy:
             system_content = prompts.literacy_system_prompt(profile, segment, lang)
             window = LITERACY_HISTORY_WINDOW
         else:
-            system_content = prompts.system_prompt(profile, segment, lang, mode)
+            system_content = prompts.system_prompt(
+                profile, segment, lang, mode, lead_family=lead_family, card_context=card_context
+            )
             window = HISTORY_LIMIT
         msgs = [Message(role="system", content=system_content)]
         for h in state.get("history", [])[-window:]:
@@ -284,7 +334,10 @@ class Orchestrator:
 
     # -- lead construction -------------------------------------------------
 
-    def _build_lead(self, space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations) -> LeadPacket:
+    def _build_lead(
+        self, space, session_id, persona_id, message, family, metrics, segment, band, surplus, offer_recommendations,
+        *, tag: str = "standard", eligibility_context: dict | None = None,
+    ) -> LeadPacket:
         persona = space.personas[persona_id]
         profile: PersonaProfile = persona.profile
         ext = persona.external
@@ -301,7 +354,8 @@ class Orchestrator:
         }
         shelf = eligible_shelf(segment, band, monthly_surplus=surplus, is_affluent_or_hni=segment in _AFFLUENT_SEGMENTS)
         lead = build_lead_packet(
-            profile, lead_metrics, shelf, message, family, seq=len(space.leads) + 1, now=self.now()
+            profile, lead_metrics, shelf, message, family, seq=len(space.leads) + 1, now=self.now(),
+            tag=tag, eligibility_context=eligibility_context,
         )
         # Lead consent must reflect the session's live AA-consent state (as
         # captured by POST /api/aa/consent), not build_lead_packet's static
@@ -349,109 +403,6 @@ class Orchestrator:
         for chunk in _chunks(text):
             yield {"type": "token", "text": chunk}
         yield {"type": "card", "card": {"card_type": "credit_product_detail", "product": payload}}
-        yield {"type": "done", "audit_ref": ref}
-
-    def _credit_not_eligible_turn(self, space, session_id, state, profile, message, offer, metrics):
-        if offer is not None:
-            eligibility = evaluate_eligibility(profile, {key: metric.value for key, metric in metrics.items()}, offer)
-            payload = offer_payload(offer, eligibility)
-            text = f"I can explain {offer.name}, but I won't send it to an RM yet. {eligibility['reasons'][0]}"
-            card = {"card_type": "credit_product_detail", "product": payload}
-        else:
-            text = "I need a little more verified profile information before I can shortlist a credit product or involve an RM."
-            card = {"card_type": "credit_eligibility_result", "status": "needs_more_data", "message": text}
-        ref = self._audit_static_credit(space, session_id, "credit_preeligibility_stopped", offer, card.get("product", {}).get("eligibility", {}))
-        self._append_history(state, message, text)
-        yield {"type": "avatar", "state": "speaking"}
-        for chunk in _chunks(text):
-            yield {"type": "token", "text": chunk}
-        yield {"type": "card", "card": card}
-        yield {"type": "done", "audit_ref": ref}
-
-    def _credit_need_turn(self, space, session_id, state, message):
-        state["pending_credit"] = {"stage": "need", "initial_message": message}
-        text = (
-            "I can shortlist an IDBI credit card for you. What matters most: everyday rewards, travel, "
-            "or a large purchase? I’ll use your recorded profile for a preliminary eligibility check before "
-            "asking an RM to review anything."
-        )
-        ref = self._audit_static_credit(space, session_id, "credit_need_discovery", None, {})
-        self._append_history(state, message, text)
-        yield {"type": "avatar", "state": "speaking"}
-        for chunk in _chunks(text):
-            yield {"type": "token", "text": chunk}
-        yield {"type": "done", "audit_ref": ref}
-
-    def _credit_shortlist_turn(self, space, session_id, state, profile, message, metrics):
-        pending = state.get("pending_credit", {})
-        initial_message = str(pending.get("initial_message", "credit card"))
-        offer_recommendations = recommendations_for(
-            profile,
-            {key: metric.value for key, metric in metrics.items()},
-            family="loans_cards",
-            message=f"{initial_message} {message}",
-        )
-        if not offer_recommendations:
-            state.pop("pending_credit", None)
-            yield from self._credit_not_eligible_turn(space, session_id, state, profile, message, None, metrics)
-            return
-
-        product = offer_recommendations[0]
-        state["pending_credit"] = {
-            "stage": "rm_confirmation",
-            "initial_message": initial_message,
-            "need": message,
-            "recommendations": offer_recommendations,
-        }
-        text = (
-            f"Based on your recorded profile and your focus on {message}, {product['name']} is a preliminary match. "
-            f"{product['eligibility']['reasons'][0]} This is not an approval. Would you like me to send this "
-            "shortlist to an IDBI RM for a document and final eligibility review?"
-        )
-        ref = self._audit_static_credit(space, session_id, "credit_preeligibility_shortlist", None, product["eligibility"])
-        self._append_history(state, message, text)
-        yield {"type": "avatar", "state": "speaking"}
-        for chunk in _chunks(text):
-            yield {"type": "token", "text": chunk}
-        yield {"type": "card", "card": {"card_type": "credit_product_detail", "product": product}}
-        yield {"type": "done", "audit_ref": ref}
-
-    def _credit_rm_confirmation_turn(self, space, session_id, state, persona_id, profile, message, metrics, segment, band, surplus):
-        pending = state.pop("pending_credit", {})
-        offer_recommendations = list(pending.get("recommendations", []))
-        trigger = f"{pending.get('initial_message', 'Credit card request')} — need: {pending.get('need', 'not stated')}"
-        lead = self._build_lead(
-            space, session_id, persona_id, trigger, "loans_cards", metrics, segment, band, surplus, offer_recommendations
-        )
-        text = (
-            "Done — your preliminary shortlist and recorded profile details are now in an RM lead packet. "
-            "An IDBI Relationship Manager will review documents, final eligibility, and the card terms with you."
-        )
-        ref = self._audit_static_credit(space, session_id, "credit_rm_handoff_confirmed", None, {"status": "preeligible"})
-        self._append_history(state, message, text)
-        yield {"type": "avatar", "state": "speaking"}
-        for chunk in _chunks(text):
-            yield {"type": "token", "text": chunk}
-        yield {"type": "card", "card": self._rm_lead_card(lead)}
-        yield {"type": "done", "audit_ref": ref}
-
-    def _credit_rm_clarify_turn(self, space, session_id, state, message):
-        text = "I have the preliminary shortlist ready. Reply Yes to ask an IDBI RM to review it, or No to keep exploring on your own."
-        ref = self._audit_static_credit(space, session_id, "credit_rm_confirmation_clarified", None, {})
-        self._append_history(state, message, text)
-        yield {"type": "avatar", "state": "speaking"}
-        for chunk in _chunks(text):
-            yield {"type": "token", "text": chunk}
-        yield {"type": "done", "audit_ref": ref}
-
-    def _credit_cancelled_turn(self, space, session_id, state, message):
-        state.pop("pending_credit", None)
-        text = "No problem — I have not sent an RM lead. You can ask about a card whenever you are ready."
-        ref = self._audit_static_credit(space, session_id, "credit_rm_handoff_declined", None, {})
-        self._append_history(state, message, text)
-        yield {"type": "avatar", "state": "speaking"}
-        for chunk in _chunks(text):
-            yield {"type": "token", "text": chunk}
         yield {"type": "done", "audit_ref": ref}
 
     @staticmethod
@@ -503,6 +454,7 @@ class Orchestrator:
             "card_type": "routed_to_rm",
             "lead_id": lead.lead_id,
             "family": lead.family,
+            "tag": lead.tag,
             "priority_score": lead.priority_score,
             "next_best_action": lead.next_best_action,
             "recommendations": lead.suitability.get("offer_recommendations", []),
