@@ -1,9 +1,21 @@
 from __future__ import annotations
 
-from app.catalogue.recommendations import evaluate_eligibility, recommendations_for, resolve_offer
+from app.catalogue.recommendations import (
+    evaluate_card_eligibility,
+    evaluate_eligibility,
+    recommendations_for,
+    resolve_offer,
+)
 from app.domain.models import PersonaProfile
 from app.routing.engine import decide
 from app.routing.intents import classify_intent
+
+UNSECURED_CARD_IDS = [
+    "idbi_aspire_platinum",
+    "idbi_royale_signature",
+    "idbi_euphoria_world",
+    "idbi_winnings",
+]
 
 
 def profile(*, dependents: int = 0) -> PersonaProfile:
@@ -71,3 +83,60 @@ def test_insurance_offer_is_partner_labeled_and_rm_only() -> None:
 
 def test_distress_still_overrides_credit_intent() -> None:
     assert decide("loan_card_query", ["emi_stressed"], None).path == "distress_suppress"
+
+
+def test_resident_salaried_is_eligible_for_aspire_and_royale() -> None:
+    resident = profile().model_copy(update={"age": 28})
+
+    results = {r["card_id"]: r for r in evaluate_card_eligibility(resident)}
+
+    assert results["idbi_aspire_platinum"]["status"] == "eligible"
+    assert results["idbi_royale_signature"]["status"] == "eligible"
+    assert results["idbi_aspire_platinum"]["reason"]
+    assert results["idbi_royale_signature"]["reason"]
+
+
+def test_nri_without_idbi_fd_is_ineligible_for_unsecured_cards_with_imperium_alternative() -> None:
+    nri = profile().model_copy(update={"segment": "nri", "city": "Dubai", "age": 35})
+    # Shaped like data/synthetic/arjun.json: an external (non-IDBI) NRE FD only.
+    metrics = {
+        "external_holdings": [
+            {"id": "hold-arjun-1", "type": "FD", "institution": "ICICI NRE", "amount": 700000, "rate": 7.0}
+        ]
+    }
+
+    results = {r["card_id"]: r for r in evaluate_card_eligibility(nri, metrics)}
+
+    for card_id in UNSECURED_CARD_IDS:
+        assert results[card_id]["status"] == "ineligible"
+        assert "NRI" in results[card_id]["reason"]
+        assert results[card_id]["alternative"] is not None
+        assert results[card_id]["alternative"]["card_id"] == "idbi_imperium_platinum"
+
+    assert results["idbi_imperium_platinum"]["status"] == "needs_more_data"
+    assert results["idbi_imperium_platinum"]["reason"]
+    assert results["idbi_imperium_platinum"]["alternative"] is None
+
+
+def test_nri_with_idbi_fcnr_fd_is_eligible_for_imperium() -> None:
+    nri = profile().model_copy(update={"segment": "nri", "city": "Dubai", "age": 35})
+    metrics = {
+        "external_holdings": [
+            {"id": "hold-nri-fcnr", "type": "FCNR", "institution": "IDBI Bank FCNR", "amount": 25000, "rate": 5.0}
+        ]
+    }
+
+    results = {r["card_id"]: r for r in evaluate_card_eligibility(nri, metrics)}
+
+    assert results["idbi_imperium_platinum"]["status"] == "eligible"
+    assert results["idbi_imperium_platinum"]["reason"]
+
+
+def test_minor_is_ineligible_for_every_card_on_age() -> None:
+    minor = profile().model_copy(update={"age": 17})
+
+    results = evaluate_card_eligibility(minor)
+
+    assert results
+    assert all(r["status"] == "ineligible" for r in results)
+    assert all("age" in r["reason"].lower() for r in results)

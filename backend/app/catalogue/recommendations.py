@@ -54,7 +54,6 @@ def resolve_offer(message: str) -> CreditOffer | None:
 
 def evaluate_eligibility(profile: PersonaProfile, metrics: dict[str, object], offer: CreditOffer) -> dict:
     """Evaluate only product-master rules that this demo can actually prove."""
-    del metrics
     rules = offer.eligibility
     reasons: list[str] = []
     checked: list[str] = []
@@ -62,7 +61,7 @@ def evaluate_eligibility(profile: PersonaProfile, metrics: dict[str, object], of
     if rules.get("resident_india"):
         checked.append("Indian residency")
         if profile.segment == "nri":
-            return _result("ineligible", ["This card is listed for residents of India; your profile is marked NRI."], checked)
+            return _result("ineligible", ["Set up for India-resident profiles; your profile is marked NRI."], checked)
 
     min_age = rules.get("min_age")
     if min_age is not None:
@@ -76,11 +75,20 @@ def evaluate_eligibility(profile: PersonaProfile, metrics: dict[str, object], of
         if profile.age > int(max_age):
             return _result("ineligible", [f"This card's published age limit is {max_age} for your profile type."], checked)
 
-    if rules.get("requires_idbi_fd_min"):
+    fd_threshold = rules.get("requires_idbi_fd_min")
+    if fd_threshold:
         checked.append("eligible IDBI Fixed Deposit")
+        threshold = int(fd_threshold)
+        deposit = _qualifying_idbi_deposit(metrics, threshold, accepts_fcnr=bool(rules.get("accepts_fcnr")))
+        if deposit is not None:
+            return _result(
+                "eligible",
+                [f"An eligible IDBI Fixed Deposit of ₹{int(deposit['amount']):,} secures this card."],
+                checked,
+            )
         return _result(
             "needs_more_data",
-            [f"Please confirm an eligible IDBI Fixed Deposit of at least ₹{int(rules['requires_idbi_fd_min']):,} before we can check this secured-card path."],
+            [f"Please confirm an eligible IDBI Fixed Deposit of at least ₹{threshold:,} before we can check this secured-card path."],
             checked,
         )
 
@@ -93,6 +101,55 @@ def evaluate_eligibility(profile: PersonaProfile, metrics: dict[str, object], of
 
     reasons.append("Your known profile passes the published demo pre-eligibility checks.")
     return _result("eligible", reasons, checked)
+
+
+def evaluate_card_eligibility(profile: PersonaProfile, metrics: dict[str, object] | None = None) -> list[dict]:
+    """Deterministic pre-eligibility verdict for every credit card, independent of the RM shelf filter.
+
+    Unlike `recommendations_for`, this returns every card's verdict (including
+    `ineligible`/`needs_more_data`) so an empathetic response can explain why a
+    card is not offered and, where one exists, name a genuine alternative path.
+    """
+    metrics = metrics or {}
+    cards = [offer for offer in OFFERS.values() if offer.product_type == "credit_card"]
+    results = [_card_verdict(profile, metrics, offer) for offer in cards]
+
+    unsecured = [r for r in results if not OFFERS[r["card_id"]].eligibility.get("requires_idbi_fd_min")]
+    secured = next((r for r in results if OFFERS[r["card_id"]].eligibility.get("requires_idbi_fd_min")), None)
+    if profile.segment == "nri" and secured and unsecured and all(r["status"] == "ineligible" for r in unsecured):
+        for r in unsecured:
+            r["alternative"] = {
+                "card_id": secured["card_id"],
+                "name": secured["name"],
+                "why": "A card secured against your IDBI NRE/FCNR fixed deposit — the NRI-eligible path.",
+            }
+
+    return results
+
+
+def _card_verdict(profile: PersonaProfile, metrics: dict[str, object], offer: CreditOffer) -> dict:
+    eligibility = evaluate_eligibility(profile, metrics, offer)
+    return {
+        "card_id": offer.id,
+        "name": offer.name,
+        "status": eligibility["status"],
+        "reason": " ".join(eligibility["reasons"]),
+        "alternative": None,
+    }
+
+
+def _qualifying_idbi_deposit(metrics: dict[str, object], threshold: int, *, accepts_fcnr: bool) -> dict | None:
+    holdings = metrics.get("external_holdings") if isinstance(metrics, dict) else None
+    if not holdings:
+        return None
+    allowed_types = {"FD", "FCNR", "NRE"} if accepts_fcnr else {"FD"}
+    for holding in holdings:
+        institution = str(holding.get("institution", "")).lower()
+        deposit_type = str(holding.get("type", "")).upper()
+        amount = holding.get("amount") or 0
+        if "idbi" in institution and deposit_type in allowed_types and amount >= threshold:
+            return holding
+    return None
 
 
 def recommendations_for(profile: PersonaProfile, metrics: dict[str, object], *, family: OfferFamily, message: str) -> list[dict]:
