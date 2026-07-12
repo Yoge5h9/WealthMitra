@@ -39,7 +39,8 @@ export default function CommandCenter() {
     <div className="mx-auto max-w-6xl space-y-16 px-6 py-12">
       {/* Hero */}
       <section className="relative overflow-hidden rounded-2xl border border-structural-800 bg-gradient-to-br from-structural-900 via-structural-800 to-structural-600 px-6 py-16 sm:px-12 sm:py-20">
-        <div className="flex max-w-2xl flex-col items-start gap-6">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] lg:gap-14">
+          <div className="flex max-w-2xl flex-col items-start gap-6">
           <span className="inline-flex items-center gap-2 rounded-full border border-neutral-0/25 bg-neutral-0/10 px-3 py-1 text-caption font-semibold uppercase tracking-wide text-structural-100">
             <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
             IDBI Innovate 2026 · Track 01 prototype
@@ -70,6 +71,25 @@ export default function CommandCenter() {
               Replay guided tour
             </Button>
           </div>
+          </div>
+
+          <aside className="rounded-xl border border-neutral-0/20 bg-neutral-0/10 p-5 backdrop-blur-sm" aria-label="WealthMitra feature loop">
+            <p className="text-caption font-semibold uppercase tracking-wide text-structural-100">The complete wealth loop</p>
+            <div className="mt-4 space-y-3">
+              <div className="flex gap-3 border-b border-neutral-0/15 pb-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-brand-300"><Sparkles size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+                <div><p className="font-display text-body font-semibold text-neutral-0">Understand and stay on track</p><p className="mt-0.5 text-caption text-structural-100">Cash flow, goals, learning and useful nudges—explained simply.</p></div>
+              </div>
+              <div className="flex gap-3 border-b border-neutral-0/15 pb-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-brand-300"><Database size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+                <div><p className="font-display text-body font-semibold text-neutral-0">See the whole picture</p><p className="mt-0.5 text-caption text-structural-100">Permissioned IDBI and external wealth data in one view through AA.</p></div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-0/10 text-brand-300"><UsersRound size={17} strokeWidth={1.75} aria-hidden="true" /></span>
+                <div><p className="font-display text-body font-semibold text-neutral-0">Find the right next step</p><p className="mt-0.5 text-caption text-structural-100">Eligibility-gated IDBI and partner options, with RM handoff for specialist help.</p></div>
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
 
