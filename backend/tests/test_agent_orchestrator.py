@@ -215,6 +215,40 @@ def test_fd_query_keeps_the_models_own_clean_lead_in_and_request_execution_call(
     assert confirm["amount"] == 15000
 
 
+# --- FIX1: the narrated/confirmed product must equal the routed product -----
+#
+# `product_ctx` (the deterministically-routed vanilla product, resolved
+# BEFORE any LLM call — see `_representative_product`) is authoritative. If
+# the model's own `request_execution` call names a DIFFERENT vanilla product,
+# the confirm card must be reconciled to the routed product — a mismatch
+# between what the customer is told and what the tappable card executes must
+# never reach the client.
+
+
+def test_auto_execute_reconciles_a_mismatched_confirm_to_the_routed_product(space):
+    sid = make_session(space, "ravi")
+    frames, fake = run(space, sid, "I want to open a fixed deposit", [
+        resp(tool_calls=[call("request_execution", {"product_id": "mf_index_sip", "amount": 5000})]),
+        resp(text="I've set up the Index Fund SIP for you. Confirm below."),
+    ])
+    assert routing_entries(space, sid)[0].outputs_summary["path"] == "auto_execute"
+    text = reply_text(frames)
+    confirm = next(c for c in cards(frames) if c["card_type"] == "execution_confirm")
+    rec = next(c for c in cards(frames) if c["card_type"] == "recommendation")
+
+    # confirm card, recommendation card, and narration all name the SAME
+    # routed product (the FD), never the model's mismatched choice.
+    assert confirm["product_id"] == "fd_regular"
+    assert rec["product"]["id"] == "fd_regular"
+    assert "IDBI Regular Fixed Deposit" in text
+    assert "Index Fund" not in text
+    assert "mf_index_sip" not in text
+
+    # the model's own amount is preserved through the reconciliation.
+    assert confirm["amount"] == 5000
+    assert space.leads == []
+
+
 # --- mode: rm_lead ----------------------------------------------------------
 
 
@@ -492,6 +526,22 @@ def test_system_prompt_forbids_internal_jargon_for_every_customer_mode():
         profile, "mass_retail_salaried", "en", "rm_lead", lead_family="loans_cards", card_context={},
     ).lower()
     assert "never expose internal terms" in card_prompt
+
+
+def test_a_model_jargon_slip_is_stripped_before_it_reaches_the_customer(space):
+    # Code-level backstop for invariant #6: even if the model ignores the
+    # "never expose internal terms" instruction, `Orchestrator._guard` must
+    # still strip it — see guardrails.strip_internal_jargon.
+    sid = make_session(space, "ravi")
+    frames, _ = run(space, sid, "how is my spending?", [
+        resp(tool_calls=[call("get_cash_flow")]),
+        resp(text="Based on your hni shelf and the suitability matrix, here are pre-eligibility "
+                  "results for the demo — your surplus is ₹20,862."),
+    ])
+    text = reply_text(frames).lower()
+    for term in _JARGON_TERMS:
+        assert term.strip("'") not in text, f"jargon leaked: {term!r}"
+    assert "₹20,862" in reply_text(frames)
 
 
 # --- BUG2: a card conversation survives a non-affirmative follow-up ---------

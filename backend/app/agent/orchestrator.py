@@ -399,14 +399,31 @@ class Orchestrator:
         LLM call (see `_representative_product`), so this never depends on the
         model correctly calling `request_execution` itself.
 
-        If the model DID call `request_execution` (the normal, working path),
-        its chosen amount/confirm card is left untouched — this only fills the
-        gap when that call never happened.
+        If the model DID call `request_execution` (the normal, working path)
+        for the SAME product `product_ctx` already routed, its chosen
+        amount/confirm card is left untouched — this only fills the gap when
+        that call never happened.
+
+        If the model instead confirmed a DIFFERENT vanilla product (its own
+        tool call named some product other than `product_ctx`), the routed
+        product is authoritative: the confirm is re-issued for it (keeping
+        the model's own amount) so the confirm card, the recommendation card
+        (also `product_ctx`, see `_cards`), and the narration below can never
+        disagree about which product this turn is about. The model's own
+        narration is dropped in that case too — it was talking about the
+        wrong product, so it must not be prepended to a reply now anchored
+        on a different one.
         """
-        if ctx.confirm is None:
-            amount = int(round(surplus)) if surplus >= product.min_amount else product.min_amount
+        mismatched = ctx.confirm is not None and ctx.confirm["product_id"] != product.id
+        if ctx.confirm is None or mismatched:
+            amount = (
+                ctx.confirm["amount"] if mismatched
+                else int(round(surplus)) if surplus >= product.min_amount else product.min_amount
+            )
             tools.request_execution(ctx, product_id=product.id, amount=amount)
         offer = prompts.auto_execute_offer_line(product, ctx.confirm["amount"], lang)
+        if mismatched:
+            return offer
         lead_in = guardrails.sanitize_output(model_text, lang) or ""
         if lead_in and len(lead_in) <= 240:
             return f"{lead_in} {offer}"
@@ -434,7 +451,11 @@ class Orchestrator:
                 regenerated=False, fell_back=True, note="reply discarded: unrecoverable after sanitization",
             )
             return safe, ref
-        final_text = sanitized
+        # Invariant #6 (never expose internal terms) is prompt-only otherwise;
+        # this is the code-level backstop so a model slip can't leak internal
+        # segmentation/catalogue/dev-process vocabulary — see
+        # guardrails.strip_internal_jargon.
+        final_text = guardrails.strip_internal_jargon(sanitized)
 
         # The eligible shelf is deterministic, catalogue-sourced data we already
         # put in the system prompt (see `_shelf_for_prompt`) so the model can
@@ -458,7 +479,7 @@ class Orchestrator:
                          task_class=task_class, temperature=0.0, max_tokens=1024)
         resp = self.gateway.complete(req)
         self._audit_llm(space, session_id, resp, task_class)
-        regen_text = guardrails.sanitize_output(resp.text, lang) or ""
+        regen_text = guardrails.strip_internal_jargon(guardrails.sanitize_output(resp.text, lang) or "")
         verdict2 = guardrails.audit_numbers(regen_text, amounts, percents)
         ref = self._audit_guardrail(space, session_id, "number_audit", verdict2, regenerated=True, fell_back=False)
         if regen_text and verdict2.ok:

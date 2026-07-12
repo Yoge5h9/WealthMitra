@@ -234,7 +234,6 @@ _CARD_REQUEST_CONTEXT = re.compile(
     r"\b(?:get|want|need|apply|recommend(?:ation)?|which|best|should|suggest)\b", re.IGNORECASE
 )
 _SHORT_CARD_MESSAGE_WORD_LIMIT = 3
-_CARD_WORD_PATTERN = re.compile(r"\bcards?\b|\bcreditcard\b|\bplastic\b", re.IGNORECASE)
 
 
 def _is_card_context_cc(normalized: str) -> bool:
@@ -243,18 +242,6 @@ def _is_card_context_cc(normalized: str) -> bool:
     if _CARD_REQUEST_CONTEXT.search(normalized):
         return True
     return len(normalized.split()) <= _SHORT_CARD_MESSAGE_WORD_LIMIT
-
-
-def is_generic_card_phrase(text: str) -> bool:
-    """True when `text` colloquially names a card in English — the literal
-    word "card"/"cards", the compact "creditcard", "plastic" slang, or a
-    context-gated "cc"/"c.c." shorthand.
-
-    Shared with the orchestrator's credit-card discovery gate so both
-    surfaces agree on what counts as a generic (unnamed) card request.
-    """
-    normalized = f" {text.lower().strip()} "
-    return bool(_CARD_WORD_PATTERN.search(normalized) or _is_card_context_cc(normalized))
 
 
 def _keyword_matches(normalized: str, keyword: str) -> bool:

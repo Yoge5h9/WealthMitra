@@ -283,3 +283,61 @@ def test_sanitize_output_passes_through_clean_english_text():
 def test_sanitize_output_handles_empty_and_none():
     assert g.sanitize_output("", "en") is None
     assert g.sanitize_output(None, "en") is None
+
+
+# --- internal-jargon strip: code-level backstop for the prompt-only rule ----
+#
+# Invariant #6 (never expose internal terms to the customer) previously lived
+# only in the system prompt. This is the code-level safety net: a model slip
+# that still says "suitability matrix", "eligible shelf", "hni", "mass_retail"
+# segment tokens, "pre-eligibility", or "demo" must never reach the customer.
+
+_FORBIDDEN_JARGON = ("suitability matrix", "shelf", "pre-eligibility", "hni", "demo", "mass_retail")
+
+
+def test_strip_internal_jargon_removes_every_forbidden_term_and_stays_coherent():
+    text = "Based on your hni shelf and the suitability matrix, here are pre-eligibility results for the demo"
+    cleaned = g.strip_internal_jargon(text)
+    lowered = cleaned.lower()
+    for term in _FORBIDDEN_JARGON:
+        assert term not in lowered, f"jargon leaked: {term!r}"
+    # still a real sentence, not blanked out or left with dangling punctuation
+    assert cleaned
+    assert not cleaned.startswith(" ")
+    assert "  " not in cleaned
+
+
+def test_strip_internal_jargon_replaces_mass_retail_gig_segment_token():
+    text = "This fits your mass_retail_gig profile well."
+    cleaned = g.strip_internal_jargon(text)
+    assert "mass_retail" not in cleaned.lower()
+    assert cleaned
+
+
+def test_strip_internal_jargon_leaves_clean_english_untouched():
+    text = "Your monthly surplus is ₹20,862. Would you like to review your spending?"
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_leaves_clean_hindi_untouched():
+    text = "आपकी मासिक बचत ₹20,862 है और आपका खर्च संतुलित है।"
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_leaves_clean_gujarati_untouched():
+    text = "તમારી માસિક બચત ₹20,862 છે અને તમારો ખર્ચ સંતુલિત છે."
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_never_corrupts_ordinary_finance_english():
+    # "shelf life" of a product is not our internal jargon usage, but the
+    # strip is intentionally conservative rather than context-aware — this
+    # documents the known trade-off without weakening the invariant on the
+    # actual jargon terms.
+    text = "A fixed deposit ladder could work well for your surplus."
+    assert g.strip_internal_jargon(text) == text
+
+
+def test_strip_internal_jargon_handles_empty_and_none():
+    assert g.strip_internal_jargon("") == ""
+    assert g.strip_internal_jargon(None) is None

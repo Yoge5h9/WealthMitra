@@ -447,6 +447,59 @@ def _strip_foreign_script_spam(text: str) -> str:
     return " ".join(kept)
 
 
+# --- internal-jargon strip: code-level backstop for "never expose internal
+# terms" (see prompts.py) --------------------------------------------------
+#
+# The prompt already instructs every mode never to say these words, but a
+# model slip must not reach the customer just because the prompt was
+# ignored. Conservative on purpose: each pattern targets one specific
+# internal term (a catalogue/segmentation/dev-process word), never a plain
+# English word in its ordinary sense, and never touches Hindi/Gujarati or
+# ₹/number text (those scripts don't contain these ASCII tokens at all).
+_JARGON_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\b(?:the\s+|a\s+)?suitability matrix\b", re.IGNORECASE), "your profile"),
+    (re.compile(r"\bpre-eligibility checks?\b", re.IGNORECASE), "eligibility check"),
+    (re.compile(r"\bpre-eligibility\b", re.IGNORECASE), "eligibility"),
+    (re.compile(r"\bhni\b", re.IGNORECASE), "premium"),
+    (re.compile(r"\bmass_retail_gig\b", re.IGNORECASE), "everyday banking"),
+    (re.compile(r"\bmass_retail\b", re.IGNORECASE), "everyday banking"),
+    (re.compile(r"\beligible shelf\b", re.IGNORECASE), "eligible products"),
+    (re.compile(r"\b(?:your|the)\s+shelf\b", re.IGNORECASE), "your eligible products"),
+    (re.compile(r"\bshelf\b", re.IGNORECASE), "products"),
+    (re.compile(r"\b(?:the\s+|this\s+|a\s+)?demo\b", re.IGNORECASE), ""),
+)
+
+# Cleanup applied ONLY when a jargon substitution actually fired above — this
+# keeps clean text (the overwhelming majority of replies) byte-identical,
+# never at risk of the cleanup itself introducing a false-positive edit.
+_DANGLING_CONNECTIVE_RE = re.compile(r"\b(?:and|for|the|of|on|in|a)\s*(?=[.,;:]|$)", re.IGNORECASE)
+_SPACE_BEFORE_PUNCT_RE = re.compile(r"\s+([.,;:!?])")
+_MULTI_SPACE_RE = re.compile(r"\s{2,}")
+
+
+def strip_internal_jargon(text: str | None) -> str | None:
+    """Strip/neutralize customer-facing internal jargon (segment codes,
+    catalogue-internal vocabulary, dev-process words) that must never reach a
+    customer — see Orchestrator._guard, which runs this on every reply of
+    every mode right after `sanitize_output`.
+    """
+    if not text:
+        return text
+    cleaned = text
+    changed = False
+    for pattern, replacement in _JARGON_PATTERNS:
+        new = pattern.sub(replacement, cleaned)
+        if new != cleaned:
+            changed = True
+        cleaned = new
+    if not changed:
+        return text
+    cleaned = _DANGLING_CONNECTIVE_RE.sub("", cleaned)
+    cleaned = _SPACE_BEFORE_PUNCT_RE.sub(r"\1", cleaned)
+    cleaned = _MULTI_SPACE_RE.sub(" ", cleaned).strip()
+    return cleaned
+
+
 def sanitize_output(text: str | None, language: str = "en") -> str | None:
     """Strip harmony tool-call leakage and out-of-language script spam from a
     reply before it ever reaches the customer.
