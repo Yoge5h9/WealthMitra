@@ -23,6 +23,9 @@ class ToolCall(BaseModel):
     id: str
     name: str
     arguments: dict
+    # Gemini 3.x signs function-call parts and rejects a follow-up turn whose
+    # history omits the signature — round-tripped opaquely, base64-encoded.
+    thought_signature: str | None = None
 
 
 class Message(BaseModel):

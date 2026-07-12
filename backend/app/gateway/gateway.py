@@ -94,7 +94,8 @@ class Gateway:
             from app.core.config import settings
             from app.gateway.providers.gemini import GeminiProvider
 
-            return GeminiProvider(client=genai.Client(api_key=settings.gemini_api_key), pricing=pricing)
+            clients = [genai.Client(api_key=k) for k in settings.gemini_api_keys]
+            return GeminiProvider(client=clients[0], pricing=pricing, fallback_clients=tuple(clients[1:]))
         if name == "anthropic":
             import anthropic
 
