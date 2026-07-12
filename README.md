@@ -7,12 +7,16 @@ Wealth advisory in India is human-gated: an RM calls you if your balance is big 
 
 **We are a companion, not an adviser.** SEBI reserves "Adviser/Wealth Manager" for Registered Investment Advisers. WealthMitra does information and distribution — factual, data-grounded, in the customer's own language. The word "advice" for a personalised, suitability-driven recommendation on a regulated product belongs to the human RM path, always. That line isn't a branding choice, it's load-bearing: it's what lets an AI companion operate at bank scale without stepping into regulated advisory territory.
 
-## What the demo shows
+## Product features
 
-1. **Grounded AI chat, in English / हिंदी / ગુજરાતી.** Ask it anything about your money — every number in the reply traces to a real tool call over the persona's synthetic data, never a hallucinated figure. Switch language mid-conversation.
-2. **Vanilla product, auto-executed.** Ask about a plain-vanilla SIP or FD and watch it execute live, with a receipt — no human in the loop, because nothing here is regulated advice.
-3. **Regulated ask → a live Lead Packet on the RM desk.** Ask about equity, ULIPs, or anything suitability-driven, and the deterministic routing engine (not the LLM) converts it into a structured Lead Packet that appears on the RM dashboard in real time — the money-shot that proves the compliance boundary is enforced in code, not by prompt.
-4. **Distress → selling suppressed.** For a persona whose EMIs eat a large share of income, the engine suppresses all product nudges and routes to debt-help + literacy only. The companion is on the customer's side first.
+- **360° financial picture, in the bank app.** A single view of internal accounts, cards, and — once a customer explicitly connects via Account Aggregator — out-of-bank mutual funds, equity, insurance, and NPS. Net-worth, cash-flow, and spend breakdowns are computed live from real persona data, never guessed.
+- **Grounded conversational advisory, in English / हिंदी / ગુજરાતી.** Ask it anything about your money — every number in the reply traces to a real tool call, never a hallucinated figure. Switch language mid-conversation; the companion voice stays the same.
+- **Real IDBI product catalogue, not a toy list.** FDs (incl. senior/Chiranjeevi/Suvidha-tax), PPF/SSY/SCSS/NPS/RBI bonds, direct-plan MFs, credit cards (Aspire/Euphoria/Imperium), Ageas Federal/Niva Bupa/Tata AIG insurance, PMS/AIF via IDBI Capital, and NRE/NRO/FCNR accounts — with published eligibility, not fabricated numbers.
+- **Vanilla products auto-execute.** A plain SIP, RD, or retail FD executes live with a receipt — no human in the loop, because nothing here is regulated advice.
+- **Regulated asks route to a human RM, live.** Ask about equity, ULIPs, PMS/AIF, or anything suitability-driven, and a deterministic routing engine — not the LLM — converts it into a structured **Lead Packet** (goals, risk score, suitability profile) that lands on the RM dashboard in real time. This is the compliance boundary, enforced in code, not by prompt.
+- **Distress suppresses selling.** For a persona whose EMIs eat a large share of income, the engine suppresses all product nudges and routes to debt-help + financial-literacy content only. The companion is on the customer's side first.
+- **Proactive nudges & financial literacy.** Idle-balance-to-invest, SIP-due, goal-drift, and tax-saving-window nudges, delivered as push/SMS/WhatsApp/voice-call variants generated from the same grounded facts.
+- **Persona-aware communication.** The same companion adapts tone and format to who it's talking to — short mobile-first actions for a busy salaried customer, patient voice-friendly steps for a senior citizen, async time-zone-aware messaging for an NRI — without changing the underlying figures or compliance rules.
 
 ## Real vs pre-seeded vs simulated — the honest line
 
@@ -43,9 +47,9 @@ Every feature in this demo is one of these three. We say so up front in the app 
                          │      FastAPI backend      │
                          │                            │
    ┌─────────────────┐  │  ┌──────────────────────┐  │
-   │  Model Gateway   │◄─┼──┤   Agent Orchestrator │  │
-   │ claude_cli /     │  │  │  (tool-use loop)     │  │
-   │ gemini / anthropic│  │  └──────────┬───────────┘  │
+   │  Model Gateway  │◄──┼──┤   Agent Orchestrator │  │
+   │openai_compatible│  │  │  (tool-use loop)     │  │
+   │/ gemini / claude│  │  └──────────┬───────────┘  │
    └─────────────────┘  │             │ tool calls     │
                          │  ┌──────────▼───────────┐   │
                          │  │   Deterministic spine  │  │
@@ -60,7 +64,16 @@ Every feature in this demo is one of these three. We say so up front in the app 
                          └────────────────────────────────┘
 ```
 
-**"Compute the numbers, generate the words."** Every figure or classification a bank has to defend — spend categories, cash-flow, net-worth, two-axis risk, suitability segment, product eligibility, and the auto-execute/RM-lead/suppress routing decision — is deterministic Python, unit-tested, and never touched by the LLM. The LLM only explains, phrases, and selects within whatever the deterministic layer already decided. The Model Gateway is the one deliberate abstraction: swap `LLM_PROVIDER` and every other service is unaffected.
+**"Compute the numbers, generate the words."** Every figure or classification a bank has to defend — spend categories, cash-flow, net-worth, two-axis risk, suitability segment, product eligibility, and the auto-execute/RM-lead/suppress routing decision — is deterministic Python, unit-tested, and never touched by the LLM. The LLM only explains, phrases, and selects within whatever the deterministic layer already decided.
+
+The **Model Gateway** is the one deliberate abstraction — swap `LLM_PROVIDER` and every other service is unaffected:
+
+| Provider | `LLM_PROVIDER` value | Notes |
+|---|---|---|
+| **OpenAI-compatible** (deployed default) | `openai_compatible` | Any OpenAI Chat-Completions-wire-compatible endpoint via `OPENAI_BASE_URL` — OpenAI itself, Groq, or a self-hosted vLLM, with zero code change. Deployed on `gpt-5.4-mini` (complex turns) / `gpt-5.4-nano` (simple turns) for schema-guaranteed tool-calling. |
+| Gemini | `gemini` | Free-tier fallback; dual-key rotation on quota exhaustion. |
+| Anthropic | `anthropic` | Direct Claude API. |
+| Claude CLI | `claude_cli` | Dev-machine only — shells out to the local `claude` binary; not a valid deploy target. |
 
 ## Quickstart (local)
 
@@ -75,31 +88,31 @@ make build     # compiles backend, npm ci + npm run build for the frontend
 make run       # PYTHONPATH=backend uvicorn app.main:app --port 8000
 ```
 
-Open http://localhost:8000. By default `LLM_PROVIDER=claude_cli`, which shells out to the `claude` CLI — only works if that's installed and authenticated on your machine. To run against Gemini or Anthropic instead:
+By default the app runs on `LLM_PROVIDER=claude_cli`, which shells out to the local `claude` CLI — only works if that's installed and authenticated on your machine. To run against the OpenAI-compatible gateway (the same path used in production) or another provider:
 
 ```bash
 cp .env.example .env
-# edit .env: LLM_PROVIDER=gemini, GEMINI_API_KEY=<your key>
+# edit .env: LLM_PROVIDER=openai_compatible, OPENAI_API_KEY=<your key>
 make run
 ```
 
-A missing key for whichever provider is active fails app startup immediately, with a clear error — by design, so a misconfigured deploy fails loudly instead of silently degrading.
+Open http://localhost:8000. A missing key for whichever provider is active fails app startup immediately, with a clear error — by design, so a misconfigured deploy fails loudly instead of silently degrading.
 
 ## One-click deploy (Render)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 1. Click the button (or go to the [Render Dashboard](https://dashboard.render.com/blueprints) → **New Blueprint Instance**) and point it at this repo.
-2. Render reads `render.yaml`, builds the Docker image, and prompts you for **`GEMINI_API_KEY`** and (optional) **`GEMINI_API_KEY_2`** during setup — the second key is a quota-exhaustion fallback: when the primary key returns 429/401/403, the gateway rotates to it automatically and stays there.
+2. Render reads `render.yaml`, builds the Docker image, and prompts you for **`OPENAI_API_KEY`** during setup. `OPENAI_BASE_URL` defaults to `https://api.openai.com/v1` and is overridable to point at any other OpenAI-wire-compatible endpoint (e.g. Groq, a self-hosted vLLM) without a code change. `GEMINI_API_KEY` / `GEMINI_API_KEY_2` are also wired as a documented free-tier fallback — set them and flip `LLM_PROVIDER` to `gemini` if needed.
 3. Wait for the build — first deploy takes a few minutes (Node + Python multi-stage build). Health check is `/api/health`.
 
-The deployed default is **`LLM_PROVIDER=gemini`** — `claude_cli` is a dev-machine-only provider and is never valid in a container. See `render.yaml` and `.env.example` for the full contract.
+The deployed default is **`LLM_PROVIDER=openai_compatible`** on `gpt-5.4-mini` / `gpt-5.4-nano` — see the Model Gateway table above. `claude_cli` is a dev-machine-only provider and is never valid in a container. See `render.yaml` and `.env.example` for the full contract.
 
 ### Manual Docker
 
 ```bash
 docker build -t wealthmitra .
-docker run -p 8000:8000 -e LLM_PROVIDER=gemini -e GEMINI_API_KEY=<your key> wealthmitra
+docker run -p 8000:8000 -e LLM_PROVIDER=openai_compatible -e OPENAI_API_KEY=<your key> wealthmitra
 ```
 
 ## Testing
