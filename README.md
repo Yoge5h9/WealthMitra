@@ -51,21 +51,11 @@ bank scale without stepping into regulated advisory territory.
   voice-friendly steps for a senior, async time-zone-aware messages for an NRI — without
   changing any figure or compliance rule.
 
-## What's real vs pre-seeded vs simulated
+## What's real vs pre-seeded
 
-We say this up front in the app itself; here it is for anyone evaluating the product.
-
-| Layer | Status | Note |
-|---|---|---|
-| Chat answers (AI agent) | **REAL** — live, grounded in calculations | Type anything, get a real grounded reply |
-| All figures (spend, cash-flow, net-worth, two-axis risk, suitability segment) | **REAL, deterministic** | The "compute the numbers" spine |
-| Routing (vanilla-auto vs RM-lead vs distress-suppress) | **REAL, deterministic** | Fully test-covered — the compliance core |
-| Suitability product filtering | **REAL, deterministic (config-driven)** | Governance & scalability |
-| 3-surface live sync (chat → RM queue → nudge) | **REAL** | Everything updates in real time |
-| Nudge copy, RM lead narrative, multilingual replies | **REAL** (AI) | Words are AI; numbers never are |
-| Bank + Account Aggregator data | **PRE-SEEDED** synthetic, disclosed in-app | Live bank/AA APIs arrive in the sandbox stage |
-| Omni-channel delivery (voice/SMS/WhatsApp/push) | **SIMULATED** playback of *real* AI copy | Telephony/messaging infra is out of prototype scope |
-| Vanilla auto-execute | **SIMULATED** confirmation + receipt | No real money movement |
+- **Real & live:** the AI conversation, every figure it shows (spend, cash-flow, net-worth, risk, suitability), the auto-execute / RM-lead / distress-suppress routing, and the live sync across chat → RM desk → nudge.
+- **Already ingested (pre-seeded synthetic):** each customer's bank transactions and Account Aggregator holdings — realistic sample data loaded in advance, since live bank/AA APIs arrive in the sandbox stage.
+- **Simulated:** omni-channel delivery (voice/SMS/WhatsApp/push) and vanilla auto-execute — real AI copy and a real receipt, no telephony or money movement.
 
 ## How it works
 
