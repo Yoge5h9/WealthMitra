@@ -29,10 +29,13 @@ export interface CustomerDashboardProps {
 
 export function CustomerDashboard({ sessionId, spaceId, personaId, language, experience: suppliedExperience }: CustomerDashboardProps) {
   const isNewCustomer = personaId === "new_to_idbi";
-  const summary = useDashboardSummary(isNewCustomer ? null : sessionId);
+  const summary = useDashboardSummary(sessionId);
   const experience = suppliedExperience ?? personaExperienceFor(personaId);
 
-  if (isNewCustomer) {
+  // new_to_idbi has no persona attached server-side until onboarding
+  // finishes in Chat, so `/summary` 404s/500s until then — fall back to the
+  // cold-start view instead of the generic error card in that case.
+  if (isNewCustomer && summary.isError) {
     return (
       <div className="space-y-5 px-4 py-4">
         <section className="rounded-lg border border-structural-200 bg-structural-50 p-5">

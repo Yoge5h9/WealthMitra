@@ -28,9 +28,18 @@ const BY_LANGUAGE: Record<LanguageCode, string[]> = {
   gu: ["મારા પૈસા ક્યાં ખર્ચાયા?", "હું ક્યાં રોકાણ કરી શકું?"],
 };
 
+// new_to_idbi has no persona seed yet, so its chips invite onboarding
+// (money picture, progress, investing, AA connect) rather than assume the
+// per-persona facts the other rows are written against.
+const NEW_TO_IDBI_CHIPS: Record<LanguageCode, string[]> = {
+  en: ["Tell me about my money", "How am I doing?", "I want to start investing", "Connect my accounts"],
+  hi: ["मेरे पैसों के बारे में बताएं", "मैं कैसा कर रहा/रही हूं?", "मैं निवेश शुरू करना चाहता/चाहती हूं", "मेरे खाते जोड़ें"],
+  gu: ["મારા પૈસા વિશે જણાવો", "હું કેવું કરી રહ્યો/રહી છું?", "મારે રોકાણ શરૂ કરવું છે", "મારા ખાતા જોડો"],
+};
+
 /** Suggested prompts for a persona in a given (possibly toggled) language. */
 export function chipsFor(personaId: string, language: LanguageCode): string[] {
-  if (personaId === "new_to_idbi") return [];
+  if (personaId === "new_to_idbi") return NEW_TO_IDBI_CHIPS[language] ?? NEW_TO_IDBI_CHIPS.en;
   const known = BY_PERSONA[personaId];
   if (known && language === (personaId === "meera" ? "gu" : personaId === "shanta" || personaId === "priya" ? "hi" : "en")) {
     return known;

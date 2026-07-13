@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { useSpaceSocket } from "@/hooks/useSpaceSocket";
 import type { AvatarState } from "@/lib/types";
 import type { LanguageCode } from "@/components/shared/LangToggle";
@@ -147,7 +147,7 @@ export function useChatSession(): UseChatSessionResult {
   // `?space=` (used by /present to isolate each judge's iframe pair) wins;
   // otherwise every plain `/app` and `/rm` visit shares the well-known
   // "default" space so a lead created in chat reaches the RM desk.
-  const [spaceId] = useState<string | null>(urlSpace ?? DEFAULT_SPACE_ID);
+  const [spaceId, setSpaceId] = useState<string | null>(urlSpace ?? DEFAULT_SPACE_ID);
 
   // Resolve the active persona once at mount: `?persona=` (highest — /present
   // pins one persona per iframe) → last-persisted persona for this tab →
@@ -280,6 +280,21 @@ export function useChatSession(): UseChatSessionResult {
       .catch((err: unknown) => {
         if (cancelled) return;
         provisionKeyRef.current = null;
+        // Self-heal a dead space: the in-memory backend loses every non-default
+        // space on restart/redeploy, so a stale `?space=` (carried in from a
+        // link or a prior navigation) 404s here. Rather than dead-ending on the
+        // error screen, fall back to the always-live shared "default" space and
+        // let the effect re-provision — and drop the stale id so Command Center
+        // stops re-serving it. Only for a genuine 404; real outages still error.
+        if (err instanceof ApiError && err.status === 404 && spaceId !== DEFAULT_SPACE_ID) {
+          try {
+            window.localStorage.removeItem("wm_demo_space_id");
+          } catch {
+            // best-effort — provisioning against default proceeds regardless.
+          }
+          setSpaceId(DEFAULT_SPACE_ID);
+          return;
+        }
         setProvisionError(err instanceof Error ? err.message : "Could not start a session.");
       });
 

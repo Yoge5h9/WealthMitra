@@ -32,6 +32,7 @@ const KNOWN_AA_AVAILABILITY: Record<string, boolean> = {
   devika: true,
   vikram: true,
   shanta: true,
+  new_to_idbi: true,
 };
 
 export function personaAaAvailabilityHint(personaId: string): boolean {

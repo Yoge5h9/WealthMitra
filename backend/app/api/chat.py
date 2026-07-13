@@ -68,8 +68,12 @@ def chat(body: ChatRequest) -> StreamingResponse:
 
     def stream() -> Iterator[str]:
         try:
-            frames = advance_onboarding(space, body.session_id, body.message) if "onboarding" in state else orchestrator.run_turn(
-                space, body.session_id, body.message, body.language
+            journey = state.get("onboarding")
+            use_onboarding = journey is not None and not journey.get("completed")
+            frames = (
+                advance_onboarding(space, body.session_id, body.message)
+                if use_onboarding
+                else orchestrator.run_turn(space, body.session_id, body.message, body.language)
             )
             for frame in frames:
                 yield _sse(frame)

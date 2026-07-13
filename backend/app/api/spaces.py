@@ -37,6 +37,11 @@ def list_personas() -> list[dict]:
     """Roster cards for persona selection. Reads the well-known default space's
     persona set, which is the shared seed roster — every space is deep-copied
     from the same seed, so this reflects every space's starting roster.
+
+    Excludes "new_to_idbi": onboarding injects a synthetic persona under that
+    id once a cold-start customer completes their profile, but the frontend
+    supplies its own "New to IDBI" showcase card — the runtime-injected one
+    must not leak in as a duplicate roster entry.
     """
     space = get_space_or_404(DEFAULT_SPACE_ID)
     return [
@@ -51,4 +56,5 @@ def list_personas() -> list[dict]:
             "story": persona.profile.story,
         }
         for persona_id, persona in sorted(space.personas.items())
+        if persona_id != "new_to_idbi"
     ]
